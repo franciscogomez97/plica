@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Filament\Resources\Socios\Schemas;
+
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Schema;
+
+class SocioForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('nombre')
+                    ->label('Nombre')
+                    ->required()
+                    ->maxLength(120),
+                TextInput::make('email')
+                    ->label('Email (opcional)')
+                    ->helperText('Si no tiene email, no pasa nada: puedes apuntarle pesos igualmente.')
+                    ->email()
+                    ->nullable(),
+                Toggle::make('activo')
+                    ->label('Activo')
+                    ->default(true),
+            ]);
+    }
+}
