@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Manga;
 use App\Models\Socio;
 use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,7 +16,7 @@ class SmokeTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(DemoSeeder::class);
     }
 
     private function admin(): User

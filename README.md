@@ -1,58 +1,93 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Plica
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Gestión de clubes de pesca deportiva: mangas, pesajes, clasificaciones y
+rankings de temporada calculados automáticamente. El admin del club mete
+los datos de las plicas al llegar a casa; el club lo ve todo al momento.
 
-## About Laravel
+> Nombre provisional del proyecto. "Plica": la papeleta donde el pescador
+> apunta sus capturas.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Laravel 12 · PHP 8.5 · SQLite (dev) — MySQL/PostgreSQL en producción
+- Filament v5 (panel de admin en `/admin` y panel de socio en `/app`)
+- Tailwind CSS v4 vía Vite (páginas públicas)
+- PHPUnit (suite de humo + motor de puntuación)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Arranque en local
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm install && npm run build
+cp .env.example .env && php artisan key:generate
+php artisan migrate
+php artisan db:seed --class=DemoSeeder   # datos de ejemplo (solo local)
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Credenciales de demo: `admin@plica.test` / `plica2026` (panel `/admin`)
+y `socio@plica.test` / `plica2026` (panel `/app`). Club público de demo:
+`/c/cd-pesca-piloto`.
 
-## Contributing
+**Producción arranca vacía**: `DatabaseSeeder` no siembra nada. Los clubes
+del piloto se dan de alta a mano.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Modelo: hechos vs. puntuación
 
-## Code of Conduct
+Regla de oro del proyecto: los **hechos** (participaciones y capturas: piezas,
+gramos, milímetros) se guardan puros y nunca se tocan. Toda la **puntuación**
+vive en `app/Services/Scoring.php` y se calcula al vuelo — editar un dato o
+cambiar una regla recalcula todo sin corromper nada. Pesos en **gramos
+enteros** y medidas en **milímetros enteros**: nada de floats.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Configuración por **sección** (cada sección = una modalidad con sus normas):
+criterio de manga (peso / medida / piezas), sistema de ranking (acumulado /
+por puestos), puntos por participación y descartes. Los rankings son SIEMPRE
+por sección; no existe ranking general (decisión de producto, no un hueco).
 
-## Security Vulnerabilities
+## Tests
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan test
+```
 
-## License
+Cubren: páginas públicas, panel admin completo, clasificación por secciones,
+panel de socio, control de acceso, flujo de invitación completo y el motor
+de puntuación (puestos, descartes, puntos de participación) con casos
+calculados a mano.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Decisiones tomadas (y por qué)
+
+- **Invitaciones por link** (WhatsApp), no por email: cero dependencia de
+  SMTP en el piloto y encaja con cómo se comunica un club real.
+- **El sistema no interviene el día de la manga**: el ritual del agua no se
+  toca (plicas en papel); se digitaliza el después. El pesaje en vivo /
+  videopesaje es fase futura, y por eso las capturas ya guardan medida.
+- **Multi-tenant desde el día 1**: todo scoped por `club_id`; meter el club
+  n.º 2 es dar de alta una fila.
+
+## PENDIENTES — leer antes de desplegar
+
+Aparcado a propósito, no olvidado:
+
+1. **Reglas reales del club piloto**: validar que los botones de sección
+   cubren su reglamento; si no, añadir el botón que falte (nunca un motor
+   de fórmulas genérico sin reglamentos reales delante).
+2. **Datos reales**: nombre del club, socios y calendario de mangas de la
+   temporada (hoy hay placeholders de demo).
+3. **Deploy a VPS**: MySQL/PostgreSQL, HTTPS, backups de BD automatizados,
+   `APP_ENV=production`, colas si algún día hay emails.
+4. **SMTP + recuperación de contraseña**: los paneles no tienen "olvidé mi
+   contraseña" porque no hay correo saliente. Configurar mailer y activar
+   `->passwordReset()` en los dos panel providers.
+5. **Cambio de reglas con historial**: la config vive en la sección (nivel
+   club); cambiarla recalcula también temporadas pasadas. Cuando haya
+   clubes con historial: config por temporada×sección o snapshot al cerrar
+   temporada.
+6. **Alta self-service de clubes**: hoy la landing solo captura solicitudes
+   (tabla `solicituds`); el alta la hace el desarrollador. Automatizar
+   cuando haya demanda real.
+7. **Ranking general absoluto**: descartado salvo que un reglamento real lo
+   pida (necesitaría puntos por puesto comparables entre secciones).
+8. **Videopesaje / captura en vivo**: fase futura; el modelo de datos ya
+   guarda medidas por captura para no cerrar la puerta.

@@ -25,7 +25,7 @@ Route::post('/solicitud', function (Request $request) {
     Solicitud::create($data);
 
     return back()->with('solicitud_ok', true);
-})->name('solicitud.store');
+})->middleware('throttle:10,1')->name('solicitud.store');
 
 // ---------- Página pública del club ----------
 
@@ -93,4 +93,4 @@ Route::post('/invitacion/{token}', function (Request $request, string $token) {
     Auth::login($user);
 
     return redirect('/app');
-})->name('invitacion.claim');
+})->middleware('throttle:10,1')->name('invitacion.claim');
