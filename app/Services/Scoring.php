@@ -69,6 +69,7 @@ class Scoring
                 $puntosParticipacion = $grupo->seccion?->puntos_participacion ?? 0;
                 $descartes = $grupo->seccion?->descartes ?? 0;
 
+                $grupo->sistema = $sistema;
                 $grupo->filas = $sistema === Seccion::SISTEMA_PUESTOS
                     ? static::rankingPorPuestos($grupo->participaciones, $grupo->criterio, $descartes)
                     : static::rankingAcumulado($grupo->participaciones, $grupo->criterio, $puntosParticipacion, $descartes);
@@ -219,6 +220,25 @@ class Scoring
     // ------------------------------------------------------------------
     //  Formato
     // ------------------------------------------------------------------
+
+    /** Valor que manda en una fila según el criterio de su sección. */
+    public static function valorPrincipal(string $criterio, object $fila): string
+    {
+        return match ($criterio) {
+            Seccion::CRITERIO_MEDIDA => static::formatMedida($fila->medida),
+            Seccion::CRITERIO_PIEZAS => $fila->piezas.($fila->piezas === 1 ? ' pieza' : ' piezas'),
+            default => static::formatPeso($fila->peso),
+        };
+    }
+
+    /** Dato secundario de una fila (complementa al principal). */
+    public static function valorSecundario(string $criterio, object $fila): string
+    {
+        return match ($criterio) {
+            Seccion::CRITERIO_PIEZAS => $fila->peso > 0 ? static::formatPeso($fila->peso) : '',
+            default => $fila->piezas.($fila->piezas === 1 ? ' pieza' : ' piezas'),
+        };
+    }
 
     /** 3450 -> "3,450 kg" */
     public static function formatPeso(int $gramos): string

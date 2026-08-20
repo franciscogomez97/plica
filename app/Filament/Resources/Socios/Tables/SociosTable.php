@@ -37,13 +37,14 @@ class SociosTable
             ])
             ->defaultSort('nombre')
             ->recordActions([
-                Action::make('invitar')
-                    ->label('Invitar')
+                Action::make('acceso')
+                    ->label('Enlace de acceso')
                     ->icon('heroicon-o-link')
-                    ->visible(fn (Socio $record): bool => $record->user_id === null)
-                    ->modalHeading('Link de invitación')
-                    ->modalDescription('Envíaselo por WhatsApp: al abrirlo podrá crear su cuenta y ver los rankings.')
-                    ->modalContent(fn (Socio $record) => view('filament.invite-link', ['url' => $record->inviteUrl()]))
+                    ->modalHeading('Enlace de acceso (un solo uso)')
+                    ->modalDescription(fn (Socio $record): string => $record->user_id === null
+                        ? 'Envíaselo por WhatsApp: al abrirlo creará su cuenta y verá los rankings.'
+                        : 'Envíaselo por WhatsApp: al abrirlo elegirá una contraseña nueva (por si la ha olvidado).')
+                    ->modalContent(fn (Socio $record) => view('filament.invite-link', ['url' => $record->accessUrl()]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),
                 EditAction::make(),

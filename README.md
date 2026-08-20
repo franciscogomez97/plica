@@ -58,8 +58,18 @@ calculados a mano.
 
 ## Decisiones tomadas (y por qué)
 
-- **Invitaciones por link** (WhatsApp), no por email: cero dependencia de
-  SMTP en el piloto y encaja con cómo se comunica un club real.
+- **Enlaces de acceso de un solo uso** (WhatsApp), no emails: el admin genera
+  el enlace desde la ficha del socio y se lo manda. Sin cuenta → la crea; con
+  cuenta → restablece su contraseña. Cero dependencia de SMTP, cuentas y
+  recuperación resueltas con el mismo mecanismo. Sesiones de 30 días para que
+  el socio no tenga que reloguearse.
+- **El sistema avisa de las mangas por gestionar**: manga con fecha pasada sin
+  marcar como celebrada → badge rojo en el menú y aviso en el dashboard del
+  admin hasta que la cierre. Asistencia en un checklist («Marcar asistencia»),
+  que solo elimina desmarcados sin capturas.
+- **Móvil primero en las vistas de socio y públicas**: listas con el dato que
+  manda según el criterio de la sección, tipografía grande, objetivos táctiles
+  de 44px+. El pescador mira el ranking desde el pantano, no desde un iMac.
 - **El sistema no interviene el día de la manga**: el ritual del agua no se
   toca (plicas en papel); se digitaliza el después. El pesaje en vivo /
   videopesaje es fase futura, y por eso las capturas ya guardan medida.
@@ -77,9 +87,9 @@ Aparcado a propósito, no olvidado:
    temporada (hoy hay placeholders de demo).
 3. **Deploy a VPS**: MySQL/PostgreSQL, HTTPS, backups de BD automatizados,
    `APP_ENV=production`, colas si algún día hay emails.
-4. **SMTP + recuperación de contraseña**: los paneles no tienen "olvidé mi
-   contraseña" porque no hay correo saliente. Configurar mailer y activar
-   `->passwordReset()` en los dos panel providers.
+4. **SMTP opcional**: la recuperación de contraseña ya funciona por enlace de
+   acceso (sin correo). Si algún día se quiere el "olvidé mi contraseña"
+   autoservicio clásico, configurar mailer y `->passwordReset()`.
 5. **Cambio de reglas con historial**: la config vive en la sección (nivel
    club); cambiarla recalcula también temporadas pasadas. Cuando haya
    clubes con historial: config por temporada×sección o snapshot al cerrar

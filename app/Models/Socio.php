@@ -31,13 +31,17 @@ class Socio extends Model
         return $this->hasMany(Participacion::class);
     }
 
-    /** Genera (si no existe) y devuelve el link de invitación para WhatsApp. */
-    public function inviteUrl(): string
+    /**
+     * Link de acceso para enviar por WhatsApp. Un solo uso:
+     * sin cuenta → crea la cuenta; con cuenta → restablece la contraseña.
+     * Se invalida al usarse; el admin puede generar otro cuando haga falta.
+     */
+    public function accessUrl(): string
     {
         if (! $this->invite_token) {
             $this->update(['invite_token' => Str::random(48)]);
         }
 
-        return route('invitacion.show', $this->invite_token);
+        return route('acceso.show', $this->invite_token);
     }
 }

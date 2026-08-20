@@ -82,12 +82,12 @@ class SmokeTest extends TestCase
         $this->actingAs($socio)->get('/admin')->assertForbidden();
     }
 
-    public function test_flujo_de_invitacion_completo(): void
+    public function test_enlace_de_acceso_crea_cuenta_y_muere_al_usarse(): void
     {
         $socioSinCuenta = Socio::whereNull('user_id')->firstOrFail();
-        $url = $socioSinCuenta->inviteUrl();
+        $url = $socioSinCuenta->accessUrl();
 
-        $this->get($url)->assertOk()->assertSee($socioSinCuenta->nombre);
+        $this->get($url)->assertOk()->assertSee($socioSinCuenta->nombre)->assertSee('Crear mi cuenta');
 
         $this->post($url, [
             'name' => $socioSinCuenta->nombre,
@@ -99,9 +99,75 @@ class SmokeTest extends TestCase
         $socioSinCuenta->refresh();
         $this->assertNotNull($socioSinCuenta->user_id);
         $this->assertSame('socio', $socioSinCuenta->user->role);
+        $this->assertNull($socioSinCuenta->invite_token); // un solo uso
 
-        // Reutilizar la invitación no debe permitir crear otra cuenta.
-        $this->get($url)->assertOk()->assertSee('ya se usó');
+        // El enlace muerto ya no sirve para nada.
+        auth()->logout();
+        $this->get($url)->assertOk()->assertSee('ya no vale');
+    }
+
+    public function test_enlace_de_acceso_restablece_contrasena(): void
+    {
+        $socio = Socio::where('email', 'socio@plica.test')->firstOrFail();
+        $url = $socio->accessUrl();
+
+        $this->get($url)->assertOk()->assertSee('Hola de nuevo');
+
+        $this->post($url, [
+            'password' => 'clavenueva99',
+            'password_confirmation' => 'clavenueva99',
+        ])->assertRedirect('/app');
+
+        $socio->refresh();
+        $this->assertNull($socio->invite_token);
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('clavenueva99', $socio->user->fresh()->password));
+    }
+
+    public function test_manga_pendiente_avisa_al_admin(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin);
+
+        // Sin mangas pasadas sin gestionar, no hay aviso.
+        $this->assertSame(0, Manga::pendientesDeGestion()->count());
+        $this->get('/admin')->assertOk()->assertDontSee('por gestionar');
+
+        // Una manga de ayer sin cerrar dispara el aviso en el dashboard.
+        Manga::create([
+            'temporada_id' => \App\Models\Temporada::firstOrFail()->id,
+            'nombre' => 'Manga de ayer',
+            'fecha' => today()->subDay(),
+            'estado' => Manga::ESTADO_PROGRAMADA,
+        ]);
+
+        $this->assertSame(1, Manga::pendientesDeGestion()->count());
+        $this->get('/admin')->assertOk()->assertSee('por gestionar')->assertSee('Manga de ayer');
+    }
+
+    public function test_sincronizar_asistencia(): void
+    {
+        $this->actingAs($this->admin());
+
+        $programada = Manga::where('estado', Manga::ESTADO_PROGRAMADA)->firstOrFail();
+        $socios = Socio::orderBy('id')->limit(3)->get();
+        $seccion = \App\Models\Seccion::where('nombre', 'Orilla')->firstOrFail();
+
+        // Marcar dos asistentes crea sus participaciones.
+        $resultado = $programada->sincronizarAsistencia([$socios[0]->id, $socios[1]->id], $seccion->id);
+        $this->assertSame(2, $resultado['creadas']);
+        $this->assertSame(2, $programada->participacions()->count());
+
+        // Desmarcar a uno sin capturas lo elimina.
+        $resultado = $programada->sincronizarAsistencia([$socios[0]->id], $seccion->id);
+        $this->assertSame(1, $resultado['eliminadas']);
+        $this->assertSame(1, $programada->participacions()->count());
+
+        // Desmarcar a alguien CON capturas queda bloqueado, no se pierde nada.
+        $celebrada = Manga::where('estado', Manga::ESTADO_CELEBRADA)->firstOrFail();
+        $conCapturas = $celebrada->participacions()->whereHas('capturas')->with('socio')->firstOrFail();
+        $resultado = $celebrada->sincronizarAsistencia([]);
+        $this->assertContains($conCapturas->socio->nombre, $resultado['bloqueadas']);
+        $this->assertDatabaseHas('participacions', ['id' => $conCapturas->id]);
     }
 
     public function test_ranking_por_puestos_y_descartes_configurado_en_seccion(): void

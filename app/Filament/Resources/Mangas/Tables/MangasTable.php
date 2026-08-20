@@ -30,8 +30,13 @@ class MangasTable
                 TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
-                    ->color(fn (string $state): string => $state === Manga::ESTADO_CELEBRADA ? 'success' : 'warning')
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state)),
+                    ->state(fn (Manga $record): string => $record->pendienteDeGestion() ? 'pendiente' : $record->estado)
+                    ->color(fn (string $state): string => match ($state) {
+                        Manga::ESTADO_CELEBRADA => 'success',
+                        'pendiente' => 'danger',
+                        default => 'warning',
+                    })
+                    ->formatStateUsing(fn (string $state): string => $state === 'pendiente' ? 'Por gestionar' : ucfirst($state)),
                 TextColumn::make('participacions_count')
                     ->label('Participantes')
                     ->counts('participacions'),

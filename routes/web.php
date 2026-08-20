@@ -56,41 +56,56 @@ Route::get('/c/{club:slug}', function (Club $club) {
     ]);
 })->name('club.publico');
 
-// ---------- Invitaciones (link por WhatsApp) ----------
+// ---------- Enlaces de acceso (un solo uso, por WhatsApp) ----------
 
-Route::get('/invitacion/{token}', function (string $token) {
-    $socio = Socio::where('invite_token', $token)->firstOrFail();
+Route::get('/acceso/{token}', function (string $token) {
+    $socio = Socio::where('invite_token', $token)->first();
 
-    if ($socio->user_id !== null) {
-        return view('public.invitacion-usada', ['socio' => $socio]);
+    if (! $socio) {
+        return view('public.acceso-invalido');
     }
 
-    return view('public.invitacion', ['socio' => $socio, 'token' => $token]);
-})->name('invitacion.show');
+    return $socio->user_id
+        ? view('public.acceso-restablecer', ['socio' => $socio, 'token' => $token])
+        : view('public.acceso-crear', ['socio' => $socio, 'token' => $token]);
+})->name('acceso.show');
 
-Route::post('/invitacion/{token}', function (Request $request, string $token) {
-    $socio = Socio::where('invite_token', $token)->whereNull('user_id')->firstOrFail();
+Route::post('/acceso/{token}', function (Request $request, string $token) {
+    $socio = Socio::where('invite_token', $token)->firstOrFail();
 
-    $data = $request->validate([
-        'name' => ['required', 'string', 'max:120'],
-        'email' => ['required', 'email', 'max:120', 'unique:users,email'],
-        'password' => ['required', 'string', 'min:8', 'confirmed'],
-    ]);
+    if ($socio->user_id) {
+        // Restablecer contraseña de una cuenta existente.
+        $data = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
 
-    $user = User::create([
-        'name' => $data['name'],
-        'email' => $data['email'],
-        'password' => Hash::make($data['password']),
-        'club_id' => $socio->club_id,
-        'role' => User::ROLE_SOCIO,
-    ]);
+        $user = $socio->user;
+        $user->update(['password' => Hash::make($data['password'])]);
+    } else {
+        // Crear cuenta nueva vinculada al socio.
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:120', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
 
-    $socio->update([
-        'user_id' => $user->id,
-        'email' => $socio->email ?: $data['email'],
-    ]);
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'club_id' => $socio->club_id,
+            'role' => User::ROLE_SOCIO,
+        ]);
 
-    Auth::login($user);
+        $socio->user_id = $user->id;
+        $socio->email = $socio->email ?: $data['email'];
+    }
+
+    // El enlace muere al usarse.
+    $socio->invite_token = null;
+    $socio->save();
+
+    Auth::login($user, remember: true);
 
     return redirect('/app');
-})->middleware('throttle:10,1')->name('invitacion.claim');
+})->middleware('throttle:10,1')->name('acceso.claim');

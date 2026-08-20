@@ -29,6 +29,23 @@ class MangaResource extends Resource
 
     protected static ?int $navigationSort = 20;
 
+    public static function getNavigationBadge(): ?string
+    {
+        $pendientes = Manga::pendientesDeGestion()->count();
+
+        return $pendientes > 0 ? (string) $pendientes : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return static::getNavigationBadge() !== null ? 'Mangas por gestionar' : null;
+    }
+
     /** Solo mangas de temporadas del club del admin. */
     public static function getEloquentQuery(): Builder
     {

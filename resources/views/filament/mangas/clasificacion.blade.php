@@ -4,7 +4,7 @@
         $grupos = $this->getClasificacion();
     @endphp
 
-    @include('filament.partials.estilos-tabla')
+    @include('filament.partials.estilos')
 
     @if ($grupos->isEmpty())
         <x-filament::section>

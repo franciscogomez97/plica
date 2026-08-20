@@ -11,8 +11,13 @@
         <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
             <a href="{{ route('landing') }}" class="text-lg font-bold tracking-tight text-emerald-400">🎣 Plica</a>
             <nav class="flex items-center gap-4 text-sm">
-                <a href="/app" class="text-slate-300 hover:text-white">Soy pescador</a>
-                <a href="/admin" class="rounded-lg bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-500">Acceso clubes</a>
+                @auth
+                    <a href="{{ auth()->user()->isAdmin() ? '/admin' : '/app' }}"
+                       class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">Mi panel</a>
+                @else
+                    <a href="/app" class="py-2 text-slate-300 hover:text-white">Soy pescador</a>
+                    <a href="/admin" class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">Acceso clubes</a>
+                @endauth
             </nav>
         </div>
     </header>

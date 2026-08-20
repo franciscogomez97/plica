@@ -8,88 +8,77 @@
         $clasifGrupos = $this->getClasificacionUltimaManga();
     @endphp
 
-    @include('filament.partials.estilos-tabla')
+    @include('filament.partials.estilos')
 
     <x-filament::section>
-        <x-slot name="heading">Próximas mangas</x-slot>
+        <x-slot name="heading">📅 Próximas mangas</x-slot>
         @if ($proximas->isEmpty())
             <p style="opacity:.7">No hay mangas programadas ahora mismo.</p>
         @else
-            <div style="overflow-x:auto">
-                <table class="plica-tabla">
-                    <thead>
-                        <tr><th>Manga</th><th>Fecha</th><th>Lugar</th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($proximas as $manga)
-                            <tr>
-                                <td>{{ $manga->nombre }}</td>
-                                <td>{{ $manga->fecha->format('d/m/Y') }}</td>
-                                <td>{{ $manga->lugar ?? '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="plica-lista">
+                @foreach ($proximas as $manga)
+                    <div class="plica-fila">
+                        <div class="plica-quien">
+                            <div class="plica-nombre">{{ $manga->nombre }}</div>
+                            <div class="plica-detalle">{{ $manga->lugar ?? 'Lugar por confirmar' }}</div>
+                        </div>
+                        <div class="plica-valor">
+                            {{ $manga->fecha->format('d/m') }}
+                            <small>{{ $manga->fecha->format('Y') }}</small>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         @endif
     </x-filament::section>
 
     @foreach ($clasifGrupos as $grupo)
         <x-filament::section>
-            <x-slot name="heading">Última manga · {{ $ultimaManga->nombre }} — {{ $grupo->nombre }}</x-slot>
-            <div style="overflow-x:auto">
-                <table class="plica-tabla">
-                    <thead>
-                        <tr><th>Puesto</th><th>Socio</th><th class="num">Piezas</th><th class="num">Peso</th><th class="num">Medida</th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($grupo->filas as $fila)
-                            <tr @class(['plica-podio' => $fila->puesto <= 3, 'plica-yo' => $socio && $fila->socio->id === $socio->id])>
-                                <td>{{ $fila->puesto }}º</td>
-                                <td>{{ $fila->socio->nombre }}</td>
-                                <td class="num">{{ $fila->piezas }}</td>
-                                <td class="num">{{ $fila->peso > 0 ? \App\Services\Scoring::formatPeso($fila->peso) : '—' }}</td>
-                                <td class="num">{{ $fila->medida > 0 ? \App\Services\Scoring::formatMedida($fila->medida) : '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <x-slot name="heading">🎣 {{ $ultimaManga->nombre }} — {{ $grupo->nombre }}</x-slot>
+            <div class="plica-lista">
+                @foreach ($grupo->filas as $fila)
+                    <div @class(['plica-fila', 'plica-yo' => $socio && $fila->socio->id === $socio->id])>
+                        <div @class(['plica-pos', 'plica-pos-podio' => $fila->puesto <= 3])>{{ $fila->puesto }}º</div>
+                        <div class="plica-quien">
+                            <div class="plica-nombre">{{ $fila->socio->nombre }}</div>
+                            <div class="plica-detalle">{{ \App\Services\Scoring::valorSecundario($grupo->criterio, $fila) }}</div>
+                        </div>
+                        <div class="plica-valor">{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</div>
+                    </div>
+                @endforeach
             </div>
         </x-filament::section>
     @endforeach
 
     @foreach ($rankingGrupos as $grupo)
         <x-filament::section>
-            <x-slot name="heading">Ranking {{ $temporada?->nombre }} — {{ $grupo->nombre }} ({{ \App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio }})</x-slot>
-            <div style="overflow-x:auto">
-                <table class="plica-tabla">
-                    <thead>
-                        <tr><th>Puesto</th><th>Socio</th><th class="num">Mangas</th><th class="num">Piezas</th><th class="num">Peso</th><th class="num">Medida</th><th class="num">Puntos</th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($grupo->filas as $fila)
-                            <tr @class(['plica-podio' => $fila->puesto <= 3, 'plica-yo' => $socio && $fila->socio->id === $socio->id])>
-                                <td>{{ $fila->puesto }}º</td>
-                                <td>{{ $fila->socio->nombre }}</td>
-                                <td class="num">{{ $fila->mangas }}</td>
-                                <td class="num">{{ $fila->piezas }}</td>
-                                <td class="num">{{ $fila->peso > 0 ? \App\Services\Scoring::formatPeso($fila->peso) : '—' }}</td>
-                                <td class="num">{{ $fila->medida > 0 ? \App\Services\Scoring::formatMedida($fila->medida) : '—' }}</td>
-                                <td class="num plica-podio">{{ \App\Services\Scoring::formatPuntos($fila->puntos) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <x-slot name="heading">🏆 Ranking {{ $temporada?->nombre }} — {{ $grupo->nombre }}</x-slot>
+            <div class="plica-lista">
+                @foreach ($grupo->filas as $fila)
+                    <div @class(['plica-fila', 'plica-yo' => $socio && $fila->socio->id === $socio->id])>
+                        <div @class(['plica-pos', 'plica-pos-podio' => $fila->puesto <= 3])>{{ $fila->puesto }}º</div>
+                        <div class="plica-quien">
+                            <div class="plica-nombre">{{ $fila->socio->nombre }}</div>
+                            <div class="plica-detalle">{{ $fila->mangas }} {{ $fila->mangas === 1 ? 'manga' : 'mangas' }}</div>
+                        </div>
+                        <div class="plica-valor">
+                            @if ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS)
+                                {{ \App\Services\Scoring::formatPuntos($fila->puntos) }} pts
+                                <small>{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</small>
+                            @else
+                                {{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </x-filament::section>
     @endforeach
 
     @if ($rankingGrupos->isEmpty())
         <x-filament::section>
-            <x-slot name="heading">Ranking</x-slot>
+            <x-slot name="heading">🏆 Ranking</x-slot>
             <p style="opacity:.7">Aún no hay mangas celebradas esta temporada.</p>
         </x-filament::section>
-    @else
-        <p style="opacity:.5; font-size:.75rem">Puntuación provisional del piloto: acumulado por sección en mangas celebradas, según el criterio de cada sección.</p>
     @endif
 </x-filament-panels::page>

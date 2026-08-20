@@ -5,13 +5,16 @@ namespace App\Filament\Resources\Mangas\RelationManagers;
 use App\Models\Seccion;
 use App\Models\Socio;
 use App\Services\Scoring;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
@@ -113,6 +116,57 @@ class ParticipacionsRelationManager extends RelationManager
                     ->state(fn ($record): string => $record->medidaTotal() > 0 ? Scoring::formatMedida($record->medidaTotal()) : '—'),
             ])
             ->headerActions([
+                Action::make('asistencia')
+                    ->label('Marcar asistencia')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->modalHeading('¿Quién ha participado en esta manga?')
+                    ->modalDescription('Marca a los asistentes. Los desmarcados se quitan de la manga (salvo que ya tengan capturas apuntadas).')
+                    ->modalSubmitActionLabel('Guardar asistencia')
+                    ->schema([
+                        CheckboxList::make('socios')
+                            ->label('Socios')
+                            ->options(fn (): array => Socio::query()
+                                ->where('club_id', auth()->user()->club_id)
+                                ->where('activo', true)
+                                ->orderBy('nombre')
+                                ->pluck('nombre', 'id')
+                                ->all())
+                            ->default(fn (): array => $this->getOwnerRecord()
+                                ->participacions()
+                                ->pluck('socio_id')
+                                ->map(fn ($id) => (string) $id)
+                                ->all())
+                            ->columns(2)
+                            ->bulkToggleable(),
+                        Select::make('seccion_id')
+                            ->label('Sección para los recién marcados')
+                            ->helperText('Se aplica solo a los que se añaden ahora; luego puedes cambiarla socio a socio.')
+                            ->options(fn (): array => Seccion::query()
+                                ->where('club_id', auth()->user()->club_id)
+                                ->orderBy('nombre')
+                                ->pluck('nombre', 'id')
+                                ->all())
+                            ->nullable(),
+                    ])
+                    ->action(function (array $data): void {
+                        $resultado = $this->getOwnerRecord()->sincronizarAsistencia(
+                            $data['socios'] ?? [],
+                            $data['seccion_id'] ? (int) $data['seccion_id'] : null,
+                        );
+
+                        $notificacion = Notification::make()
+                            ->title('Asistencia guardada')
+                            ->body("{$resultado['creadas']} añadidos · {$resultado['eliminadas']} quitados")
+                            ->success();
+
+                        if ($resultado['bloqueadas'] !== []) {
+                            $notificacion
+                                ->warning()
+                                ->body('No se quitaron (tienen capturas): '.implode(', ', $resultado['bloqueadas']));
+                        }
+
+                        $notificacion->send();
+                    }),
                 CreateAction::make()
                     ->label('Añadir participación'),
             ])
