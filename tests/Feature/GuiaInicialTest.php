@@ -59,10 +59,10 @@ class GuiaInicialTest extends TestCase
         $this->assertSame([], array_filter($pasos, fn ($p) => ! $p['hecho']), 'Todos los pasos deberían estar hechos');
 
         // Con todo hecho, la guía celebra y se puede cerrar.
-        $this->actingAs($admin->fresh())->get('/admin')->assertSee('está en marcha');
+        $this->actingAs($admin->fresh())->get('/admin')->assertOk()->assertSee('está en marcha');
         Livewire::test(GuiaInicialWidget::class)->call('omitir');
         $this->assertNotNull($admin->fresh()->guia_completada_at);
-        $this->actingAs($admin->fresh())->get('/admin')->assertDontSee('está en marcha');
+        $this->actingAs($admin->fresh())->get('/admin')->assertOk()->assertDontSee('está en marcha');
     }
 
     public function test_el_admin_de_la_demo_no_ve_la_guia_pero_si_el_resumen(): void
@@ -83,10 +83,12 @@ class GuiaInicialTest extends TestCase
         $socio = User::where('email', 'socio@plica.test')->firstOrFail();
 
         // La demo lo marca como guiado: no la ve.
-        $this->actingAs($socio)->get('/app')->assertDontSee('bienvenido a');
+        $this->actingAs($socio)->get('/app')->assertOk()->assertDontSee('bienvenido a');
 
-        // Un socio recién llegado sí la ve.
+        // Un socio recién llegado sí la ve, con el nombre de su club.
         $socio->forceFill(['guia_completada_at' => null])->save();
-        $this->actingAs($socio->fresh())->get('/app')->assertSee('bienvenido a');
+        $this->actingAs($socio->fresh())->get('/app')
+            ->assertOk()
+            ->assertSee('bienvenido a '.$socio->club->nombre);
     }
 }

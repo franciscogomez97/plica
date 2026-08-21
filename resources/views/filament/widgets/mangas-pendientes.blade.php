@@ -12,7 +12,7 @@
                         {{ $manga->participacions_count > 0
                             ? $manga->participacions_count.' participaciones apuntadas'
                             : 'Sin participaciones todavía' }}
-                        · Asistencia → pesajes → celebrada.
+                        · Pasa lista, apunta los pesajes y márcala como celebrada.
                     </div>
                 </div>
                 <x-filament::button

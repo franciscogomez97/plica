@@ -2,12 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Seccions\Pages\ListSeccions;
 use App\Models\Manga;
+use App\Models\Seccion;
 use App\Models\Socio;
 use App\Models\Temporada;
+use App\Models\User;
 use Database\Seeders\DemoSeeder;
+use Filament\Actions\Testing\TestAction;
+use Filament\Facades\Filament;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /** La base de datos protege el historial aunque la aplicación falle. */
@@ -58,6 +64,21 @@ class IntegridadDatosTest extends TestCase
         $this->assertFalse($original->fresh()->activa);
         $this->assertTrue($nueva->fresh()->activa);
         $this->assertSame(1, Temporada::where('club_id', $original->club_id)->where('activa', true)->count());
+    }
+
+    public function test_una_seccion_con_pesajes_no_ofrece_borrado(): void
+    {
+        // Aquí la BD no protege (seccion_id es nullOnDelete): borrar una sección
+        // recolocaría su historial en «Sin sección». La protección vive en la UI.
+        $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $conHistorial = Seccion::has('participacions')->firstOrFail();
+        $sinHistorial = Seccion::create(['club_id' => $conHistorial->club_id, 'nombre' => 'Recién creada']);
+
+        Livewire::test(ListSeccions::class)
+            ->assertActionHidden(TestAction::make('delete')->table($conHistorial))
+            ->assertActionVisible(TestAction::make('delete')->table($sinHistorial));
     }
 
     public function test_borrar_una_manga_vacia_si_esta_permitido(): void

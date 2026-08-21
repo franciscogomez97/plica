@@ -1,5 +1,6 @@
 <x-filament-panels::page>
     @php
+        $club = $this->getClub();
         $socio = $this->getSocio();
         $temporada = $this->getTemporada();
         $proximas = $this->getProximasMangas();

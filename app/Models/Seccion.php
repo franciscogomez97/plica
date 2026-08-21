@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Seccion extends Model
 {
@@ -41,5 +42,10 @@ class Seccion extends Model
     public function club(): BelongsTo
     {
         return $this->belongsTo(Club::class);
+    }
+
+    public function participacions(): HasMany
+    {
+        return $this->hasMany(Participacion::class);
     }
 }

@@ -3,8 +3,7 @@
 namespace App\Filament\Resources\Seccions\Tables;
 
 use App\Models\Seccion;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -43,11 +42,9 @@ class SeccionsTable
             ])
             ->recordActions([
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                DeleteAction::make()
+                    // Una sección con pesajes no se borra: su historial se recolocaría.
+                    ->visible(fn (Seccion $record): bool => $record->participacions()->doesntExist()),
             ]);
     }
 }
