@@ -13,6 +13,8 @@ class Manga extends Model
 
     protected $fillable = ['temporada_id', 'nombre', 'fecha', 'lugar', 'estado', 'notas'];
 
+    protected $attributes = ['estado' => self::ESTADO_PROGRAMADA];
+
     protected function casts(): array
     {
         return ['fecha' => 'date'];
