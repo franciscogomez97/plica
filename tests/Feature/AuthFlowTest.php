@@ -142,13 +142,17 @@ class AuthFlowTest extends TestCase
             ->assertSee('ya no vale');
     }
 
-    public function test_solicitud_de_la_landing_normaliza_el_email(): void
+    public function test_solicitud_de_la_landing_normaliza_el_email_y_avisa_por_correo(): void
     {
+        \Illuminate\Support\Facades\Mail::fake();
+        config(['plica.notificaciones_email' => 'gestion@plica.test']);
+
         $this->post('/solicitud', [
             'club_nombre' => 'CD Prueba',
             'email' => '  INFO@CdPrueba.ES ',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('solicituds', ['email' => 'info@cdprueba.es']);
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\NuevaSolicitud::class, 1);
     }
 }

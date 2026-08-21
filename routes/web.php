@@ -24,7 +24,12 @@ Route::post('/solicitud', function (Request $request) {
 
     $data['email'] = mb_strtolower(trim($data['email']));
 
-    Solicitud::create($data);
+    $solicitud = Solicitud::create($data);
+
+    // El aviso por email nunca debe tumbar el formulario si el correo falla.
+    if ($para = config('plica.notificaciones_email')) {
+        rescue(fn () => \Illuminate\Support\Facades\Mail::to($para)->send(new \App\Mail\NuevaSolicitud($solicitud)));
+    }
 
     return back()->with('solicitud_ok', true);
 })->middleware('throttle:10,1')->name('solicitud.store');
