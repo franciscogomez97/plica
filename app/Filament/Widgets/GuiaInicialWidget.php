@@ -46,8 +46,9 @@ class GuiaInicialWidget extends Widget
             ],
             [
                 'hecho' => $temporada !== null,
-                'titulo' => 'Tu temporada, ya creada',
-                'texto' => 'La temporada agrupa las mangas del año y su ranking. Te hemos dejado lista la «'.($temporada?->nombre ?? 'Temporada').'», activa — no tienes que hacer nada. Cuando acabe el año, crearás la siguiente desde «Temporadas».',
+                'informativo' => true, // no pide acción: su explicación se muestra siempre
+                'titulo' => 'Qué es una temporada (la tuya ya está creada)',
+                'texto' => 'Una temporada es el campeonato de un año: agrupa todas sus mangas y suma su ranking. Te hemos dejado creada y activa la «'.($temporada?->nombre ?? 'Temporada').'», así que aquí no tienes que hacer nada — solo saber que existe. Cuando acabe el año, crearás la siguiente desde «Temporadas».',
                 'boton' => null,
                 'url' => TemporadaResource::getUrl(),
             ],

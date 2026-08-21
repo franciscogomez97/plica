@@ -40,11 +40,11 @@
         <div class="guia-barra"><div style="width: {{ round($hechos / count($pasos) * 100) }}%"></div></div>
 
         @foreach ($pasos as $i => $paso)
-            <div @class(['guia-paso', 'guia-hecho' => $paso['hecho'], 'guia-futuro' => ! $paso['hecho'] && $i !== $actual])>
-                <div class="guia-num">{{ $paso['hecho'] ? '✓' : $i + 1 }}</div>
+            <div @class(['guia-paso', 'guia-hecho' => $paso['hecho'] && ! ($paso['informativo'] ?? false), 'guia-futuro' => ! $paso['hecho'] && $i !== $actual])>
+                <div class="guia-num" @if($paso['hecho']) style="background:rgba(16,185,129,.2); color:rgb(16 185 129)" @endif>{{ $paso['hecho'] ? '✓' : $i + 1 }}</div>
                 <div style="min-width:0">
                     <div class="guia-titulo">{{ $paso['titulo'] }}</div>
-                    @if ($i === $actual)
+                    @if ($i === $actual || ($paso['informativo'] ?? false))
                         <div class="guia-texto">{{ $paso['texto'] }}</div>
                         @if ($paso['boton'])
                             <a href="{{ $paso['url'] }}" class="guia-boton">{{ $paso['boton'] }} →</a>

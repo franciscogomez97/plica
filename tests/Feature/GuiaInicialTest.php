@@ -31,7 +31,9 @@ class GuiaInicialTest extends TestCase
             ->assertOk()
             ->assertSee('Bienvenido, Admin')
             ->assertSee('Pon tu propia contraseña')
-            ->assertSee('Crea tus secciones');
+            ->assertSee('Crea tus secciones')
+            // El paso informativo muestra su explicación aunque esté completado:
+            ->assertSee('Una temporada es el campeonato de un año');
     }
 
     public function test_los_pasos_se_tachan_solos(): void
