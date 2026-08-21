@@ -54,6 +54,7 @@ class ParticipacionsRelationManager extends RelationManager
                         ->orderBy('nombre')
                         ->pluck('nombre', 'id')
                         ->all())
+                    ->default(fn (): ?int => $this->getOwnerRecord()->seccion_id)
                     ->nullable(),
                 Toggle::make('plica')
                     ->label('Entregó plica')
@@ -163,12 +164,14 @@ class ParticipacionsRelationManager extends RelationManager
                                 ->orderBy('nombre')
                                 ->pluck('nombre', 'id')
                                 ->all())
+                            // En una manga de sección no hay nada que elegir.
+                            ->visible(fn (): bool => $this->getOwnerRecord()->seccion_id === null)
                             ->nullable(),
                     ])
                     ->action(function (array $data): void {
                         $resultado = $this->getOwnerRecord()->sincronizarAsistencia(
                             $data['socios'] ?? [],
-                            $data['seccion_id'] ? (int) $data['seccion_id'] : null,
+                            filled($data['seccion_id'] ?? null) ? (int) $data['seccion_id'] : null,
                         );
 
                         $notificacion = Notification::make()

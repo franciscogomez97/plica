@@ -16,12 +16,18 @@ class MangasTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('seccion'))
             ->columns([
                 // Una sola línea por manga; el detalle aparece según cabe.
                 Split::make([
                     TextColumn::make('nombre')
                         ->weight(FontWeight::SemiBold)
                         ->searchable(),
+                    TextColumn::make('seccion.nombre')
+                        ->badge()
+                        ->color('gray')
+                        ->grow(false)
+                        ->visibleFrom('sm'),
                     TextColumn::make('lugar')
                         ->color('gray')
                         ->grow(false)

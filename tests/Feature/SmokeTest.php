@@ -252,6 +252,27 @@ class SmokeTest extends TestCase
         $this->assertSame(9840, $embarcacion->filas[0]->puntos);
     }
 
+    public function test_una_manga_de_seccion_apunta_la_asistencia_a_su_seccion(): void
+    {
+        $temporada = \App\Models\Temporada::firstOrFail();
+        $seccion = \App\Models\Seccion::where('club_id', $temporada->club_id)->firstOrFail();
+        $manga = Manga::create([
+            'temporada_id' => $temporada->id,
+            'seccion_id' => $seccion->id,
+            'nombre' => 'Manga de sección',
+            'fecha' => today(),
+        ]);
+
+        $socios = Socio::where('club_id', $temporada->club_id)->orderBy('id')->limit(2)->get();
+        // Sin pasar sección (el desplegable ni aparece): manda la de la manga.
+        $manga->sincronizarAsistencia($socios->pluck('id')->all());
+
+        $this->assertSame(
+            [$seccion->id, $seccion->id],
+            $manga->participacions()->pluck('seccion_id')->all(),
+        );
+    }
+
     public function test_tabla_de_participaciones_renderiza_de_verdad(): void
     {
         // Los relation managers cargan lazy: un GET a la página NO renderiza

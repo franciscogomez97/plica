@@ -22,7 +22,7 @@
                 @foreach ($proximas as $manga)
                     <div class="flex min-h-14 items-center gap-3 py-3">
                         <div class="min-w-0 flex-1">
-                            <div class="truncate text-base font-semibold">{{ $manga->nombre }}</div>
+                            <div class="truncate text-base font-semibold">{{ $manga->nombre }}{{ $manga->seccion ? ' · '.$manga->seccion->nombre : '' }}</div>
                             <div class="text-sm text-slate-500">{{ $manga->lugar ?? 'Lugar por confirmar' }}</div>
                         </div>
                         <div class="text-right text-base font-bold tabular-nums">

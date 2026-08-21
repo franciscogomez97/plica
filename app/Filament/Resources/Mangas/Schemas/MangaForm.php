@@ -26,6 +26,15 @@ class MangaForm
                     )
                     ->default(fn (): ?int => auth()->user()->club?->temporadaActiva()?->id)
                     ->required(),
+                Select::make('seccion_id')
+                    ->label('Sección')
+                    ->relationship(
+                        name: 'seccion',
+                        titleAttribute: 'nombre',
+                        modifyQueryUsing: fn (Builder $query) => $query->where('club_id', auth()->user()->club_id),
+                    )
+                    ->placeholder('Todo el club')
+                    ->nullable(),
                 TextInput::make('nombre')
                     ->label('Nombre')
                     ->placeholder('1ª Manga')

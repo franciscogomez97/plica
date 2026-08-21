@@ -45,6 +45,11 @@ criterio de manga (peso / medida / piezas), sistema de ranking (acumulado /
 por puestos), puntos por participación y descartes. Los rankings son SIEMPRE
 por sección; no existe ranking general (decisión de producto, no un hueco).
 
+Las mangas pueden ser **de una sección** (reglamento real del club piloto:
+cada sección tiene su calendario) o de **todo el club** (`seccion_id` null,
+jornada con varias secciones a la vez). En una manga de sección, la
+asistencia apunta a todos a esa sección sin preguntar nada.
+
 ## Tests
 
 ```bash

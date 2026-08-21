@@ -48,4 +48,9 @@ class Seccion extends Model
     {
         return $this->hasMany(Participacion::class);
     }
+
+    public function mangas(): HasMany
+    {
+        return $this->hasMany(Manga::class);
+    }
 }

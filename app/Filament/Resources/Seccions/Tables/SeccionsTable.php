@@ -50,8 +50,9 @@ class SeccionsTable
                 DeleteAction::make()
                     ->iconButton()
                     ->tooltip('Borrar')
-                    // Una sección con pesajes no se borra: su historial se recolocaría.
-                    ->visible(fn (Seccion $record): bool => $record->participacions()->doesntExist()),
+                    // Una sección con pesajes o mangas no se borra: protege el historial.
+                    ->visible(fn (Seccion $record): bool => $record->participacions()->doesntExist()
+                        && $record->mangas()->doesntExist()),
             ]);
     }
 }

@@ -75,9 +75,17 @@ class IntegridadDatosTest extends TestCase
 
         $conHistorial = Seccion::has('participacions')->firstOrFail();
         $sinHistorial = Seccion::create(['club_id' => $conHistorial->club_id, 'nombre' => 'Recién creada']);
+        $conManga = Seccion::create(['club_id' => $conHistorial->club_id, 'nombre' => 'Con calendario']);
+        Manga::create([
+            'temporada_id' => Temporada::where('club_id', $conHistorial->club_id)->firstOrFail()->id,
+            'seccion_id' => $conManga->id,
+            'nombre' => 'Manga de la sección',
+            'fecha' => today()->addDays(7),
+        ]);
 
         Livewire::test(ListSeccions::class)
             ->assertActionHidden(TestAction::make('delete')->table($conHistorial))
+            ->assertActionHidden(TestAction::make('delete')->table($conManga))
             ->assertActionVisible(TestAction::make('delete')->table($sinHistorial));
     }
 

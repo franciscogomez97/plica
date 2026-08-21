@@ -42,7 +42,7 @@
                 @foreach ($proximas as $manga)
                     <div class="plica-fila">
                         <div class="plica-quien">
-                            <div class="plica-nombre">{{ $manga->nombre }}</div>
+                            <div class="plica-nombre">{{ $manga->nombre }}{{ $manga->seccion ? ' · '.$manga->seccion->nombre : '' }}</div>
                             <div class="plica-detalle">{{ $manga->lugar ?? 'Lugar por confirmar' }}</div>
                         </div>
                         <div class="plica-valor">

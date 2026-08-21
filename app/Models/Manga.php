@@ -11,7 +11,7 @@ class Manga extends Model
     public const ESTADO_PROGRAMADA = 'programada';
     public const ESTADO_CELEBRADA = 'celebrada';
 
-    protected $fillable = ['temporada_id', 'nombre', 'fecha', 'lugar', 'estado', 'notas'];
+    protected $fillable = ['temporada_id', 'seccion_id', 'nombre', 'fecha', 'lugar', 'estado', 'notas'];
 
     protected $attributes = ['estado' => self::ESTADO_PROGRAMADA];
 
@@ -23,6 +23,12 @@ class Manga extends Model
     public function temporada(): BelongsTo
     {
         return $this->belongsTo(Temporada::class);
+    }
+
+    /** Sección de la manga; null = jornada de todo el club. */
+    public function seccion(): BelongsTo
+    {
+        return $this->belongsTo(Seccion::class);
     }
 
     public function participacions(): HasMany
@@ -40,6 +46,8 @@ class Manga extends Model
      */
     public function sincronizarAsistencia(array $socioIds, ?int $seccionId = null): array
     {
+        // Una manga de sección apunta a los suyos: manda sobre lo que llegue.
+        $seccionId = $this->seccion_id ?? $seccionId;
         $socioIds = array_map('intval', $socioIds);
         $actuales = $this->participacions()->with(['socio', 'capturas'])->get();
 
