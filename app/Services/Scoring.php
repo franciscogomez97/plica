@@ -70,6 +70,7 @@ class Scoring
                 $descartes = $grupo->seccion?->descartes ?? 0;
 
                 $grupo->sistema = $sistema;
+                $grupo->puntosParticipacion = $puntosParticipacion;
                 $grupo->filas = $sistema === Seccion::SISTEMA_PUESTOS
                     ? static::rankingPorPuestos($grupo->participaciones, $grupo->criterio, $descartes)
                     : static::rankingAcumulado($grupo->participaciones, $grupo->criterio, $puntosParticipacion, $descartes);
@@ -220,6 +221,19 @@ class Scoring
     // ------------------------------------------------------------------
     //  Formato
     // ------------------------------------------------------------------
+
+    /**
+     * Los puntos de un ranking acumulado, en su unidad natural.
+     * Solo tiene sentido sin puntos de participación (ahí puntos = suma pescada).
+     */
+    public static function valorRanking(string $criterio, int $puntos): string
+    {
+        return match ($criterio) {
+            Seccion::CRITERIO_MEDIDA => $puntos > 0 ? static::formatMedida($puntos) : '—',
+            Seccion::CRITERIO_PIEZAS => $puntos > 0 ? $puntos.($puntos === 1 ? ' pieza' : ' piezas') : '—',
+            default => $puntos > 0 ? static::formatPeso($puntos) : '—',
+        };
+    }
 
     /** Valor que manda en una fila según el criterio de su sección. «—» si no pescó nada. */
     public static function valorPrincipal(string $criterio, object $fila): string

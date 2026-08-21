@@ -24,7 +24,6 @@ class SeccionsTable
                         ->searchable(),
                     TextColumn::make('reglas')
                         ->state(fn (Seccion $record): string => implode(' · ', array_filter([
-                            $record->sistema_puntuacion === Seccion::SISTEMA_PUESTOS ? 'Por puestos' : 'Suma total',
                             $record->puntos_participacion > 0 ? "{$record->puntos_participacion} pts por participar" : null,
                             $record->descartes > 0 ? ($record->descartes === 1 ? '1 descarte' : "{$record->descartes} descartes") : null,
                         ])))

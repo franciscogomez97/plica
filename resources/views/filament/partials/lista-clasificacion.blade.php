@@ -17,11 +17,15 @@
                 </div>
             </div>
             <div class="plica-valor">
-                @if ($modo === 'temporada' && $grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS)
+                @if ($modo !== 'temporada')
+                    {{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}
+                @elseif ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0)
+                    {{-- Puntos «artificiales»: se enseñan como pts, con lo pescado debajo. --}}
                     {{ \App\Services\Scoring::formatPuntos($fila->puntos) }} pts
                     <small>{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</small>
                 @else
-                    {{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}
+                    {{-- Lo que ordena el ranking (con descartes aplicados), en su unidad. --}}
+                    {{ \App\Services\Scoring::valorRanking($grupo->criterio, $fila->puntos) }}
                 @endif
             </div>
         </div>

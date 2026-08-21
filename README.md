@@ -91,6 +91,13 @@ calculados a mano.
   videopesaje es fase futura, y por eso las capturas ya guardan medida.
 - **Multi-tenant desde el día 1**: todo scoped por `club_id`; meter el club
   n.º 2 es dar de alta una fila.
+- **Ranking «por puestos» retirado del formulario** (agosto 2026): nadie lo
+  usaba y confundía. Toda sección puntúa por suma total. El motor sigue en
+  `Scoring` (con sus tests); para reactivarlo, re-añadir el radio de
+  `sistema_puntuacion` en el formulario de secciones.
+- **El ranking enseña el valor que ordena**: con descartes, la suma bruta
+  puede desordenarse a la vista; se muestra `puntos` en su unidad natural
+  (kg/cm/piezas), y como «pts» solo si hay puntos de participación.
 
 ## PENDIENTES — leer antes de desplegar
 

@@ -29,18 +29,10 @@ class SeccionForm
                     ])
                     ->default(Seccion::CRITERIO_PESO)
                     ->required(),
-                Radio::make('sistema_puntuacion')
-                    ->label('Ranking de la temporada')
-                    ->options([
-                        Seccion::SISTEMA_ACUMULADO => 'Suma total',
-                        Seccion::SISTEMA_PUESTOS => 'Por puestos',
-                    ])
-                    ->descriptions([
-                        Seccion::SISTEMA_ACUMULADO => 'Se suma lo pescado en todas las mangas: gana quien más acumula.',
-                        Seccion::SISTEMA_PUESTOS => '1º = 1 punto, 2º = 2… gana quien menos suma. No asistir cuenta como último +1.',
-                    ])
-                    ->default(Seccion::SISTEMA_ACUMULADO)
-                    ->required(),
+                // El ranking de temporada es siempre por suma total (gana quien
+                // más acumula). El sistema «por puestos» sigue en Scoring,
+                // desactivado del formulario: nadie lo usaba. Para reactivarlo,
+                // re-añadir aquí el radio de sistema_puntuacion.
                 TextInput::make('puntos_participacion')
                     ->label('Puntos por participar')
                     ->helperText('Se suman por manga pescada. 0 = no se usan.')

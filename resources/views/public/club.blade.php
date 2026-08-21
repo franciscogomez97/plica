@@ -51,11 +51,11 @@
                             <div class="text-sm text-slate-500">{{ $fila->mangas }} {{ $fila->mangas === 1 ? 'manga' : 'mangas' }}</div>
                         </div>
                         <div class="text-right text-base font-bold tabular-nums">
-                            @if ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS)
+                            @if ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0)
                                 {{ \App\Services\Scoring::formatPuntos($fila->puntos) }} pts
                                 <div class="text-xs font-medium text-slate-500">{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</div>
                             @else
-                                {{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}
+                                {{ \App\Services\Scoring::valorRanking($grupo->criterio, $fila->puntos) }}
                             @endif
                         </div>
                     </div>

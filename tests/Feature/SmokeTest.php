@@ -106,7 +106,10 @@ class SmokeTest extends TestCase
             ->assertOk()
             ->assertSee('Próximas mangas')
             ->assertSee('3ª Manga')
-            ->assertSee('Ranking');
+            ->assertSee('Ranking')
+            // El ranking enseña el valor que ordena, en su unidad
+            // (Mario: 4.350 + 2.100 g en Orilla).
+            ->assertSee('6,450 kg');
     }
 
     public function test_socio_en_admin_es_redirigido_a_su_panel(): void
