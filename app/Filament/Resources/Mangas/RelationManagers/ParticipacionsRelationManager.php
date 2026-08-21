@@ -19,7 +19,6 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -98,20 +97,21 @@ class ParticipacionsRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['socio', 'seccion', 'capturas']))
             ->columns([
+                // Una sola línea por pesaje; el detalle, donde cabe.
                 Split::make([
-                    Stack::make([
-                        TextColumn::make('socio.nombre')
-                            ->weight(FontWeight::SemiBold)
-                            ->searchable(),
-                        TextColumn::make('detalle')
-                            ->state(function ($record): string {
-                                $piezas = $record->piezasTotal();
+                    TextColumn::make('socio.nombre')
+                        ->weight(FontWeight::SemiBold)
+                        ->searchable(),
+                    TextColumn::make('detalle')
+                        ->state(function ($record): string {
+                            $piezas = $record->piezasTotal();
 
-                                return ($record->seccion?->nombre ?? 'Sin sección')
-                                    .' · '.($piezas === 1 ? '1 pieza' : "{$piezas} piezas");
-                            })
-                            ->color('gray'),
-                    ])->space(1),
+                            return ($record->seccion?->nombre ?? 'Sin sección')
+                                .' · '.($piezas === 1 ? '1 pieza' : "{$piezas} piezas");
+                        })
+                        ->color('gray')
+                        ->grow(false)
+                        ->visibleFrom('sm'),
                     TextColumn::make('plica')
                         ->badge()
                         ->state(fn ($record): ?string => $record->plica ? null : 'Sin plica')
@@ -128,7 +128,7 @@ class ParticipacionsRelationManager extends RelationManager
                         ))
                         ->weight(FontWeight::Bold)
                         ->grow(false),
-                ])->from('md'),
+                ]),
             ])
             // Tocar la fila = editar el pesaje.
             ->recordAction('edit')

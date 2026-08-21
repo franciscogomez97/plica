@@ -34,10 +34,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             // Navegación sin recarga completa: sensación de app.
             ->spa()
-            // El navegador del móvil tiñe su barra del verde de Plica.
+            // Theme-color del móvil + acciones de fila (lápiz/papelera) en la
+            // MISMA línea que el contenido, también en pantallas pequeñas.
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
-                fn (): string => '<meta name="theme-color" content="#059669">',
+                fn (): string => '<meta name="theme-color" content="#059669">'
+                    .'<style>'
+                    .'.fi-ta-record .fi-ta-record-content-ctn { flex-direction: row; align-items: center; }'
+                    .'.fi-ta-record .fi-ta-record-content-ctn > div:first-child { flex: 1 1 0%; min-width: 0; }'
+                    .'.fi-ta-record .fi-ta-actions.fi-wrapped { flex: 0 0 auto; width: auto; flex-wrap: nowrap; padding-inline: .25rem .9rem; }'
+                    .'</style>',
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

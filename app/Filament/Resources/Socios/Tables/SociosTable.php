@@ -9,10 +9,10 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -22,16 +22,17 @@ class SociosTable
     {
         return $table
             ->columns([
+                // Una sola línea por socio; el email, donde cabe.
                 Split::make([
-                    Stack::make([
-                        TextColumn::make('nombre')
-                            ->weight(FontWeight::SemiBold)
-                            ->searchable(),
-                        TextColumn::make('email')
-                            ->placeholder('— sin email —')
-                            ->color('gray')
-                            ->searchable(),
-                    ])->space(1),
+                    TextColumn::make('nombre')
+                        ->weight(FontWeight::SemiBold)
+                        ->searchable(),
+                    TextColumn::make('email')
+                        ->placeholder('— sin email —')
+                        ->color('gray')
+                        ->searchable()
+                        ->grow(false)
+                        ->visibleFrom('md'),
                     TextColumn::make('insignias')
                         ->badge()
                         ->state(fn (Socio $record): array => array_values(array_filter([
@@ -45,7 +46,7 @@ class SociosTable
                         })
                         ->tooltip('Con cuenta: puede entrar y ver los rankings')
                         ->grow(false),
-                ])->from('md'),
+                ]),
             ])
             ->defaultSort('nombre')
             // Tocar la fila = editar la ficha del socio.
@@ -61,6 +62,9 @@ class SociosTable
                     ->modalContent(fn (Socio $record) => view('filament.invite-link', ['url' => $record->accessUrl(), 'socio' => $record]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),
+                EditAction::make()
+                    ->iconButton()
+                    ->tooltip('Editar'),
                 ActionGroup::make([
                     Action::make('hacerAdmin')
                         ->label('Hacer admin')
