@@ -94,7 +94,7 @@ class ParticipacionsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $q) => $q->with(['socio', 'seccion', 'capturas']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['socio', 'seccion', 'capturas']))
             ->columns([
                 TextColumn::make('socio.nombre')
                     ->label('Socio')

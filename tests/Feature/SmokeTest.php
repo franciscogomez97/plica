@@ -237,4 +237,22 @@ class SmokeTest extends TestCase
         $embarcacion = $ranking->firstWhere('nombre', 'Embarcación');
         $this->assertSame(9840, $embarcacion->filas[0]->puntos);
     }
+
+    public function test_tabla_de_participaciones_renderiza_de_verdad(): void
+    {
+        // Los relation managers cargan lazy: un GET a la página NO renderiza
+        // esta tabla. Este test la monta como componente Livewire real.
+        $this->actingAs($this->admin());
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+
+        $manga = Manga::where('estado', Manga::ESTADO_CELEBRADA)->firstOrFail();
+
+        \Livewire\Livewire::test(\App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager::class, [
+            'ownerRecord' => $manga,
+            'pageClass' => \App\Filament\Resources\Mangas\Pages\EditManga::class,
+        ])
+            ->assertSuccessful()
+            ->assertSee('Marcar asistencia')
+            ->assertSee($manga->participacions()->with('socio')->first()->socio->nombre);
+    }
 }
