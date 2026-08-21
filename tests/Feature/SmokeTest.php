@@ -41,7 +41,7 @@ class SmokeTest extends TestCase
     public function test_panel_admin_carga_todas_las_secciones(): void
     {
         $admin = $this->admin();
-        foreach (['/admin', '/admin/socios', '/admin/mangas', '/admin/temporadas', '/admin/seccions'] as $url) {
+        foreach (['/admin', '/admin/socios', '/admin/mangas', '/admin/temporadas', '/admin/seccions', '/admin/seccions/create'] as $url) {
             $this->actingAs($admin)->get($url)->assertOk();
         }
     }
