@@ -29,11 +29,14 @@
     <section id="solicitar" class="mx-auto max-w-lg py-10">
         <div class="rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <h2 class="text-xl font-bold">Solicita acceso para tu club</h2>
-            <p class="mt-1 text-sm text-slate-400">Estamos en fase piloto con clubes reales. Déjanos un contacto y hablamos.</p>
+            <p class="mt-1 text-sm text-slate-400">
+                Sin registros ni configuraciones: cuéntanos tu club y <span class="text-slate-200">te lo dejamos montado nosotros</span>.
+                Recibirás tu acceso de administrador listo para entrar, normalmente el mismo día.
+            </p>
 
             @if (session('solicitud_ok'))
                 <div class="mt-4 rounded-lg border border-emerald-700 bg-emerald-950 p-3 text-sm text-emerald-300">
-                    ¡Recibido! Te escribiremos en cuanto abramos hueco para nuevos clubes.
+                    ¡Recibido! Te montamos el club y te enviamos tu acceso de administrador a ese email — normalmente el mismo día.
                 </div>
             @else
                 <form method="POST" action="{{ route('solicitud.store') }}" class="mt-4 space-y-3">
@@ -45,7 +48,7 @@
                         @error('club_nombre') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="mb-1 block text-sm text-slate-300" for="email">Email de contacto</label>
+                        <label class="mb-1 block text-sm text-slate-300" for="email">Email del que será administrador</label>
                         <input id="email" name="email" type="email" required maxlength="120" value="{{ old('email') }}"
                                class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none">
                         @error('email') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
