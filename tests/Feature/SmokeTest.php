@@ -41,7 +41,7 @@ class SmokeTest extends TestCase
     public function test_panel_admin_carga_todas_las_secciones(): void
     {
         $admin = $this->admin();
-        foreach (['/admin', '/admin/socios', '/admin/mangas', '/admin/temporadas', '/admin/seccions', '/admin/seccions/create'] as $url) {
+        foreach (['/admin', '/admin/socios', '/admin/mangas', '/admin/temporadas', '/admin/seccions', '/admin/seccions/create', '/admin/ranking'] as $url) {
             $this->actingAs($admin)->get($url)->assertOk();
         }
     }
@@ -52,7 +52,18 @@ class SmokeTest extends TestCase
             ->get('/admin')
             ->assertOk()
             ->assertSee('¿Qué quieres hacer?')
-            ->assertSee('Nueva manga');
+            ->assertSee('Nueva manga')
+            ->assertSee('Consultar ranking');
+    }
+
+    public function test_el_admin_tiene_pagina_de_ranking_de_temporada(): void
+    {
+        $this->actingAs($this->admin())
+            ->get('/admin/ranking')
+            ->assertOk()
+            ->assertSee('mangas celebradas')
+            ->assertSee('Orilla')
+            ->assertSee('Mario López'); // líder de Orilla en la demo
     }
 
     public function test_solicitudes_solo_para_el_superadmin(): void

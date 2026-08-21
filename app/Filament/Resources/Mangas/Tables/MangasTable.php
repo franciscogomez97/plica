@@ -4,8 +4,9 @@ namespace App\Filament\Resources\Mangas\Tables;
 
 use App\Filament\Resources\Mangas\MangaResource;
 use App\Models\Manga;
-use Filament\Actions\Action;
-use Filament\Actions\EditAction;
+use Filament\Support\Enums\FontWeight;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -15,43 +16,41 @@ class MangasTable
     {
         return $table
             ->columns([
-                TextColumn::make('nombre')
-                    ->label('Manga')
-                    ->searchable(),
-                TextColumn::make('temporada.nombre')
-                    ->label('Temporada')
-                    ->visibleFrom('md'),
-                TextColumn::make('fecha')
-                    ->label('Fecha')
-                    ->date('d/m/Y')
-                    ->sortable(),
-                TextColumn::make('lugar')
-                    ->label('Lugar')
-                    ->placeholder('—')
-                    ->visibleFrom('sm'),
-                TextColumn::make('estado')
-                    ->label('Estado')
-                    ->badge()
-                    ->state(fn (Manga $record): string => $record->pendienteDeGestion() ? 'pendiente' : $record->estado)
-                    ->color(fn (string $state): string => match ($state) {
-                        Manga::ESTADO_CELEBRADA => 'success',
-                        'pendiente' => 'danger',
-                        default => 'warning',
-                    })
-                    ->formatStateUsing(fn (string $state): string => $state === 'pendiente' ? 'Por gestionar' : ucfirst($state)),
-                TextColumn::make('participacions_count')
-                    ->label('Participantes')
-                    ->counts('participacions')
-                    ->visibleFrom('md'),
+                // Fila tipo app: apilada en móvil, horizontal en escritorio.
+                Split::make([
+                    Stack::make([
+                        TextColumn::make('nombre')
+                            ->weight(FontWeight::SemiBold)
+                            ->searchable(),
+                        TextColumn::make('fecha')
+                            ->formatStateUsing(fn (Manga $record): string => $record->fecha->format('d/m/Y')
+                                .($record->lugar ? ' · '.$record->lugar : ''))
+                            ->color('gray'),
+                    ])->space(1),
+                    TextColumn::make('temporada.nombre')
+                        ->color('gray')
+                        ->grow(false)
+                        ->visibleFrom('lg'),
+                    TextColumn::make('participacions_count')
+                        ->counts('participacions')
+                        ->formatStateUsing(fn (int $state): string => $state === 1 ? '1 participante' : "{$state} participantes")
+                        ->color('gray')
+                        ->grow(false)
+                        ->visibleFrom('lg'),
+                    TextColumn::make('estado')
+                        ->badge()
+                        ->state(fn (Manga $record): string => $record->pendienteDeGestion() ? 'pendiente' : $record->estado)
+                        ->color(fn (string $state): string => match ($state) {
+                            Manga::ESTADO_CELEBRADA => 'success',
+                            'pendiente' => 'danger',
+                            default => 'warning',
+                        })
+                        ->formatStateUsing(fn (string $state): string => $state === 'pendiente' ? 'Por gestionar' : ucfirst($state))
+                        ->grow(false),
+                ])->from('md'),
             ])
             ->defaultSort('fecha', 'desc')
-            ->recordActions([
-                Action::make('clasificacion')
-                    ->label('Clasificación')
-                    ->icon('heroicon-o-trophy')
-                    ->url(fn (Manga $record): string => MangaResource::getUrl('clasificacion', ['record' => $record])),
-                EditAction::make()
-                    ->label('Gestionar'),
-            ]);
+            // Tocar la fila = gestionar la manga (y allí, «Ver clasificación»).
+            ->recordUrl(fn (Manga $record): string => MangaResource::getUrl('edit', ['record' => $record]));
     }
 }

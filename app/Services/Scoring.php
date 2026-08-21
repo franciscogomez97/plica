@@ -221,13 +221,13 @@ class Scoring
     //  Formato
     // ------------------------------------------------------------------
 
-    /** Valor que manda en una fila según el criterio de su sección. */
+    /** Valor que manda en una fila según el criterio de su sección. «—» si no pescó nada. */
     public static function valorPrincipal(string $criterio, object $fila): string
     {
         return match ($criterio) {
-            Seccion::CRITERIO_MEDIDA => static::formatMedida($fila->medida),
-            Seccion::CRITERIO_PIEZAS => $fila->piezas.($fila->piezas === 1 ? ' pieza' : ' piezas'),
-            default => static::formatPeso($fila->peso),
+            Seccion::CRITERIO_MEDIDA => $fila->medida > 0 ? static::formatMedida($fila->medida) : '—',
+            Seccion::CRITERIO_PIEZAS => $fila->piezas > 0 ? $fila->piezas.($fila->piezas === 1 ? ' pieza' : ' piezas') : '—',
+            default => $fila->peso > 0 ? static::formatPeso($fila->peso) : '—',
         };
     }
 

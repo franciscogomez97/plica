@@ -17,7 +17,9 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Support\Enums\FontWeight;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -96,25 +98,40 @@ class ParticipacionsRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['socio', 'seccion', 'capturas']))
             ->columns([
-                TextColumn::make('socio.nombre')
-                    ->label('Socio')
-                    ->searchable(),
-                TextColumn::make('seccion.nombre')
-                    ->label('Sección')
-                    ->placeholder('—'),
-                IconColumn::make('plica')
-                    ->label('Plica')
-                    ->boolean(),
-                TextColumn::make('piezas')
-                    ->label('Piezas')
-                    ->state(fn ($record): int => $record->piezasTotal()),
-                TextColumn::make('peso')
-                    ->label('Peso')
-                    ->state(fn ($record): string => Scoring::formatPeso($record->pesoTotal())),
-                TextColumn::make('medida')
-                    ->label('Medida')
-                    ->state(fn ($record): string => $record->medidaTotal() > 0 ? Scoring::formatMedida($record->medidaTotal()) : '—'),
+                Split::make([
+                    Stack::make([
+                        TextColumn::make('socio.nombre')
+                            ->weight(FontWeight::SemiBold)
+                            ->searchable(),
+                        TextColumn::make('detalle')
+                            ->state(function ($record): string {
+                                $piezas = $record->piezasTotal();
+
+                                return ($record->seccion?->nombre ?? 'Sin sección')
+                                    .' · '.($piezas === 1 ? '1 pieza' : "{$piezas} piezas");
+                            })
+                            ->color('gray'),
+                    ])->space(1),
+                    TextColumn::make('plica')
+                        ->badge()
+                        ->state(fn ($record): ?string => $record->plica ? null : 'Sin plica')
+                        ->color('warning')
+                        ->grow(false),
+                    TextColumn::make('valor')
+                        ->state(fn ($record): string => Scoring::valorPrincipal(
+                            $record->seccion?->criterio ?? Seccion::CRITERIO_PESO,
+                            (object) [
+                                'piezas' => $record->piezasTotal(),
+                                'peso' => $record->pesoTotal(),
+                                'medida' => $record->medidaTotal(),
+                            ],
+                        ))
+                        ->weight(FontWeight::Bold)
+                        ->grow(false),
+                ])->from('md'),
             ])
+            // Tocar la fila = editar el pesaje.
+            ->recordAction('edit')
             ->headerActions([
                 Action::make('asistencia')
                     ->label('Marcar asistencia')
@@ -171,8 +188,12 @@ class ParticipacionsRelationManager extends RelationManager
                     ->label('Añadir participación'),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()
+                    ->iconButton()
+                    ->tooltip('Editar pesaje'),
+                DeleteAction::make()
+                    ->iconButton()
+                    ->tooltip('Quitar'),
             ]);
     }
 }

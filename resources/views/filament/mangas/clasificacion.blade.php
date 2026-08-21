@@ -15,33 +15,15 @@
     @foreach ($grupos as $grupo)
         <x-filament::section>
             <x-slot name="heading">
-                {{ $grupo->nombre }} · clasificación por {{ \App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio }}
-                — {{ $manga->fecha->format('d/m/Y') }}{{ $manga->lugar ? ' · '.$manga->lugar : '' }}
+                <span class="plica-h">
+                    <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedTrophy" />
+                    {{ $grupo->nombre }} · por {{ mb_strtolower(\App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio) }}
+                </span>
             </x-slot>
-            <div style="overflow-x:auto">
-                <table class="plica-tabla">
-                    <thead>
-                        <tr>
-                            <th>Puesto</th>
-                            <th>Socio</th>
-                            <th class="num">Piezas</th>
-                            <th class="num">Peso</th>
-                            <th class="num">Medida</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($grupo->filas as $fila)
-                            <tr @class(['plica-podio' => $fila->puesto <= 3])>
-                                <td>{{ $fila->puesto }}º</td>
-                                <td>{{ $fila->socio->nombre }}</td>
-                                <td class="num">{{ $fila->piezas }}</td>
-                                <td class="num">{{ $fila->peso > 0 ? \App\Services\Scoring::formatPeso($fila->peso) : '—' }}</td>
-                                <td class="num">{{ $fila->medida > 0 ? \App\Services\Scoring::formatMedida($fila->medida) : '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            <x-slot name="description">
+                {{ $manga->fecha->format('d/m/Y') }}{{ $manga->lugar ? ' · '.$manga->lugar : '' }}
+            </x-slot>
+            @include('filament.partials.lista-clasificacion', ['grupo' => $grupo, 'modo' => 'manga'])
         </x-filament::section>
     @endforeach
 

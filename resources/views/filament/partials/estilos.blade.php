@@ -1,17 +1,14 @@
 {{-- Estilos comunes de clasificaciones/rankings en los paneles Filament --}}
 <style>
-    /* Tablas (panel de admin, pantalla grande) */
-    .plica-tabla { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-    .plica-tabla th { text-align: left; padding: .55rem .9rem; opacity: .6; font-weight: 600; }
-    .plica-tabla td { padding: .55rem .9rem; border-top: 1px solid rgba(128, 128, 128, .18); }
-    .plica-tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
-    .plica-podio { font-weight: 700; }
-    .plica-yo { background: rgba(16, 185, 129, .1); }
+    /* Cabeceras de sección con icono */
+    .plica-h { display: inline-flex; align-items: center; gap: .5rem; }
+    .plica-h svg { width: 1.25rem; height: 1.25rem; color: rgb(16, 185, 129); flex: none; }
 
-    /* Listas (panel de socio, móvil primero) */
+    /* Listas de clasificación (móvil primero; también en escritorio) */
     .plica-lista { display: flex; flex-direction: column; }
     .plica-fila { display: flex; align-items: center; gap: .8rem; padding: .8rem .35rem; border-top: 1px solid rgba(128, 128, 128, .18); min-height: 3.25rem; }
     .plica-fila:first-child { border-top: none; }
+    .plica-yo { background: rgba(16, 185, 129, .1); }
     .plica-fila.plica-yo { border-radius: .6rem; padding-left: .7rem; padding-right: .7rem; }
     .plica-pos { flex: none; width: 2.4rem; height: 2.4rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; background: rgba(128, 128, 128, .14); }
     .plica-pos-podio { background: rgba(16, 185, 129, .2); color: rgb(16, 185, 129); }

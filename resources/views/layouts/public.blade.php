@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Plica — gestión de clubes de pesca')</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎣</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23059669%22/><ellipse cx=%2242%22 cy=%2252%22 rx=%2225%22 ry=%2215%22 fill=%22white%22/><path d=%22M63 52l21-15v30z%22 fill=%22white%22/><circle cx=%2229%22 cy=%2248%22 r=%223.5%22 fill=%22%23059669%22/></svg>">
+    <meta name="theme-color" content="#059669">
     @vite('resources/css/app.css')
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">

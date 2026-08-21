@@ -1,6 +1,9 @@
 <x-filament::section>
     <x-slot name="heading">
-        ⚠️ Tienes {{ $this->getMangas()->count() === 1 ? 'una manga' : $this->getMangas()->count().' mangas' }} por gestionar
+        <span style="display:inline-flex; align-items:center; gap:.5rem">
+            <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedExclamationTriangle" style="width:1.25rem; height:1.25rem; color:rgb(245 158 11); flex:none" />
+            Tienes {{ $this->getMangas()->count() === 1 ? 'una manga' : $this->getMangas()->count().' mangas' }} por gestionar
+        </span>
     </x-slot>
 
     <div style="display:flex; flex-direction:column; gap:.75rem">

@@ -69,8 +69,15 @@ calculados a mano.
   que solo elimina desmarcados sin capturas.
 - **Móvil primero en TODAS las vistas — también el admin**: los admins de club
   gestionan desde el móvil. Listas con el dato que manda según el criterio de
-  la sección, tipografía grande, objetivos táctiles de 44px+, formularios a
-  una columna en pantallas pequeñas y columnas secundarias ocultas en móvil.
+  la sección, tipografía grande, objetivos táctiles de 44px+ y formularios a
+  una columna en pantallas pequeñas.
+- **Sensación de app, nunca scroll lateral**: las tablas de Filament usan
+  `Split`/`Stack` (`->from('md')`): tarjeta apilada en móvil, fila horizontal
+  en escritorio. Tocar la fila abre el registro; las acciones secundarias son
+  botones de icono o van en un menú «⋮». Ambos paneles en modo SPA; el panel
+  del socio sin menú lateral (una sola pantalla, ancho `2xl`). Iconos SIEMPRE
+  Heroicons (los emojis solo dentro de frases); las clasificaciones comparten
+  el parcial `filament/partials/lista-clasificacion` en admin y socio.
 - **Cero callejones sin salida**: un socio que entra en /admin es redirigido
   a su panel; un enlace de acceso usado explica qué hacer; el dashboard del
   admin ofrece siempre «¿Qué quieres hacer?» con las tareas habituales.

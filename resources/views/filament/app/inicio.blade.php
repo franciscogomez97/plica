@@ -29,7 +29,12 @@
     @endif
 
     <x-filament::section>
-        <x-slot name="heading">📅 Próximas mangas</x-slot>
+        <x-slot name="heading">
+            <span class="plica-h">
+                <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedCalendarDays" />
+                Próximas mangas
+            </span>
+        </x-slot>
         @if ($proximas->isEmpty())
             <p style="opacity:.7">No hay mangas programadas ahora mismo.</p>
         @else
@@ -52,50 +57,36 @@
 
     @foreach ($clasifGrupos as $grupo)
         <x-filament::section>
-            <x-slot name="heading">🎣 {{ $ultimaManga->nombre }} — {{ $grupo->nombre }}</x-slot>
-            <div class="plica-lista">
-                @foreach ($grupo->filas as $fila)
-                    <div @class(['plica-fila', 'plica-yo' => $socio && $fila->socio->id === $socio->id])>
-                        <div @class(['plica-pos', 'plica-pos-podio' => $fila->puesto <= 3])>{{ $fila->puesto }}º</div>
-                        <div class="plica-quien">
-                            <div class="plica-nombre">{{ $fila->socio->nombre }}</div>
-                            <div class="plica-detalle">{{ \App\Services\Scoring::valorSecundario($grupo->criterio, $fila) }}</div>
-                        </div>
-                        <div class="plica-valor">{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</div>
-                    </div>
-                @endforeach
-            </div>
+            <x-slot name="heading">
+                <span class="plica-h">
+                    <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedScale" />
+                    {{ $ultimaManga->nombre }} · {{ $grupo->nombre }}
+                </span>
+            </x-slot>
+            @include('filament.partials.lista-clasificacion', ['grupo' => $grupo, 'modo' => 'manga', 'socioId' => $socio?->id])
         </x-filament::section>
     @endforeach
 
     @foreach ($rankingGrupos as $grupo)
         <x-filament::section>
-            <x-slot name="heading">🏆 Ranking {{ $temporada?->nombre }} — {{ $grupo->nombre }}</x-slot>
-            <div class="plica-lista">
-                @foreach ($grupo->filas as $fila)
-                    <div @class(['plica-fila', 'plica-yo' => $socio && $fila->socio->id === $socio->id])>
-                        <div @class(['plica-pos', 'plica-pos-podio' => $fila->puesto <= 3])>{{ $fila->puesto }}º</div>
-                        <div class="plica-quien">
-                            <div class="plica-nombre">{{ $fila->socio->nombre }}</div>
-                            <div class="plica-detalle">{{ $fila->mangas }} {{ $fila->mangas === 1 ? 'manga' : 'mangas' }}</div>
-                        </div>
-                        <div class="plica-valor">
-                            @if ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS)
-                                {{ \App\Services\Scoring::formatPuntos($fila->puntos) }} pts
-                                <small>{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</small>
-                            @else
-                                {{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+            <x-slot name="heading">
+                <span class="plica-h">
+                    <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedTrophy" />
+                    Ranking {{ $temporada?->nombre }} · {{ $grupo->nombre }}
+                </span>
+            </x-slot>
+            @include('filament.partials.lista-clasificacion', ['grupo' => $grupo, 'modo' => 'temporada', 'socioId' => $socio?->id])
         </x-filament::section>
     @endforeach
 
     @if ($rankingGrupos->isEmpty())
         <x-filament::section>
-            <x-slot name="heading">🏆 Ranking</x-slot>
+            <x-slot name="heading">
+                <span class="plica-h">
+                    <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedTrophy" />
+                    Ranking
+                </span>
+            </x-slot>
             <p style="opacity:.7">Aún no hay mangas celebradas esta temporada.</p>
         </x-filament::section>
     @endif

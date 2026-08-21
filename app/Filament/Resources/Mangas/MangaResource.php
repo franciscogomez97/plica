@@ -21,7 +21,8 @@ class MangaResource extends Resource
 {
     protected static ?string $model = Manga::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTrophy;
+    // La balanza es el pesaje; el trofeo queda para la página de Ranking.
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedScale;
 
     protected static ?string $modelLabel = 'manga';
 
