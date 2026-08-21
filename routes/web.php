@@ -110,6 +110,7 @@ Route::post('/acceso/{token}', function (Request $request, string $token) {
             'club_id' => $socio->club_id,
             'role' => User::ROLE_SOCIO,
         ]);
+        $user->forceFill(['password_cambiada_at' => now()])->save();
 
         $socio->user_id = $user->id;
         $socio->email = $socio->email ?: $data['email'];

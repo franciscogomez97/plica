@@ -10,6 +10,26 @@
 
     @include('filament.partials.estilos')
 
+    @if (auth()->user()->guia_completada_at === null)
+        <x-filament::section>
+            <div style="line-height:1.6">
+                <div style="font-size:1.15rem; font-weight:800">👋 Hola, {{ str(auth()->user()->name)->before(' ') }} — bienvenido a {{ $club?->nombre }}</div>
+                <p style="opacity:.75; font-size:.92rem; margin-top:.5rem">
+                    Esta es tu página y no tienes que hacer nada para mantenerla al día: aquí verás siempre las
+                    <strong>próximas mangas</strong>, la <strong>clasificación de la última</strong> y el
+                    <strong>ranking de la temporada</strong>. Tu posición aparece resaltada en verde.
+                </p>
+                <p style="opacity:.75; font-size:.92rem; margin-top:.4rem">
+                    🔑 Si algún día quieres cambiar tu contraseña: arriba, en el menú con tu nombre → «Perfil».
+                </p>
+                <button wire:click="ocultarGuia"
+                        style="margin-top:.8rem; padding:.6rem 1.1rem; border-radius:.7rem; background:rgb(16 185 129); color:white; font-weight:600; font-size:.95rem">
+                    ¡Entendido!
+                </button>
+            </div>
+        </x-filament::section>
+    @endif
+
     <x-filament::section>
         <x-slot name="heading">📅 Próximas mangas</x-slot>
         @if ($proximas->isEmpty())

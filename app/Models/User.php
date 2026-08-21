@@ -27,7 +27,19 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_cambiada_at' => 'datetime',
+            'guia_completada_at' => 'datetime',
         ];
+    }
+
+    /** Cuando el usuario cambia su contraseña, el paso de la guía se tacha solo. */
+    protected static function booted(): void
+    {
+        static::updating(function (User $user) {
+            if ($user->isDirty('password')) {
+                $user->password_cambiada_at = now();
+            }
+        });
     }
 
     public function club(): BelongsTo

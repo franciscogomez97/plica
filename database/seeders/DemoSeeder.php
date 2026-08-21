@@ -44,7 +44,7 @@ class DemoSeeder extends Seeder
             'password' => Hash::make('plica2026'),
             'club_id' => $club->id,
             'role' => User::ROLE_ADMIN,
-        ]);
+        ])->forceFill(['password_cambiada_at' => now(), 'guia_completada_at' => now()])->save();
 
         $nombres = [
             'Mario López', 'Paco Jiménez', 'Andrés Molina', 'Sergio del Río',
@@ -65,6 +65,7 @@ class DemoSeeder extends Seeder
             'club_id' => $club->id,
             'role' => User::ROLE_SOCIO,
         ]);
+        $userSocio->forceFill(['password_cambiada_at' => now(), 'guia_completada_at' => now()])->save();
         $socios[0]->update(['user_id' => $userSocio->id, 'email' => 'socio@plica.test']);
 
         // Dos mangas celebradas + la próxima (la de verdad, en dos semanas).

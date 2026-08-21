@@ -13,4 +13,14 @@ class Inicio extends Dashboard
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;
 
     protected static ?int $navigationSort = -20;
+
+    public function getHeading(): string
+    {
+        return 'Hola, '.str(auth()->user()->name)->before(' ').' 👋';
+    }
+
+    public function getSubheading(): ?string
+    {
+        return auth()->user()->club?->nombre;
+    }
 }

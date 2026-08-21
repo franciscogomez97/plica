@@ -26,6 +26,11 @@ class Inicio extends Dashboard
         return $this->getTemporada()?->nombre;
     }
 
+    public function ocultarGuia(): void
+    {
+        auth()->user()->forceFill(['guia_completada_at' => now()])->save();
+    }
+
     public function getClub(): ?Club
     {
         return auth()->user()->club;
