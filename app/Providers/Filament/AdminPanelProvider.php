@@ -45,6 +45,30 @@ class AdminPanelProvider extends PanelProvider
                     .'.fi-ta-record .fi-ta-actions.fi-wrapped { flex: 0 0 auto; width: auto; flex-wrap: nowrap; padding-inline: .25rem .9rem; }'
                     .'</style>',
             )
+            // Flecha «Atrás» en las páginas interiores: como en una app.
+            // (Los scopes de Filament casan por clase exacta, así que se
+            // decide aquí dentro con is_a sobre la página actual.)
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::PAGE_START,
+                function (array $scopes): string {
+                    $interiores = [
+                        \Filament\Resources\Pages\CreateRecord::class,
+                        \Filament\Resources\Pages\EditRecord::class,
+                        \App\Filament\Resources\Mangas\Pages\ClasificacionManga::class,
+                        \Filament\Auth\Pages\EditProfile::class,
+                    ];
+
+                    foreach ($scopes as $scope) {
+                        foreach ($interiores as $clase) {
+                            if (is_a($scope, $clase, true)) {
+                                return view('filament.partials.boton-atras', ['fallback' => url('/admin')])->render();
+                            }
+                        }
+                    }
+
+                    return '';
+                },
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

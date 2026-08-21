@@ -98,6 +98,21 @@ class SmokeTest extends TestCase
         $this->actingAs($this->admin())->get("/admin/mangas/{$manga->id}/edit")->assertOk();
     }
 
+    public function test_las_paginas_interiores_tienen_flecha_de_atras(): void
+    {
+        $admin = $this->admin();
+        $manga = Manga::where('estado', Manga::ESTADO_CELEBRADA)->firstOrFail();
+
+        // Formularios y clasificación: con «Atrás».
+        $this->actingAs($admin)->get("/admin/mangas/{$manga->id}/edit")->assertOk()->assertSee('Atrás');
+        $this->actingAs($admin)->get('/admin/seccions/create')->assertOk()->assertSee('Atrás');
+        $this->actingAs($admin)->get("/admin/mangas/{$manga->id}/clasificacion")->assertOk()->assertSee('Atrás');
+
+        // Inicio y listados: sin ella (ahí ya está el menú).
+        $this->actingAs($admin)->get('/admin')->assertOk()->assertDontSee('Atrás');
+        $this->actingAs($admin)->get('/admin/mangas')->assertOk()->assertDontSee('Atrás');
+    }
+
     public function test_panel_socio_muestra_ranking_y_proximas_mangas(): void
     {
         $socio = User::where('email', 'socio@plica.test')->firstOrFail();

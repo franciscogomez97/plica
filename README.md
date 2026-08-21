@@ -82,8 +82,11 @@ calculados a mano.
   siempre a la vista en la fila: lápiz de editar y papelera de borrar (icon
   buttons); lo demás en un menú «⋮». Tocar la fila también abre el registro.
   Un override CSS en `AdminPanelProvider` mantiene las acciones en la misma
-  línea en pantallas pequeñas. Ambos paneles en modo SPA; el panel del socio
-  sin menú lateral (una sola pantalla, ancho `2xl`). Iconos SIEMPRE Heroicons
+  línea en pantallas pequeñas. Toda página interior (crear/editar,
+  clasificación, perfil) lleva flecha «Atrás» arriba (render hook
+  `PAGE_START`; ojo: los scopes de Filament casan por clase exacta, por eso
+  se filtra con `is_a` dentro del hook). Ambos paneles en modo SPA; el panel
+  del socio sin menú lateral (una sola pantalla, ancho `2xl`). Iconos SIEMPRE Heroicons
   (los emojis solo dentro de frases); las clasificaciones comparten el
   parcial `filament/partials/lista-clasificacion` en admin y socio.
 - **Cero callejones sin salida**: un socio que entra en /admin es redirigido

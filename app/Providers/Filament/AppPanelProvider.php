@@ -41,6 +41,20 @@ class AppPanelProvider extends PanelProvider
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn (): string => '<meta name="theme-color" content="#059669">',
             )
+            // Flecha «Atrás» en el perfil (única página interior del socio).
+            // Los scopes de Filament casan por clase exacta: se decide con is_a.
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::PAGE_START,
+                function (array $scopes): string {
+                    foreach ($scopes as $scope) {
+                        if (is_a($scope, \Filament\Auth\Pages\EditProfile::class, true)) {
+                            return view('filament.partials.boton-atras', ['fallback' => url('/app')])->render();
+                        }
+                    }
+
+                    return '';
+                },
+            )
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\Filament\App\Pages')
             ->pages([
                 Inicio::class,
