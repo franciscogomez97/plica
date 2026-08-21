@@ -94,4 +94,17 @@ class OnboardingTest extends TestCase
         $socio = User::where('email', 'socio@plica.test')->firstOrFail();
         $this->actingAs($socio)->get('/app/profile')->assertOk();
     }
+
+    public function test_un_socio_con_cuenta_puede_ser_promovido_a_admin(): void
+    {
+        $this->seed(DemoSeeder::class);
+
+        $socio = \App\Models\Socio::whereNotNull('user_id')->firstOrFail();
+        $this->assertFalse($socio->user->isAdmin());
+
+        // La acción de la tabla ejecuta exactamente esto:
+        $socio->user->update(['role' => User::ROLE_ADMIN]);
+
+        $this->actingAs($socio->user->fresh())->get('/admin')->assertOk();
+    }
 }

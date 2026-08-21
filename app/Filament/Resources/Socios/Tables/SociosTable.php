@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Socios\Tables;
 
 use App\Models\Socio;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -50,6 +51,23 @@ class SociosTable
                     ->modalContent(fn (Socio $record) => view('filament.invite-link', ['url' => $record->accessUrl(), 'socio' => $record]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),
+                Action::make('hacerAdmin')
+                    ->label('Hacer admin')
+                    ->icon('heroicon-o-key')
+                    ->visible(fn (Socio $record): bool => $record->user !== null && ! $record->user->isAdmin())
+                    ->requiresConfirmation()
+                    ->modalHeading('¿Hacer admin del club?')
+                    ->modalDescription(fn (Socio $record): string => "{$record->nombre} podrá gestionar mangas, pesajes y socios igual que tú.")
+                    ->action(fn (Socio $record) => $record->user->update(['role' => User::ROLE_ADMIN])),
+                Action::make('quitarAdmin')
+                    ->label('Quitar admin')
+                    ->icon('heroicon-o-key')
+                    ->color('gray')
+                    ->visible(fn (Socio $record): bool => $record->user !== null
+                        && $record->user->isAdmin()
+                        && $record->user_id !== auth()->id()) // nadie se quita a sí mismo
+                    ->requiresConfirmation()
+                    ->action(fn (Socio $record) => $record->user->update(['role' => User::ROLE_SOCIO])),
                 EditAction::make(),
                 DeleteAction::make()
                     // Un socio con historial no se borra: se da de baja.
