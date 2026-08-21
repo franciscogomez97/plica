@@ -107,3 +107,7 @@ Aparcado a propósito, no olvidado:
    pida (necesitaría puntos por puesto comparables entre secciones).
 8. **Videopesaje / captura en vivo**: fase futura; el modelo de datos ya
    guarda medidas por captura para no cerrar la puerta.
+9. **Blindar secciones en BD**: `participacions.seccion_id` es `nullOnDelete`,
+   así que borrar una sección recolocaría su historial en «Sin sección». La UI
+   ya lo impide (como socios/temporadas/mangas); pasarlo a `restrictOnDelete`
+   requiere migración sobre la BD viva — decidirlo junto al deploy.
