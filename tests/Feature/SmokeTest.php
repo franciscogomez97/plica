@@ -273,6 +273,27 @@ class SmokeTest extends TestCase
         );
     }
 
+    public function test_el_desplegable_de_seccion_solo_aparece_en_jornadas_de_club(): void
+    {
+        $this->actingAs($this->admin());
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+
+        $temporada = \App\Models\Temporada::firstOrFail();
+        $seccion = \App\Models\Seccion::where('club_id', $temporada->club_id)->firstOrFail();
+        $base = ['temporada_id' => $temporada->id, 'fecha' => today()];
+        $deSeccion = Manga::create([...$base, 'nombre' => 'De sección', 'seccion_id' => $seccion->id]);
+        $jornada = Manga::create([...$base, 'nombre' => 'Jornada de club']);
+
+        $montar = fn (Manga $manga) => \Livewire\Livewire::test(\App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager::class, [
+            'ownerRecord' => $manga,
+            'pageClass' => \App\Filament\Resources\Mangas\Pages\EditManga::class,
+        ])->mountAction(\Filament\Actions\Testing\TestAction::make('asistencia')->table());
+
+        // Manga de sección: nada que elegir. Jornada de club: sí.
+        $montar($deSeccion)->assertSchemaComponentHidden('seccion_id');
+        $montar($jornada)->assertSchemaComponentVisible('seccion_id');
+    }
+
     public function test_tabla_de_participaciones_renderiza_de_verdad(): void
     {
         // Los relation managers cargan lazy: un GET a la página NO renderiza
