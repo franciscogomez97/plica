@@ -15,6 +15,7 @@ return new class extends Migration
             $table->unsignedInteger('peso_gramos')->default(0);
             $table->string('nota')->nullable();
             $table->timestamps();
+            $table->index('participacion_id'); // SQLite no indexa FKs por sí solo
         });
     }
 

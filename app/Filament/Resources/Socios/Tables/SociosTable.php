@@ -4,9 +4,11 @@ namespace App\Filament\Resources\Socios\Tables;
 
 use App\Models\Socio;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -49,10 +51,25 @@ class SociosTable
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),
                 EditAction::make(),
+                DeleteAction::make()
+                    // Un socio con historial no se borra: se da de baja.
+                    ->visible(fn (Socio $record): bool => $record->participacions()->doesntExist()),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    BulkAction::make('baja')
+                        ->label('Dar de baja')
+                        ->icon('heroicon-o-user-minus')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalDescription('Dejan de aparecer en asistencias y listados, pero su historial de pesajes se conserva.')
+                        ->action(fn (Collection $records) => $records->each->update(['activo' => false]))
+                        ->deselectRecordsAfterCompletion(),
+                    BulkAction::make('alta')
+                        ->label('Dar de alta')
+                        ->icon('heroicon-o-user-plus')
+                        ->action(fn (Collection $records) => $records->each->update(['activo' => true]))
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ]);
     }

@@ -19,7 +19,9 @@ class EditManga extends EditRecord
                 ->icon('heroicon-o-trophy')
                 ->color('success')
                 ->url(fn (): string => MangaResource::getUrl('clasificacion', ['record' => $this->getRecord()])),
-            DeleteAction::make(),
+            DeleteAction::make()
+                // Con pesajes dentro no se borra: primero habría que vaciarla.
+                ->visible(fn (): bool => $this->getRecord()->participacions()->doesntExist()),
         ];
     }
 }

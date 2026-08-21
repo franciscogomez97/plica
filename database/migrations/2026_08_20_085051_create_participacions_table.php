@@ -11,11 +11,12 @@ return new class extends Migration
         Schema::create('participacions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('manga_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('socio_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('socio_id')->constrained()->restrictOnDelete();
             $table->foreignId('seccion_id')->nullable()->constrained('seccions')->nullOnDelete();
             $table->boolean('plica')->default(true);
             $table->timestamps();
             $table->unique(['manga_id', 'socio_id']);
+            $table->index('socio_id'); // SQLite no indexa FKs por sí solo
         });
     }
 

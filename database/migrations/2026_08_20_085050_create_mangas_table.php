@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('mangas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('temporada_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('temporada_id')->constrained()->restrictOnDelete();
             $table->string('nombre');
             $table->date('fecha');
             $table->string('lugar')->nullable();

@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Temporadas\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Models\Temporada;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -27,11 +27,9 @@ class TemporadasTable
             ])
             ->recordActions([
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                DeleteAction::make()
+                    // Una temporada con mangas no se borra: protege el historial.
+                    ->visible(fn (Temporada $record): bool => $record->mangas()->doesntExist()),
             ]);
     }
 }
