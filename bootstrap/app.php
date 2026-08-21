@@ -18,4 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Formulario enviado con la sesión caducada (p. ej. abierto durante horas):
+        // en vez del error 419, se vuelve al formulario con un aviso claro.
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, Request $request) {
+            return redirect()->back()->with('expirado', true);
+        });
     })->create();

@@ -20,6 +20,7 @@ class SocioForm
                     ->label('Email (opcional)')
                     ->helperText('Si no tiene email, no pasa nada: puedes apuntarle pesos igualmente.')
                     ->email()
+                    ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? mb_strtolower(trim($state)) : null)
                     ->nullable(),
                 Toggle::make('activo')
                     ->label('Activo')

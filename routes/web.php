@@ -22,6 +22,8 @@ Route::post('/solicitud', function (Request $request) {
         'mensaje' => ['nullable', 'string', 'max:1000'],
     ]);
 
+    $data['email'] = mb_strtolower(trim($data['email']));
+
     Solicitud::create($data);
 
     return back()->with('solicitud_ok', true);
@@ -59,7 +61,7 @@ Route::get('/c/{club:slug}', function (Club $club) {
 // ---------- Enlaces de acceso (un solo uso, por WhatsApp) ----------
 
 Route::get('/acceso/{token}', function (string $token) {
-    $socio = Socio::where('invite_token', $token)->first();
+    $socio = Socio::where('invite_token', $token)->where('activo', true)->first();
 
     if (! $socio) {
         return view('public.acceso-invalido');
@@ -71,7 +73,12 @@ Route::get('/acceso/{token}', function (string $token) {
 })->name('acceso.show');
 
 Route::post('/acceso/{token}', function (Request $request, string $token) {
-    $socio = Socio::where('invite_token', $token)->firstOrFail();
+    $socio = Socio::where('invite_token', $token)->where('activo', true)->first();
+
+    if (! $socio) {
+        // Token ya consumido (p. ej. doble envío): página amable, no un 404.
+        return redirect()->route('acceso.show', $token);
+    }
 
     if ($socio->user_id) {
         // Restablecer contraseña de una cuenta existente.
@@ -83,6 +90,8 @@ Route::post('/acceso/{token}', function (Request $request, string $token) {
         $user->update(['password' => Hash::make($data['password'])]);
     } else {
         // Crear cuenta nueva vinculada al socio.
+        $request->merge(['email' => mb_strtolower(trim((string) $request->input('email')))]);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:120', 'unique:users,email'],
@@ -90,8 +99,8 @@ Route::post('/acceso/{token}', function (Request $request, string $token) {
         ]);
 
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
+            'name' => trim($data['name']),
+            'email' => mb_strtolower(trim($data['email'])),
             'password' => Hash::make($data['password']),
             'club_id' => $socio->club_id,
             'role' => User::ROLE_SOCIO,
@@ -106,6 +115,7 @@ Route::post('/acceso/{token}', function (Request $request, string $token) {
     $socio->save();
 
     Auth::login($user, remember: true);
+    $request->session()->regenerate();
 
     return redirect('/app');
 })->middleware('throttle:10,1')->name('acceso.claim');

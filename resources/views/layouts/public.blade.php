@@ -23,6 +23,12 @@
         </div>
     </header>
     <main class="mx-auto max-w-5xl px-4 py-10">
+        @if (session('expirado'))
+            <div class="mx-auto mb-6 max-w-md rounded-xl border border-amber-700 bg-amber-950/60 p-4 text-center text-base text-amber-200">
+                La página llevaba demasiado tiempo abierta y se envió sin efecto.
+                Vuelve a rellenar el formulario, por favor.
+            </div>
+        @endif
         @yield('content')
     </main>
     <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">

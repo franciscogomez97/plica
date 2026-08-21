@@ -45,7 +45,7 @@ class SociosTable
                     ->modalDescription(fn (Socio $record): string => $record->user_id === null
                         ? 'Envíaselo por WhatsApp: al abrirlo creará su cuenta y verá los rankings.'
                         : 'Envíaselo por WhatsApp: al abrirlo elegirá una contraseña nueva (por si la ha olvidado).')
-                    ->modalContent(fn (Socio $record) => view('filament.invite-link', ['url' => $record->accessUrl()]))
+                    ->modalContent(fn (Socio $record) => view('filament.invite-link', ['url' => $record->accessUrl(), 'socio' => $record]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),
                 EditAction::make(),

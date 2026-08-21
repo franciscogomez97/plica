@@ -1,16 +1,36 @@
-<div class="space-y-2">
-    <input
-        type="text"
-        readonly
-        value="{{ $url }}"
-        onclick="this.select()"
-        class="w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
-    />
-    <button
-        type="button"
-        onclick="navigator.clipboard.writeText(@js($url)); this.innerText = '¡Copiado!';"
-        class="rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white"
+@php
+    $mensaje = "Hola {$socio->nombre} 👋 Soy del club {$socio->club->nombre}. "
+        .($socio->user_id
+            ? "Abre este enlace para poner una contraseña nueva a tu cuenta y ver los rankings: "
+            : "Abre este enlace para crear tu cuenta y ver las clasificaciones y rankings del club: ")
+        .$url;
+@endphp
+
+<div class="space-y-3">
+    <a
+        href="https://wa.me/?text={{ rawurlencode($mensaje) }}"
+        target="_blank"
+        rel="noopener"
+        class="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white hover:bg-emerald-500"
     >
-        Copiar link
-    </button>
+        💬 Enviar por WhatsApp
+    </a>
+
+    <div class="flex items-center gap-2">
+        <input
+            type="text"
+            readonly
+            value="{{ $url }}"
+            onclick="this.select()"
+            class="w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800"
+        />
+        <button
+            type="button"
+            onclick="navigator.clipboard?.writeText(@js($url)); this.innerText = '✔';"
+            class="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium dark:border-gray-600"
+        >
+            Copiar
+        </button>
+    </div>
+    <p class="text-xs" style="opacity:.6">El enlace es de un solo uso: cuando lo abra y termine, dejará de funcionar.</p>
 </div>
