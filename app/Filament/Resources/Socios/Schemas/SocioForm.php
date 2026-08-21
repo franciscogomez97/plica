@@ -18,7 +18,7 @@ class SocioForm
                     ->maxLength(120),
                 TextInput::make('email')
                     ->label('Email (opcional)')
-                    ->helperText('Si no tiene email, no pasa nada: puedes apuntarle pesos igualmente.')
+                    ->helperText('Opcional.')
                     ->email()
                     ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? mb_strtolower(trim($state)) : null)
                     ->nullable(),

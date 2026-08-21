@@ -7,6 +7,8 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateSocio extends CreateRecord
 {
+    protected static bool $canCreateAnother = false;
+
     protected static string $resource = SocioResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array

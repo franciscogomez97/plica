@@ -33,7 +33,7 @@ class GuiaInicialTest extends TestCase
             ->assertSee('Pon tu propia contraseña')
             ->assertSee('Crea tus secciones')
             // El paso informativo muestra su explicación aunque esté completado:
-            ->assertSee('Una temporada es el campeonato de un año');
+            ->assertSee('La temporada agrupa las mangas de un año');
     }
 
     public function test_los_pasos_se_tachan_solos(): void

@@ -32,5 +32,5 @@
             Copiar
         </button>
     </div>
-    <p class="text-xs" style="opacity:.6">El enlace es de un solo uso: cuando lo abra y termine, dejará de funcionar.</p>
+    <p class="text-xs" style="opacity:.6">De un solo uso: al usarlo, deja de funcionar.</p>
 </div>

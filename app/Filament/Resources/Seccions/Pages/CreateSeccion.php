@@ -7,6 +7,8 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateSeccion extends CreateRecord
 {
+    protected static bool $canCreateAnother = false;
+
     protected static string $resource = SeccionResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array

@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Seccions\Schemas;
 
 use App\Models\Seccion;
 use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -15,39 +14,42 @@ class SeccionForm
         return $schema
             ->components([
                 TextInput::make('nombre')
-                    ->label('Nombre de la sección')
-                    ->placeholder('Bass orilla, lucio pato, embarcación…')
+                    ->label('Nombre')
+                    ->placeholder('Bass orilla, lucio pato…')
                     ->required(),
-                Select::make('criterio')
-                    ->label('¿Qué se mide en cada manga?')
+                Radio::make('criterio')
+                    ->label('Se compite por')
                     ->options([
-                        Seccion::CRITERIO_PESO => 'El peso (kilos)',
-                        Seccion::CRITERIO_MEDIDA => 'La medida (centímetros — captura y suelta)',
-                        Seccion::CRITERIO_PIEZAS => 'El número de piezas',
+                        Seccion::CRITERIO_PESO => 'Peso',
+                        Seccion::CRITERIO_MEDIDA => 'Medida',
+                        Seccion::CRITERIO_PIEZAS => 'Nº de piezas',
+                    ])
+                    ->descriptions([
+                        Seccion::CRITERIO_MEDIDA => 'Captura y suelta: puntúan los centímetros.',
                     ])
                     ->default(Seccion::CRITERIO_PESO)
                     ->required(),
                 Radio::make('sistema_puntuacion')
-                    ->label('¿Cómo se decide el campeón de la temporada?')
+                    ->label('Ranking de la temporada')
                     ->options([
-                        Seccion::SISTEMA_ACUMULADO => 'Sumando las capturas de todo el año',
-                        Seccion::SISTEMA_PUESTOS => 'Por los puestos de cada manga',
+                        Seccion::SISTEMA_ACUMULADO => 'Suma total',
+                        Seccion::SISTEMA_PUESTOS => 'Por puestos',
                     ])
                     ->descriptions([
-                        Seccion::SISTEMA_ACUMULADO => 'Se va sumando lo pescado en cada manga. Ejemplo: Juan pesca 3 kg en la 1ª manga y 2 kg en la 2ª → lleva 5 kg. Al final del año, el que más lleve es el campeón.',
-                        Seccion::SISTEMA_PUESTOS => 'Lo que importa es en qué posición quedas cada día: el 1º se apunta 1 punto, el 2º 2 puntos, el 3º 3… y al final del año gana el que MENOS puntos tenga. Ejemplo: Juan hace un 1º y un 3º → 4 puntos; Marta hace un 2º y un 1º → 3 puntos → Marta va ganando. El día que no vas, te apuntas los puntos del último + 1.',
+                        Seccion::SISTEMA_ACUMULADO => 'Se suma lo pescado en todas las mangas: gana quien más acumula.',
+                        Seccion::SISTEMA_PUESTOS => '1º = 1 punto, 2º = 2… gana quien menos suma. No asistir cuenta como último +1.',
                     ])
                     ->default(Seccion::SISTEMA_ACUMULADO)
                     ->required(),
                 TextInput::make('puntos_participacion')
-                    ->label('Puntos de regalo por participar')
-                    ->helperText('Puntos extra solo por presentarse a la manga, se pesque o no. Ejemplo: con 500, cada manga pescada suma 500 al total del año. Si tu club no usa esto, déjalo a 0. (Solo cuenta en el sistema de sumar capturas.)')
+                    ->label('Puntos por participar')
+                    ->helperText('Se suman por manga pescada. 0 = no se usan.')
                     ->numeric()
                     ->minValue(0)
                     ->default(0),
                 TextInput::make('descartes')
                     ->label('Descartes')
-                    ->helperText('Cuántas de tus PEORES mangas se borran del ranking a final de año. Ejemplo: con 8 mangas y 2 descartes, a cada pescador solo le cuentan sus 6 mejores. Pon 0 para que cuenten todas.')
+                    ->helperText('Peores mangas que no cuentan al año. 0 = cuentan todas.')
                     ->numeric()
                     ->minValue(0)
                     ->default(0),

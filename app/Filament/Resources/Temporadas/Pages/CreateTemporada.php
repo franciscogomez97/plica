@@ -7,6 +7,8 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateTemporada extends CreateRecord
 {
+    protected static bool $canCreateAnother = false;
+
     protected static string $resource = TemporadaResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array

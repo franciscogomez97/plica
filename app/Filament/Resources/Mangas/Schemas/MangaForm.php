@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Mangas\Schemas;
 
 use App\Models\Manga;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -35,12 +36,16 @@ class MangaForm
                 TextInput::make('lugar')
                     ->label('Lugar')
                     ->placeholder('Embalse, río, tramo…'),
-                Select::make('estado')
+                Radio::make('estado')
                     ->label('Estado')
                     ->options([
                         Manga::ESTADO_PROGRAMADA => 'Programada',
                         Manga::ESTADO_CELEBRADA => 'Celebrada',
                     ])
+                    ->descriptions([
+                        Manga::ESTADO_CELEBRADA => 'Cuenta para el ranking de la temporada.',
+                    ])
+                    ->inline()
                     ->default(Manga::ESTADO_PROGRAMADA)
                     ->hiddenOn('create') // una manga nueva siempre nace programada
                     ->required(),

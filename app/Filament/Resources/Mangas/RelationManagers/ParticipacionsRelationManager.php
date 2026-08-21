@@ -120,7 +120,7 @@ class ParticipacionsRelationManager extends RelationManager
                     ->label('Marcar asistencia')
                     ->icon('heroicon-o-clipboard-document-check')
                     ->modalHeading('¿Quién ha participado en esta manga?')
-                    ->modalDescription('Marca a los asistentes. Los desmarcados se quitan de la manga (salvo que ya tengan capturas apuntadas).')
+                    ->modalDescription('Marca a los que han venido. Los desmarcados se quitan, salvo que ya tengan capturas.')
                     ->modalSubmitActionLabel('Guardar asistencia')
                     ->schema([
                         CheckboxList::make('socios')
@@ -140,7 +140,7 @@ class ParticipacionsRelationManager extends RelationManager
                             ->bulkToggleable(),
                         Select::make('seccion_id')
                             ->label('Sección para los recién marcados')
-                            ->helperText('Se aplica solo a los que se añaden ahora; luego puedes cambiarla socio a socio.')
+                            ->helperText('Solo para los recién marcados; luego se puede cambiar.')
                             ->options(fn (): array => Seccion::query()
                                 ->where('club_id', auth()->user()->club_id)
                                 ->orderBy('nombre')

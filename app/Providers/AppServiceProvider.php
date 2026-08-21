@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Un solo botón de crear en todos los modales: fuera «Crear y crear otro».
+        \Filament\Actions\CreateAction::configureUsing(
+            fn (\Filament\Actions\CreateAction $action) => $action->createAnother(false),
+        );
     }
 }
