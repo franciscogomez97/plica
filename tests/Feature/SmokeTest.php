@@ -309,6 +309,47 @@ class SmokeTest extends TestCase
         $montar($jornada)->assertSchemaComponentVisible('seccion_id');
     }
 
+    public function test_el_formulario_de_participacion_se_adapta_a_la_seccion_de_la_manga(): void
+    {
+        $this->actingAs($this->admin());
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+
+        $temporada = \App\Models\Temporada::firstOrFail();
+        $medida = \App\Models\Seccion::where('club_id', $temporada->club_id)
+            ->where('criterio', \App\Models\Seccion::CRITERIO_MEDIDA)->firstOrFail();
+        $manga = Manga::create([
+            'temporada_id' => $temporada->id,
+            'seccion_id' => $medida->id,
+            'nombre' => 'Manga de pato',
+            'fecha' => today(),
+        ]);
+
+        $componente = \Livewire\Livewire::test(\App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager::class, [
+            'ownerRecord' => $manga,
+            'pageClass' => \App\Filament\Resources\Mangas\Pages\EditManga::class,
+        ])->mountAction(\Filament\Actions\Testing\TestAction::make('create')->table());
+
+        // Sin campo de sección, y capturas en modo medida: cm sí, peso/piezas no.
+        $componente->assertSchemaComponentHidden('seccion_id');
+        $schemaMontado = $componente->instance()->{$componente->instance()->getMountedActionSchemaName()};
+        $claves = array_keys($schemaMontado->getFlatComponents(withHidden: false));
+        $this->assertTrue(collect($claves)->contains(fn ($c) => str_ends_with($c, 'medida_mm')), 'Falta el campo de medida');
+        $this->assertFalse(collect($claves)->contains(fn ($c) => str_ends_with($c, 'peso_gramos')), 'Sobra el campo de peso');
+        $this->assertFalse(collect($claves)->contains(fn ($c) => str_ends_with($c, 'piezas')), 'Sobra el campo de piezas');
+
+        // Al crear, la participación cae en la sección de la manga sin elegir nada.
+        $socio = Socio::where('club_id', $temporada->club_id)->firstOrFail();
+        \Livewire\Livewire::test(\App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager::class, [
+            'ownerRecord' => $manga,
+            'pageClass' => \App\Filament\Resources\Mangas\Pages\EditManga::class,
+        ])->callAction(
+            \Filament\Actions\Testing\TestAction::make('create')->table(),
+            ['socio_id' => $socio->id, 'plica' => true, 'capturas' => []],
+        )->assertHasNoActionErrors();
+
+        $this->assertSame($medida->id, $manga->participacions()->firstOrFail()->seccion_id);
+    }
+
     public function test_tabla_de_participaciones_renderiza_de_verdad(): void
     {
         // Los relation managers cargan lazy: un GET a la página NO renderiza
