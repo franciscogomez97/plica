@@ -23,6 +23,7 @@ class MangaForm
                         titleAttribute: 'nombre',
                         modifyQueryUsing: fn (Builder $query) => $query->where('club_id', auth()->user()->club_id),
                     )
+                    ->default(fn (): ?int => auth()->user()->club?->temporadaActiva()?->id)
                     ->required(),
                 TextInput::make('nombre')
                     ->label('Nombre')
@@ -41,6 +42,7 @@ class MangaForm
                         Manga::ESTADO_CELEBRADA => 'Celebrada',
                     ])
                     ->default(Manga::ESTADO_PROGRAMADA)
+                    ->hiddenOn('create') // una manga nueva siempre nace programada
                     ->required(),
                 Textarea::make('notas')
                     ->label('Notas')

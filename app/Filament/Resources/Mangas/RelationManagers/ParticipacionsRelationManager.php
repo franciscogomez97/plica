@@ -84,7 +84,7 @@ class ParticipacionsRelationManager extends RelationManager
                         TextInput::make('nota')
                             ->label('Nota'),
                     ])
-                    ->columns(4)
+                    ->columns(['default' => 1, 'sm' => 4])
                     ->defaultItems(1)
                     ->addActionLabel('Añadir línea de captura')
                     ->columnSpanFull(),
@@ -136,7 +136,7 @@ class ParticipacionsRelationManager extends RelationManager
                                 ->pluck('socio_id')
                                 ->map(fn ($id) => (string) $id)
                                 ->all())
-                            ->columns(2)
+                            ->columns(['default' => 1, 'sm' => 2])
                             ->bulkToggleable(),
                         Select::make('seccion_id')
                             ->label('Sección para los recién marcados')

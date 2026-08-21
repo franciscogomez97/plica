@@ -34,10 +34,12 @@ class SeccionsTable
                     ->formatStateUsing(fn (string $state): string => $state === Seccion::SISTEMA_PUESTOS ? 'Por puestos' : 'Acumulado'),
                 TextColumn::make('puntos_participacion')
                     ->label('Pts. participación')
-                    ->numeric(),
+                    ->numeric()
+                    ->visibleFrom('md'),
                 TextColumn::make('descartes')
                     ->label('Descartes')
-                    ->numeric(),
+                    ->numeric()
+                    ->visibleFrom('md'),
             ])
             ->recordActions([
                 EditAction::make(),

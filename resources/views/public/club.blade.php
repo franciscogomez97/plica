@@ -85,4 +85,13 @@
             </div>
         </section>
     @endforeach
+    <section class="pb-8">
+        <div class="rounded-2xl border border-emerald-900/60 bg-emerald-950/40 p-5 text-center">
+            <p class="text-base text-slate-300">¿Eres socio de {{ $club->nombre }}?</p>
+            <a href="/app" class="mt-3 inline-block rounded-xl bg-emerald-600 px-6 py-3 text-base font-semibold text-white hover:bg-emerald-500">
+                Entrar a mi cuenta
+            </a>
+            <p class="mt-2 text-sm text-slate-500">¿Sin cuenta todavía? Pídele tu enlace de acceso al admin del club.</p>
+        </div>
+    </section>
 @endsection

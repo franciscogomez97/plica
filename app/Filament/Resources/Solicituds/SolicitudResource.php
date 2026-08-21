@@ -22,6 +22,12 @@ class SolicitudResource extends Resource
 
     protected static ?int $navigationSort = 90;
 
+    /** Solo el dueño de la plataforma: los admins de club no gestionan esto. */
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->email === config('plica.superadmin_email');
+    }
+
     public static function canCreate(): bool
     {
         return false;

@@ -19,14 +19,16 @@ class MangasTable
                     ->label('Manga')
                     ->searchable(),
                 TextColumn::make('temporada.nombre')
-                    ->label('Temporada'),
+                    ->label('Temporada')
+                    ->visibleFrom('md'),
                 TextColumn::make('fecha')
                     ->label('Fecha')
                     ->date('d/m/Y')
                     ->sortable(),
                 TextColumn::make('lugar')
                     ->label('Lugar')
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->visibleFrom('sm'),
                 TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
@@ -39,7 +41,8 @@ class MangasTable
                     ->formatStateUsing(fn (string $state): string => $state === 'pendiente' ? 'Por gestionar' : ucfirst($state)),
                 TextColumn::make('participacions_count')
                     ->label('Participantes')
-                    ->counts('participacions'),
+                    ->counts('participacions')
+                    ->visibleFrom('md'),
             ])
             ->defaultSort('fecha', 'desc')
             ->recordActions([
@@ -47,7 +50,8 @@ class MangasTable
                     ->label('Clasificación')
                     ->icon('heroicon-o-trophy')
                     ->url(fn (Manga $record): string => MangaResource::getUrl('clasificacion', ['record' => $record])),
-                EditAction::make(),
+                EditAction::make()
+                    ->label('Gestionar'),
             ]);
     }
 }

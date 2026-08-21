@@ -24,7 +24,8 @@ class SociosTable
                 TextColumn::make('email')
                     ->label('Email')
                     ->placeholder('— sin email —')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('sm'),
                 IconColumn::make('user_id')
                     ->label('Cuenta')
                     ->boolean()

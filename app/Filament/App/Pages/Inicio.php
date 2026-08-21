@@ -16,6 +16,16 @@ class Inicio extends Dashboard
 
     protected static ?string $title = 'Mi club';
 
+    public function getHeading(): string
+    {
+        return $this->getClub()?->nombre ?? 'Mi club';
+    }
+
+    public function getSubheading(): ?string
+    {
+        return $this->getTemporada()?->nombre;
+    }
+
     public function getClub(): ?Club
     {
         return auth()->user()->club;

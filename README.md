@@ -67,9 +67,15 @@ calculados a mano.
   marcar como celebrada → badge rojo en el menú y aviso en el dashboard del
   admin hasta que la cierre. Asistencia en un checklist («Marcar asistencia»),
   que solo elimina desmarcados sin capturas.
-- **Móvil primero en las vistas de socio y públicas**: listas con el dato que
-  manda según el criterio de la sección, tipografía grande, objetivos táctiles
-  de 44px+. El pescador mira el ranking desde el pantano, no desde un iMac.
+- **Móvil primero en TODAS las vistas — también el admin**: los admins de club
+  gestionan desde el móvil. Listas con el dato que manda según el criterio de
+  la sección, tipografía grande, objetivos táctiles de 44px+, formularios a
+  una columna en pantallas pequeñas y columnas secundarias ocultas en móvil.
+- **Cero callejones sin salida**: un socio que entra en /admin es redirigido
+  a su panel; un enlace de acceso usado explica qué hacer; el dashboard del
+  admin ofrece siempre «¿Qué quieres hacer?» con las tareas habituales.
+- **Solicitudes de la landing** visibles solo para el dueño de la plataforma
+  (`PLICA_SUPERADMIN_EMAIL` en `.env`), no para los admins de club.
 - **El sistema no interviene el día de la manga**: el ritual del agua no se
   toca (plicas en papel); se digitaliza el después. El pesaje en vivo /
   videopesaje es fase futura, y por eso las capturas ya guardan medida.

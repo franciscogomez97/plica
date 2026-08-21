@@ -41,9 +41,31 @@ class SmokeTest extends TestCase
     public function test_panel_admin_carga_todas_las_secciones(): void
     {
         $admin = $this->admin();
-        foreach (['/admin', '/admin/socios', '/admin/mangas', '/admin/temporadas', '/admin/seccions', '/admin/solicituds'] as $url) {
+        foreach (['/admin', '/admin/socios', '/admin/mangas', '/admin/temporadas', '/admin/seccions'] as $url) {
             $this->actingAs($admin)->get($url)->assertOk();
         }
+    }
+
+    public function test_dashboard_admin_muestra_acciones_rapidas(): void
+    {
+        $this->actingAs($this->admin())
+            ->get('/admin')
+            ->assertOk()
+            ->assertSee('¿Qué quieres hacer?')
+            ->assertSee('Nueva manga');
+    }
+
+    public function test_solicitudes_solo_para_el_superadmin(): void
+    {
+        $admin = $this->admin();
+
+        // El dueño de la plataforma las ve…
+        config(['plica.superadmin_email' => $admin->email]);
+        $this->actingAs($admin)->get('/admin/solicituds')->assertOk();
+
+        // …un admin de club normal, no.
+        config(['plica.superadmin_email' => null]);
+        $this->actingAs($admin)->get('/admin/solicituds')->assertForbidden();
     }
 
     public function test_clasificacion_de_manga_calcula_puestos(): void
@@ -76,10 +98,10 @@ class SmokeTest extends TestCase
             ->assertSee('Ranking');
     }
 
-    public function test_socio_no_puede_entrar_al_panel_admin(): void
+    public function test_socio_en_admin_es_redirigido_a_su_panel(): void
     {
         $socio = User::where('email', 'socio@plica.test')->firstOrFail();
-        $this->actingAs($socio)->get('/admin')->assertForbidden();
+        $this->actingAs($socio)->get('/admin')->assertRedirect('/app');
     }
 
     public function test_enlace_de_acceso_crea_cuenta_y_muere_al_usarse(): void
