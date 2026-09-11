@@ -11,6 +11,7 @@ use App\Models\Socio;
 use App\Models\Temporada;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * «Club de Pruebas»: un club completo para que la gente toquetee Plica en
@@ -21,8 +22,10 @@ use Illuminate\Database\Seeder;
  *
  * Accesos: admin club@club.com / club1234 · socio socio@club.com / club1234.
  *
- * Reiniciable: cada ejecución borra el club de pruebas entero y lo vuelve a
- * crear igual (los datos son deterministas; solo las fechas son relativas a hoy).
+ * Reiniciable: cada ejecución deja el club como nuevo sin cambiar sus ids (club,
+ * cuentas, secciones y socios se conservan; las mangas se regeneran), así los
+ * enlaces y las sesiones de los testers siguen valiendo. Los datos son
+ * deterministas; solo las fechas son relativas a hoy.
  *
  *   php artisan db:seed --class=ClubPruebaSeeder --force
  */
@@ -45,38 +48,44 @@ class ClubPruebaSeeder extends Seeder
 
     public function run(): void
     {
-        $this->borrar();
-
-        $club = Club::create([
+        // Reinicio «en el sitio»: el club, sus cuentas, secciones y socios conservan
+        // sus ids (los enlaces y las sesiones de los testers siguen valiendo); solo
+        // se tiran y regeneran las mangas con sus pesajes y asistencias. Lo que hayan
+        // añadido los testers (socios, secciones, cuentas) se borra.
+        $club = Club::updateOrCreate(['slug' => self::SLUG], [
             'nombre' => 'Club de Pruebas',
-            'slug' => self::SLUG,
             'localidad' => 'Madrid',
             'descripcion' => 'Club de pruebas de Plica: toca lo que quieras. Se puede reiniciar en cualquier momento.',
             'email_contacto' => self::ADMIN_EMAIL,
             'perfil_publico' => true,
+            'logo' => null,
         ]);
 
-        $temporada = Temporada::create(['club_id' => $club->id, 'nombre' => 'Temporada '.today()->year, 'activa' => true]);
+        Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->get()->each->delete(); // arrastra pesajes y asistencias
+
+        $temporada = Temporada::updateOrCreate(['club_id' => $club->id, 'nombre' => 'Temporada '.today()->year], ['activa' => true]);
+        Temporada::where('club_id', $club->id)->whereKeyNot($temporada->id)->delete();
 
         $secciones = [
-            'orilla' => Seccion::create(['club_id' => $club->id, 'nombre' => 'Orilla', 'criterio' => Seccion::CRITERIO_PESO, 'puntos_participacion' => 500, 'desempate' => Seccion::DESEMPATE_PIEZA_MAYOR]),
+            'orilla' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'orilla'], ['nombre' => 'Orilla', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO, 'puestos_empate' => Seccion::EMPATE_COMPARTIDO, 'puntos_participacion' => 500, 'puntos_no_asistencia' => 0, 'descartes' => 0, 'desempate' => Seccion::DESEMPATE_PIEZA_MAYOR]),
             // Por puestos, el sistema de federación: puesto = puntos, empates promediados, ausente = socios + 1.
-            'embarcacion' => Seccion::create(['club_id' => $club->id, 'nombre' => 'Embarcación', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puestos_empate' => Seccion::EMPATE_PROMEDIO, 'puntos_no_asistencia' => 17, 'descartes' => 1]),
-            'pato' => Seccion::create(['club_id' => $club->id, 'nombre' => 'Pato — Lucio', 'criterio' => Seccion::CRITERIO_MEDIDA]),
+            'embarcacion' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'embarcacion'], ['nombre' => 'Embarcación', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puestos_empate' => Seccion::EMPATE_PROMEDIO, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 17, 'descartes' => 1, 'desempate' => Seccion::DESEMPATE_PIEZAS]),
+            'pato' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'pato-lucio'], ['nombre' => 'Pato — Lucio', 'criterio' => Seccion::CRITERIO_MEDIDA, 'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO, 'puestos_empate' => Seccion::EMPATE_COMPARTIDO, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 0, 'descartes' => 0, 'desempate' => Seccion::DESEMPATE_PIEZAS]),
         ];
+        Seccion::where('club_id', $club->id)->whereNotIn('id', collect($secciones)->pluck('id'))->delete();
 
-        $socios = collect(self::SOCIOS)->map(fn (string $nombre, int $i) => Socio::create([
-            'club_id' => $club->id,
-            'nombre' => $nombre,
+        $socios = collect(self::SOCIOS)->map(fn (string $nombre, int $i) => Socio::updateOrCreate(['club_id' => $club->id, 'nombre' => $nombre], [
             'email' => $i % 3 === 0 ? str($nombre)->slug('.').'@ejemplo.es' : null,
+            'telefono' => null,
             'activo' => $nombre !== 'Luis Barranco', // uno de baja, para verlo
         ]));
+        Socio::where('club_id', $club->id)->whereNotIn('id', $socios->pluck('id'))->delete();
 
-        User::create(['name' => 'Admin de pruebas', 'email' => self::ADMIN_EMAIL, 'password' => self::PASSWORD, 'club_id' => $club->id, 'role' => User::ROLE_ADMIN])
-            ->forceFill(['password_cambiada_at' => now()])->save();
-
-        $userSocio = User::create(['name' => 'Mario López', 'email' => self::SOCIO_EMAIL, 'password' => self::PASSWORD, 'club_id' => $club->id, 'role' => User::ROLE_SOCIO]);
-        $userSocio->forceFill(['password_cambiada_at' => now(), 'guia_completada_at' => now()])->save();
+        $admin = $this->cuenta(self::ADMIN_EMAIL, 'Admin de pruebas', User::ROLE_ADMIN, $club);
+        $userSocio = $this->cuenta(self::SOCIO_EMAIL, 'Mario López', User::ROLE_SOCIO, $club);
+        $userSocio->forceFill(['guia_completada_at' => now()])->save();
+        User::where('club_id', $club->id)->whereNotIn('id', [$admin->id, $userSocio->id])->delete();
+        Socio::where('club_id', $club->id)->whereKeyNot($socios[0]->id)->update(['user_id' => null]);
         $socios[0]->update(['user_id' => $userSocio->id, 'email' => self::SOCIO_EMAIL]);
 
         // Quién pesca en cada sección (algunos, en dos).
@@ -191,17 +200,22 @@ class ClubPruebaSeeder extends Seeder
         }
     }
 
-    /** Fuera todo lo del club de pruebas, en el orden que permiten las claves foráneas. */
-    private function borrar(): void
+    /**
+     * La cuenta con su contraseña conocida. Solo se vuelve a poner la contraseña si
+     * cambió: un hash nuevo cerraría la sesión de quien esté dentro.
+     */
+    private function cuenta(string $email, string $nombre, string $rol, Club $club): User
     {
-        $club = Club::where('slug', self::SLUG)->first();
+        $user = User::firstOrNew(['email' => $email]);
+        $user->forceFill(['name' => $nombre, 'club_id' => $club->id, 'role' => $rol]);
 
-        if ($club === null) {
-            return;
+        if (! $user->exists || ! Hash::check(self::PASSWORD, $user->password)) {
+            $user->password = self::PASSWORD;
+            $user->password_cambiada_at = now();
         }
 
-        Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->get()->each->delete(); // arrastra participaciones, capturas y asistencias
-        User::where('club_id', $club->id)->delete();
-        $club->delete(); // arrastra secciones, temporadas y socios
+        $user->save();
+
+        return $user;
     }
 }

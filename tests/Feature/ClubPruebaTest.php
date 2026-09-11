@@ -72,22 +72,40 @@ class ClubPruebaTest extends TestCase
         $this->get('/c/club-de-pruebas/orilla')->assertOk()->assertSee('Ranking Orilla');
     }
 
-    public function test_volver_a_ejecutarlo_reinicia_el_club_sin_duplicar_nada(): void
+    public function test_volver_a_ejecutarlo_reinicia_el_club_sin_cambiar_ids_ni_duplicar_nada(): void
     {
         $this->seed(ClubPruebaSeeder::class);
         $club = Club::where('slug', 'club-de-pruebas')->firstOrFail();
+        $admin = User::where('email', 'club@club.com')->firstOrFail();
+        $embarcacion = $club->seccions()->where('slug', 'embarcacion')->firstOrFail();
+        $mario = Socio::where('club_id', $club->id)->where('nombre', 'Mario López')->firstOrFail();
+        $hashAntes = $admin->password;
+
+        // Los testers hacen de las suyas.
         $club->socios()->first()->update(['nombre' => 'Cambiado por un tester']);
+        $club->socios()->create(['nombre' => 'Socio de un tester']);
+        $club->seccions()->create(['nombre' => 'Sección de un tester']);
+        User::create(['name' => 'Cuenta de un tester', 'email' => 'tester@club.com', 'password' => 'secreto123', 'club_id' => $club->id, 'role' => User::ROLE_SOCIO]);
+        $embarcacion->update(['puntos_no_asistencia' => 99]);
         Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->first()->delete();
 
         $this->seed(ClubPruebaSeeder::class);
 
+        // Mismo club, misma cuenta (misma contraseña, sin rehash), misma sección, mismo socio: los ids no cambian.
         $this->assertSame(1, Club::where('slug', 'club-de-pruebas')->count());
-        $nuevo = Club::where('slug', 'club-de-pruebas')->firstOrFail();
-        $this->assertNotSame($club->id, $nuevo->id);
-        $this->assertSame(16, $nuevo->socios()->count());
-        $this->assertSame(0, Socio::where('nombre', 'Cambiado por un tester')->count());
-        $this->assertSame(17, Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $nuevo->id))->count());
-        $this->assertSame(1, User::where('email', 'club@club.com')->count());
+        $this->assertSame($club->id, Club::where('slug', 'club-de-pruebas')->firstOrFail()->id);
+        $this->assertSame($admin->id, User::where('email', 'club@club.com')->firstOrFail()->id);
+        $this->assertSame($hashAntes, $admin->fresh()->password);
+        $this->assertSame($embarcacion->id, $club->seccions()->where('slug', 'embarcacion')->firstOrFail()->id);
+        $this->assertSame(17, $embarcacion->fresh()->puntos_no_asistencia);
+        $this->assertSame($mario->id, Socio::where('club_id', $club->id)->where('nombre', 'Mario López')->firstOrFail()->id);
+
+        // Y lo de los testers, fuera; lo de siempre, de vuelta.
+        $this->assertSame(16, $club->socios()->count());
+        $this->assertSame(0, Socio::whereIn('nombre', ['Cambiado por un tester', 'Socio de un tester'])->count());
+        $this->assertSame(3, $club->seccions()->count());
+        $this->assertSame(0, User::where('email', 'tester@club.com')->count());
+        $this->assertSame(17, Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->count());
         $this->assertSame(0, User::whereNull('club_id')->where('email', 'like', '%@club.com')->count());
     }
 
