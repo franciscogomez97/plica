@@ -70,9 +70,18 @@ sección, la navegación «Atrás» jerárquica y el encadenado sección → man
 
 ## Producción
 
-Plica vive en un VPS (Ubuntu 24.04, Nginx, PHP-FPM 8.4, PostgreSQL 16) en
-`/var/www/plica`, desplegado el 11 de septiembre de 2026 por IP y HTTP
-(dominio y HTTPS, después). Se despliega desde el Mac, sin git en el servidor:
+Plica vive en **https://plicapesca.es**, un VPS (Ubuntu 24.04, Nginx,
+PHP-FPM 8.4, PostgreSQL 16) con el código en `/var/www/plica`, desplegado el
+11 de septiembre de 2026. El dominio está en IONOS (registros A de `@` y
+`www` a la IP del VPS, sin AAAA) y el certificado es de Let's Encrypt:
+`certbot certonly --webroot -w /var/www/letsencrypt`, renovación automática
+por `certbot.timer` con un hook que recarga Nginx. La config de Nginx del
+servidor es `deploy/nginx-plica.conf` (copiarla a
+`/etc/nginx/sites-available/plica` si cambia): HTTP, `www` y la IP desnuda
+redirigen con 301 a `https://plicapesca.es`, con HSTS de un año, para que
+ningún enlace compartido lleve otra cosa. En el `.env`,
+`APP_URL=https://plicapesca.es` y `SESSION_SECURE_COOKIE=true`. Se despliega
+desde el Mac, sin git en el servidor:
 
 ```bash
 deploy/desplegar.sh          # tests → npm run build → rsync → composer install → composer deploy
@@ -143,9 +152,11 @@ es `PLICA_SUPERADMIN_EMAIL` ve además las solicitudes.
   que no cambia al renombrar, para que un enlace compartido no muera. El botón
   «Compartir por WhatsApp» (`partials/compartir`, sin dependencias) está en el
   ranking del admin, en el cuadro, en la clasificación de cada manga, en el
-  panel del socio y en las páginas públicas: en el móvil abre la hoja de
-  compartir del sistema, en escritorio WhatsApp Web, con el podio ya escrito
-  (`App\Services\Compartir`). Las páginas públicas llevan etiquetas Open Graph
+  panel del socio y en las páginas públicas: abre WhatsApp directamente
+  (`wa.me/?text=`: la app en el móvil, WhatsApp Web en escritorio) con el
+  podio y el enlace ya escritos (`App\Services\Compartir`). Nada de hoja de
+  compartir del sistema: se probó y la gente esperaba WhatsApp (septiembre de
+  2026). Las páginas públicas llevan etiquetas Open Graph
   para que WhatsApp enseñe título y podio en la vista previa, y el pie «Hecho
   con Plica» enlaza a la landing: es el bucle de captación.
 - **Pieza mayor y desempates** (septiembre de 2026): siempre hay premio a la
@@ -191,8 +202,8 @@ es `PLICA_SUPERADMIN_EMAIL` ve además las solicitudes.
   hay banner: están exentas de consentimiento (art. 22.2 LSSI).
 - **Dar acceso a los socios**: en Socios, «Dar acceso» lista a los socios
   activos (primero los que no tienen cuenta), cada uno con su enlace personal
-  de un solo uso y dos botones: «WhatsApp» (hoja de compartir del móvil o
-  wa.me) y «Copiar». Se mandan uno a uno: el enlace de un socio crea la cuenta
+  de un solo uso y dos botones: «WhatsApp» (abre WhatsApp directamente) y
+  «Copiar». Se mandan uno a uno: el enlace de un socio crea la cuenta
   *de ese socio*, así que nunca va a un grupo, y por eso no hay «copiar
   todos» (lo hubo y se quitó en septiembre de 2026). El mismo mensaje sale en
   la ficha de cada socio (`Socio::mensajeAcceso()`). «Copiar» funciona también

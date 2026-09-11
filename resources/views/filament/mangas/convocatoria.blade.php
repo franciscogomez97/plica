@@ -14,9 +14,10 @@
                 data-origen="convocatoria-{{ $manga->id }}"
                 data-titulo="{{ $manga->nombre }}"
                 onclick="(function (b) {
-                    var t = document.getElementById(b.dataset.origen).value;
-                    if (navigator.share) { navigator.share({ title: b.dataset.titulo, text: t }).catch(function () {}); }
-                    else { window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); }
+                    // WhatsApp directamente, con el texto tal como quede en el cuadro.
+                    var u = 'https://wa.me/?text=' + encodeURIComponent(document.getElementById(b.dataset.origen).value);
+                    var w = window.open(u, '_blank', 'noopener');
+                    if (! w) { window.location.href = u; }
                 })(this)"
                 style="display:inline-flex; align-items:center; gap:.5rem; padding:.65rem 1.1rem; border-radius:.75rem; background:#25d366; color:#fff; font-weight:700; font-size:.95rem; line-height:1.2; box-shadow:0 1px 2px rgba(0,0,0,.15); cursor:pointer">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="width:1.2rem; height:1.2rem; flex:none">

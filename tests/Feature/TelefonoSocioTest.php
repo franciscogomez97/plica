@@ -82,7 +82,7 @@ class TelefonoSocioTest extends TestCase
         $this->assertStringContainsString('href="https://wa.me/?text=', $modal);
         $this->assertStringContainsString('Sin teléfono en su ficha', $modal);
 
-        // «Dar acceso»: Paco con enlace directo, Andrés con la hoja de compartir.
+        // «Dar acceso»: Paco con enlace directo a su chat, Andrés a WhatsApp sin contacto.
         $modal = (string) Livewire::test(ListSocios::class)
             ->mountAction('enlaces')
             ->instance()->getMountedAction()->getModalContent();
@@ -90,6 +90,7 @@ class TelefonoSocioTest extends TestCase
         $this->assertStringContainsString('+34 611 22 33 44', $modal);
         $this->assertStringContainsString('sin teléfono', $modal);
         $this->assertStringContainsString('les falta el teléfono', $modal);
-        $this->assertStringContainsString('navigator.share', $modal);
+        $this->assertStringContainsString('href="https://wa.me/?text=', $modal);
+        $this->assertStringNotContainsString('navigator.share', $modal);
     }
 }

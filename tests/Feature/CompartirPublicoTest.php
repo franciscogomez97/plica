@@ -109,21 +109,22 @@ class CompartirPublicoTest extends TestCase
         $orilla = Seccion::where('nombre', 'Orilla')->firstOrFail();
         $manga = Manga::where('estado', Manga::ESTADO_CELEBRADA)->orderByDesc('fecha')->orderByDesc('id')->firstOrFail();
 
+        // El enlace público va dentro del wa.me del botón (codificado): WhatsApp se abre con él escrito.
         $this->actingAs($admin)->get('/admin/ranking')->assertOk()
             ->assertSee('Compartir por WhatsApp')
-            ->assertSee($orilla->urlPublica());
+            ->assertSee(rawurlencode($orilla->urlPublica()), escape: false);
         $this->actingAs($admin)->get("/admin/ranking/{$orilla->id}")->assertOk()
             ->assertSee('Compartir por WhatsApp')
             ->assertSee('Ver la página pública');
         $this->actingAs($admin)->get("/admin/mangas/{$manga->id}/clasificacion")->assertOk()
             ->assertSee('Compartir por WhatsApp')
-            ->assertSee($manga->urlPublica());
+            ->assertSee(rawurlencode($manga->urlPublica()), escape: false);
 
         $this->flushSession();
         $socio = User::where('email', 'socio@plica.test')->firstOrFail();
         $this->actingAs($socio)->get('/app')->assertOk()
             ->assertSee('Compartir por WhatsApp')
-            ->assertSee($orilla->urlPublica())
-            ->assertSee($manga->urlPublica());
+            ->assertSee(rawurlencode($orilla->urlPublica()), escape: false)
+            ->assertSee(rawurlencode($manga->urlPublica()), escape: false);
     }
 }

@@ -1,7 +1,7 @@
 {{-- «Dar acceso»: un enlace personal y de un solo uso por socio, para mandárselo a
      cada uno por WhatsApp (nunca a un grupo: con el enlace de otro entrarías como
-     él). Con teléfono, el botón abre su chat directamente; sin él, WhatsApp pide
-     elegir el contacto. Primero los que aún no tienen cuenta. Espera: $socios, $club. --}}
+     él). El botón abre WhatsApp directamente: con teléfono, en su chat; sin él,
+     WhatsApp pide elegir el contacto. Primero los sin cuenta. Espera: $socios, $club. --}}
 @php
     $filas = $socios
         ->sortBy(fn ($socio) => [$socio->user_id ? 1 : 0, mb_strtolower($socio->nombre)])
@@ -42,17 +42,8 @@
                 <div class="enlaces-telefono">{{ $f['directo'] ? $f['socio']->telefono : 'sin teléfono' }}</div>
             </div>
             <span class="enlaces-estado {{ $f['socio']->user_id ? 'cuenta' : '' }}">{{ $f['socio']->user_id ? 'Con cuenta' : 'Sin cuenta' }}</span>
-            @if ($f['directo'])
-                <a class="enlaces-btn wa" href="{{ $f['wa'] }}" target="_blank" rel="noopener">WhatsApp</a>
-            @else
-                <button type="button" class="enlaces-btn wa" data-texto="{{ $f['texto'] }}" data-wa="{{ $f['wa'] }}" data-titulo="Acceso a Plica"
-                        onclick="(function (b) {
-                            if (navigator.share) { navigator.share({ title: b.dataset.titulo, text: b.dataset.texto }).catch(function () {}); }
-                            else { window.open(b.dataset.wa, '_blank', 'noopener'); }
-                        })(this)">
-                    WhatsApp
-                </button>
-            @endif
+            {{-- Siempre WhatsApp directo: con teléfono, en su chat; sin él, WhatsApp pide el contacto. --}}
+            <a class="enlaces-btn wa" href="{{ $f['wa'] }}" target="_blank" rel="noopener">WhatsApp</a>
             <button type="button" class="enlaces-btn" data-texto="{{ $f['texto'] }}"
                     onclick="plicaCopiar(this, this.dataset.texto, 'Copiado ✓')">
                 Copiar
