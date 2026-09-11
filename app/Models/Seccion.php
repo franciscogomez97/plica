@@ -39,7 +39,7 @@ class Seccion extends Model
 
     protected $fillable = [
         'club_id', 'nombre', 'slug', 'criterio',
-        'sistema_puntuacion', 'puntos_participacion', 'descartes', 'desempate',
+        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'desempate',
     ];
 
     /** Desempates que tienen sentido para un criterio: nunca por lo mismo en lo que se empata. */
@@ -101,6 +101,7 @@ class Seccion extends Model
     {
         return [
             'puntos_participacion' => 'integer',
+            'puntos_no_asistencia' => 'integer',
             'descartes' => 'integer',
         ];
     }
@@ -129,6 +130,7 @@ class Seccion extends Model
             (int) $this->descartes,
             $this->sistema_puntuacion ?? self::SISTEMA_ACUMULADO,
             $this->desempate ?? static::desempatePorDefecto($this->criterio ?? self::CRITERIO_PESO),
+            (int) $this->puntos_no_asistencia,
         );
     }
 
@@ -139,6 +141,7 @@ class Seccion extends Model
         int $descartes = 0,
         string $sistema = self::SISTEMA_ACUMULADO,
         ?string $desempate = null,
+        int $puntosNoAsistencia = 0,
     ): string {
         $desempate ??= static::desempatePorDefecto($criterio);
         $frases = [
@@ -164,6 +167,13 @@ class Seccion extends Model
 
         if ($puntosParticipacion > 0 && $sistema !== self::SISTEMA_PUESTOS) {
             $frases[] = "Cada manga pescada suma además {$puntosParticipacion} puntos.";
+        }
+
+        // Puntos por no ir: solo para quien ya está en el ranking (ha pescado alguna manga).
+        if ($puntosNoAsistencia !== 0 && $sistema !== self::SISTEMA_PUESTOS) {
+            $frases[] = $puntosNoAsistencia > 0
+                ? "Cada manga a la que no se va suma {$puntosNoAsistencia} puntos."
+                : 'Cada manga a la que no se va resta '.abs($puntosNoAsistencia).' puntos.';
         }
 
         $frases[] = 'Si empatan, gana '.match ($desempate) {

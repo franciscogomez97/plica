@@ -100,7 +100,8 @@ class Compartir
     private static function valorRanking(object $grupo, object $fila): string
     {
         $conPuntos = ($grupo->sistema ?? Seccion::SISTEMA_ACUMULADO) === Seccion::SISTEMA_PUESTOS
-            || ($grupo->puntosParticipacion ?? 0) > 0;
+            || ($grupo->puntosParticipacion ?? 0) > 0
+            || ($grupo->puntosNoAsistencia ?? 0) !== 0;
 
         return $conPuntos
             ? Scoring::formatPuntos($fila->puntos).' pts'

@@ -19,8 +19,10 @@ use Illuminate\Support\Collection;
  * ordena la clasificación de cada manga.
  *
  * Por SECCIÓN (ranking de temporada) — cada sección define su sistema:
- *  - 'acumulado': total = Σ valor bruto + participación × puntos_participacion.
- *    Gana quien MÁS suma. Descartes: se ignoran las N peores mangas (menor valor).
+ *  - 'acumulado': total = Σ valor bruto + participación × puntos_participacion
+ *    + mangas no pescadas × puntos_no_asistencia (0 por defecto; puede ser
+ *    negativo). Gana quien MÁS suma. Descartes: se ignoran las N peores mangas
+ *    pescadas (menor valor); las no pescadas no entran en los descartes.
  *  - 'puestos': cada manga da tantos puntos como tu puesto (1º = 1);
  *    no participar = último + 1 de esa manga. Gana quien MENOS suma.
  *    Descartes: se ignoran las N peores mangas (mayor puesto).
@@ -77,18 +79,20 @@ class Scoring
             ->map(function (object $grupo) {
                 $sistema = $grupo->seccion?->sistema_puntuacion ?? Seccion::SISTEMA_ACUMULADO;
                 $puntosParticipacion = $grupo->seccion?->puntos_participacion ?? 0;
+                $puntosNoAsistencia = $grupo->seccion?->puntos_no_asistencia ?? 0;
                 $descartes = $grupo->seccion?->descartes ?? 0;
                 $desempate = static::desempateDe($grupo->seccion, $grupo->criterio);
 
                 $grupo->sistema = $sistema;
                 $grupo->puntosParticipacion = $puntosParticipacion;
+                $grupo->puntosNoAsistencia = $puntosNoAsistencia;
                 $grupo->seccionId = $grupo->seccion?->id;
                 $grupo->seccionSlug = $grupo->seccion?->slug;
                 $grupo->numMangas = $grupo->participaciones->pluck('manga_id')->unique()->count();
                 $grupo->reglas = $grupo->seccion?->resumenReglas() ?? Seccion::resumenReglasDe($grupo->criterio);
                 $grupo->filas = $sistema === Seccion::SISTEMA_PUESTOS
                     ? static::rankingPorPuestos($grupo->participaciones, $grupo->criterio, $descartes, $desempate)
-                    : static::rankingAcumulado($grupo->participaciones, $grupo->criterio, $puntosParticipacion, $descartes, $desempate);
+                    : static::rankingAcumulado($grupo->participaciones, $grupo->criterio, $puntosParticipacion, $descartes, $desempate, $puntosNoAsistencia);
                 $grupo->piezaMayor = static::piezaMayorDe($grupo->participaciones, $grupo->criterio);
                 unset($grupo->participaciones, $grupo->seccion);
 
@@ -119,6 +123,7 @@ class Scoring
         $sistema = $seccion->sistema_puntuacion ?? Seccion::SISTEMA_ACUMULADO;
         $descartes = (int) $seccion->descartes;
         $puntosParticipacion = (int) $seccion->puntos_participacion;
+        $puntosNoAsistencia = (int) $seccion->puntos_no_asistencia;
         $desempate = static::desempateDe($seccion, $criterio);
 
         $mangas = $participaciones->pluck('manga')->unique('id')->sortBy(['fecha', 'id'])->values();
@@ -138,7 +143,7 @@ class Scoring
         // El orden y los puntos son EXACTAMENTE los del ranking de temporada.
         $ranking = $sistema === Seccion::SISTEMA_PUESTOS
             ? static::rankingPorPuestos($participaciones, $criterio, $descartes, $desempate)
-            : static::rankingAcumulado($participaciones, $criterio, $puntosParticipacion, $descartes, $desempate);
+            : static::rankingAcumulado($participaciones, $criterio, $puntosParticipacion, $descartes, $desempate, $puntosNoAsistencia);
 
         $filas = $ranking->map(function (object $fila) use ($participaciones, $mangas, $puestos, $mayores, $criterio, $sistema, $descartes) {
             $deSocio = $participaciones->where('socio_id', $fila->socio->id);
@@ -174,6 +179,7 @@ class Scoring
             'criterio' => $criterio,
             'sistema' => $sistema,
             'puntosParticipacion' => $puntosParticipacion,
+            'puntosNoAsistencia' => $puntosNoAsistencia,
             'reglas' => $seccion->resumenReglas(),
             'mangas' => $mangas,
             'filas' => $filas,
@@ -185,11 +191,15 @@ class Scoring
     //  Sistemas de ranking
     // ------------------------------------------------------------------
 
-    private static function rankingAcumulado(Collection $participaciones, string $criterio, int $puntosParticipacion, int $descartes, string $desempate): Collection
+    private static function rankingAcumulado(Collection $participaciones, string $criterio, int $puntosParticipacion, int $descartes, string $desempate, int $puntosNoAsistencia = 0): Collection
     {
+        // Mangas celebradas de la sección: las que un socio del ranking no pescó
+        // son sus «no asistencias» (solo cuenta para quien ha pescado alguna).
+        $numMangas = $participaciones->pluck('manga_id')->unique()->count();
+
         $filas = $participaciones
             ->groupBy('socio_id')
-            ->map(function (Collection $deSocio) use ($criterio, $puntosParticipacion, $descartes) {
+            ->map(function (Collection $deSocio) use ($criterio, $puntosParticipacion, $descartes, $puntosNoAsistencia, $numMangas) {
                 // Valor de cada manga pescada, de mejor a peor, aplicando descartes.
                 $valores = $deSocio
                     ->map(fn (Participacion $p) => static::valor($p, $criterio))
@@ -197,8 +207,10 @@ class Scoring
                     ->values();
 
                 $contadas = max($valores->count() - $descartes, 0);
+                $noPescadas = $numMangas - $deSocio->count();
                 $puntos = (int) $valores->take($contadas)->sum()
-                    + $contadas * $puntosParticipacion;
+                    + $contadas * $puntosParticipacion
+                    + $noPescadas * $puntosNoAsistencia;
 
                 return static::filaAgregada($deSocio, $puntos);
             })

@@ -1,7 +1,7 @@
 {{-- Cuadro manga a manga en la página pública de una sección (misma lógica que
      el del panel: pescadores en filas, mangas en columnas). Espera: $cuadro, $club. --}}
 @php
-    $conPuntos = $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || $cuadro->puntosParticipacion > 0;
+    $conPuntos = $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || $cuadro->puntosParticipacion > 0 || ($cuadro->puntosNoAsistencia ?? 0) !== 0;
     $unidad = match ($cuadro->criterio) {
         \App\Models\Seccion::CRITERIO_MEDIDA => 'cm',
         \App\Models\Seccion::CRITERIO_PIEZAS => 'piezas',
@@ -82,7 +82,11 @@
                         @foreach ($cuadro->mangas as $manga)
                             @php $c = $fila->celdas[$manga->id] ?? null; @endphp
                             @if ($c === null)
+                                @if (($cuadro->puntosNoAsistencia ?? 0) !== 0)
+                                <td class="ausente" title="No participó: {{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }} pts">—<br><small>{{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }}</small></td>
+                            @else
                                 <td class="ausente" title="No participó">—</td>
+                            @endif
                             @else
                                 @php [$numero, $uni] = $partir($c->texto); @endphp
                                 <td>
@@ -127,7 +131,7 @@
         @if ((int) $cuadro->seccion->descartes > 0)
             <span><s>Tachado</s>: manga descartada</span>
         @endif
-        <span>—: no participó</span>
+        <span>—: no participó{{ ($cuadro->puntosNoAsistencia ?? 0) !== 0 ? " (".($cuadro->puntosNoAsistencia > 0 ? "+" : "").$cuadro->puntosNoAsistencia." pts)" : "" }}</span>
         <span>Valores en {{ $unidad }}</span>
     </div>
 </div>

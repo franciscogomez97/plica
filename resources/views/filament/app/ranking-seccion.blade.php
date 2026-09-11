@@ -7,7 +7,7 @@
         $grupo = $this->getGrupo();
         $ultima = $this->getUltima();
 
-        $conPuntos = $cuadro && ($cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || $cuadro->puntosParticipacion > 0);
+        $conPuntos = $cuadro && ($cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || $cuadro->puntosParticipacion > 0 || ($cuadro->puntosNoAsistencia ?? 0) !== 0);
         $unidad = $cuadro ? match ($cuadro->criterio) {
             \App\Models\Seccion::CRITERIO_MEDIDA => 'cm',
             \App\Models\Seccion::CRITERIO_PIEZAS => 'piezas',

@@ -101,7 +101,7 @@
                 <div class="plica-yo-resumen">
                     <span>Vas <strong>{{ $miFila->puesto }}º</strong> de {{ $grupo->filas->count() }}</span>
                     <span style="opacity:.7">·</span>
-                    <span>{{ $grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0
+                    <span>{{ $grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0 || ($grupo->puntosNoAsistencia ?? 0) !== 0
                         ? \App\Services\Scoring::formatPuntos($miFila->puntos).' pts'
                         : \App\Services\Scoring::valorRanking($grupo->criterio, $miFila->puntos) }}</span>
                 </div>

@@ -44,7 +44,7 @@
             <div class="text-right text-base font-bold tabular-nums">
                 @if ($modo !== 'temporada')
                     {{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}
-                @elseif ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0)
+                @elseif ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0 || ($grupo->puntosNoAsistencia ?? 0) !== 0)
                     {{ \App\Services\Scoring::formatPuntos($fila->puntos) }} pts
                     <div class="text-xs font-medium text-slate-500">{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</div>
                 @else

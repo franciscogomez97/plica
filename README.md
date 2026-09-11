@@ -142,6 +142,14 @@ relativas al día en que se ejecuta.
 
 ## Decisiones tomadas (y por qué)
 
+- **Puntos por no ir** (`seccions.puntos_no_asistencia`, septiembre de 2026):
+  algunos clubes dan puntos también por las mangas a las que no se va (o los
+  quitan). Por sección, 0 por defecto (nada cambia para nadie), puede ser
+  negativo. En el ranking acumulado, cada socio del ranking (quien ha pescado
+  alguna manga de la sección) suma esos puntos por cada manga celebrada que
+  no pescó; no entran en los descartes ni en el sistema por puestos (ahí no
+  ir ya es «último + 1»). Sale en el resumen de reglas y en las celdas «—»
+  del cuadro manga a manga.
 - **Enlaces de acceso de un solo uso** (WhatsApp), no emails: el admin genera
   el enlace desde la ficha del socio y se lo manda. Sin cuenta → la crea; con
   cuenta → restablece su contraseña. Cero dependencia de SMTP, cuentas y

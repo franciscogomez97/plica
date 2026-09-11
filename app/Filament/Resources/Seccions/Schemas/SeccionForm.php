@@ -52,6 +52,14 @@ class SeccionForm
                     ->minValue(0)
                     ->default(0)
                     ->live(onBlur: true),
+                // Algunos clubes dan puntos también a quien no va (o se los quitan).
+                TextInput::make('puntos_no_asistencia')
+                    ->label('Puntos por no ir')
+                    ->helperText('Por cada manga a la que un socio no va. 0 = nada (lo normal). En negativo, resta.')
+                    ->numeric()
+                    ->integer()
+                    ->default(0)
+                    ->live(onBlur: true),
                 TextInput::make('descartes')
                     ->label('Descartes')
                     ->helperText('Peores mangas que no cuentan al año. 0 = cuentan todas.')
@@ -78,6 +86,7 @@ class SeccionForm
                         (int) ($get('descartes') ?: 0),
                         Seccion::SISTEMA_ACUMULADO,
                         $get('desempate') ?: null,
+                        (int) ($get('puntos_no_asistencia') ?: 0),
                     ))
                     ->columnSpanFull(),
             ]);

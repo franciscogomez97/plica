@@ -99,7 +99,11 @@
                     @foreach ($cuadro->mangas as $manga)
                         @php $c = $fila->celdas[$manga->id] ?? null; @endphp
                         @if ($c === null)
-                            <td class="ausente" title="No participó">—</td>
+                            @if (($cuadro->puntosNoAsistencia ?? 0) !== 0)
+                                <td class="ausente" title="No participó: {{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }} pts">—<br><small>{{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }}</small></td>
+                            @else
+                                <td class="ausente" title="No participó">—</td>
+                            @endif
                         @else
                             @php [$numero, $uni] = $partir($c->texto); @endphp
                             <td>
@@ -154,6 +158,6 @@
     @if ((int) $cuadro->seccion->descartes > 0)
         <span><s>Tachado</s>: manga descartada (no cuenta)</span>
     @endif
-    <span>—: no participó</span>
+    <span>—: no participó{{ ($cuadro->puntosNoAsistencia ?? 0) !== 0 ? " (".($cuadro->puntosNoAsistencia > 0 ? "+" : "").$cuadro->puntosNoAsistencia." pts)" : "" }}</span>
     <span>Valores en {{ $unidad }}</span>
 </div>
