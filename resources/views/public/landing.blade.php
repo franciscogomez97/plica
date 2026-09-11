@@ -61,25 +61,28 @@
         </div>
     </section>
 
-    {{-- Lo que hace --}}
+    {{-- Lo que hace: empezando por lo que el club ya tiene --}}
     <section class="py-10">
-        <h2 class="text-center text-2xl font-extrabold tracking-tight sm:text-3xl">Hecho para clubes de pesca, no para «clubes deportivos»</h2>
+        <h2 class="text-center text-2xl font-extrabold tracking-tight sm:text-3xl">Hecho para clubes de pesca</h2>
+        <p class="mx-auto mt-2 max-w-2xl text-center text-slate-400">
+            Todo lo que hoy lleváis en un Excel y en el grupo de WhatsApp, en su sitio y calculado solo. Y no empezáis de cero: nos pasáis lo que ya tenéis.
+        </p>
         <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                <h3 class="font-bold text-emerald-400">Secciones con sus reglas</h3>
-                <p class="mt-2 text-sm text-slate-400">Orilla, embarcación, pato, black bass, carpfishing… Cada sección compite por peso, medida o piezas, con sus descartes, sus puntos por participar y su desempate. Sin ranking general inventado.</p>
+            <div class="rounded-2xl border border-emerald-800/60 bg-emerald-950/40 p-5 sm:col-span-2 lg:col-span-1">
+                <h3 class="font-bold text-emerald-400">Empieza con lo que ya tienes</h3>
+                <p class="mt-2 text-sm text-slate-300">Mándanos por WhatsApp vuestro Excel o la lista de socios, tal cual estén. Os montamos el club en cuestión de minutos: secciones con sus reglas, socios y calendario. Y si queréis, cargamos las mangas ya celebradas para que el ranking salga entero desde el primer día.</p>
             </div>
             <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                <h3 class="font-bold text-emerald-400">Pieza mayor y desempates</h3>
-                <p class="mt-2 text-sm text-slate-400">Siempre hay premio a la pieza mayor: Plica la calcula por manga y por temporada. Y si dos empatan, gana lo que diga vuestro reglamento, nunca el azar.</p>
+                <h3 class="font-bold text-emerald-400">Secciones con sus reglas</h3>
+                <p class="mt-2 text-sm text-slate-400">Orilla, embarcación, pato, black bass, carpfishing… Cada sección compite por peso, medida o piezas, con sus descartes, sus puntos por participar y su desempate. Las reglas de vuestro reglamento, no las de un programa.</p>
             </div>
             <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5">
                 <h3 class="font-bold text-emerald-400">Manga a manga</h3>
-                <p class="mt-2 text-sm text-slate-400">Un cuadro tipo hoja de cálculo: pescadores en filas, mangas en columnas, quién ganó cada una y quién va ganando. Como el Excel del secretario, pero solo.</p>
+                <p class="mt-2 text-sm text-slate-400">Un cuadro tipo hoja de cálculo: pescadores en filas, mangas en columnas, quién ganó cada una, quién hizo la pieza mayor y quién va ganando. Como vuestro Excel, pero solo y sin errores.</p>
             </div>
             <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                <h3 class="font-bold text-emerald-400">Socios en cinco minutos</h3>
-                <p class="mt-2 text-sm text-slate-400">Pegas la lista de nombres tal cual la tengas y les mandas su enlace de acceso por WhatsApp. Sin registros, sin contraseñas que olvidar.</p>
+                <h3 class="font-bold text-emerald-400">Socios sin registros</h3>
+                <p class="mt-2 text-sm text-slate-400">Cada socio recibe su enlace de acceso por WhatsApp y entra con un toque. Sin formularios de registro ni contraseñas que olvidar. Y quien no tenga cuenta ve igualmente las clasificaciones que compartáis.</p>
             </div>
             <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5">
                 <h3 class="font-bold text-emerald-400">Página pública del club</h3>
