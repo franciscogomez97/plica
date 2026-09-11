@@ -95,13 +95,17 @@ class ClubPruebaSeeder extends Seeder
                 ['pendiente', -1], ['proxima', 1],
             ],
             'embarcacion' => [
-                ['celebrada', -14], ['celebrada', -10], ['celebrada', -6],
+                ['celebrada', -20], ['celebrada', -17], ['celebrada', -14], ['celebrada', -11], ['celebrada', -8], ['celebrada', -5],
                 ['pendiente', 0], ['proxima', 2],
             ],
             'pato' => [
                 ['celebrada', -11], ['celebrada', -5], ['proxima', 3],
             ],
         ];
+
+        // Una manga de Embarcación con empates a propósito (dos a igual peso, cuatro a cero),
+        // para que se vean los promedios del sistema por puestos: 1,5 y 5,5.
+        $fijos = ['embarcacion' => [1 => [3 => [2, 1500, 900], 4 => [2, 1500, 900], 8 => [1, 800, 800], 9 => [0, 0, 0], 10 => [0, 0, 0], 11 => [0, 0, 0], 14 => [0, 0, 0]]]];
 
         mt_srand(20260911); // mismos resultados en cada reinicio
 
@@ -134,6 +138,17 @@ class ClubPruebaSeeder extends Seeder
                 }
 
                 if ($tipo !== 'celebrada') {
+                    continue;
+                }
+
+                if (isset($fijos[$clave][$i])) {
+                    foreach ($fijos[$clave][$i] as $idx => [$piezas, $gramos, $mayor]) {
+                        $participacion = Participacion::create(['manga_id' => $manga->id, 'socio_id' => $socios[$idx]->id, 'seccion_id' => $seccion->id, 'plica' => true, 'pieza_mayor_gramos' => $mayor ?: null]);
+                        if ($piezas > 0) {
+                            Captura::create(['participacion_id' => $participacion->id, 'piezas' => $piezas, 'peso_gramos' => $gramos]);
+                        }
+                    }
+
                     continue;
                 }
 

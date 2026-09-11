@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Club;
 use App\Models\Manga;
+use App\Models\Seccion;
 use App\Models\Socio;
 use App\Models\Temporada;
 use App\Models\User;
@@ -36,10 +37,10 @@ class ClubPruebaTest extends TestCase
         $this->assertFalse($socioUser->isAdmin());
         $this->assertSame($socioUser->id, Socio::where('nombre', 'Mario López')->firstOrFail()->user_id);
 
-        // Mangas: 9 pesadas con ranking, 2 pasadas sin pesar (pendientes) y 3 próximas con asistencias.
+        // Mangas: 12 pesadas con ranking, 2 pasadas sin pesar (pendientes) y 3 próximas con asistencias.
         $mangas = Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->get();
-        $this->assertCount(14, $mangas);
-        $this->assertSame(9, $mangas->where('estado', Manga::ESTADO_CELEBRADA)->count());
+        $this->assertCount(17, $mangas);
+        $this->assertSame(12, $mangas->where('estado', Manga::ESTADO_CELEBRADA)->count());
         $pendientes = $mangas->filter(fn (Manga $m) => $m->pendienteDeGestion());
         $this->assertCount(2, $pendientes);
         $this->assertSame(0, $pendientes->sum(fn (Manga $m) => $m->participacions()->count()));
@@ -58,6 +59,13 @@ class ClubPruebaTest extends TestCase
             $this->assertGreaterThan(3, $grupo->filas->count(), $grupo->nombre);
             $this->assertNotNull($grupo->piezaMayor, $grupo->nombre);
         }
+
+        // Embarcación va por puestos con promedio: la 2ª manga trae empates a propósito (1,5 y 5,5).
+        $embarcacion = $club->seccions()->where('nombre', 'Embarcación')->firstOrFail();
+        $segunda = Manga::where('seccion_id', $embarcacion->id)->where('estado', Manga::ESTADO_CELEBRADA)->orderBy('fecha')->skip(1)->firstOrFail();
+        $puntos = Scoring::puntosPorPuesto(Scoring::clasificacionManga($segunda)->first()->filas, Seccion::EMPATE_PROMEDIO);
+        $this->assertSame([1.5, 1.5, 3, 5.5, 5.5, 5.5, 5.5], array_values($puntos));
+        $this->get('/c/club-de-pruebas/embarcacion')->assertOk()->assertSee('1,5')->assertSee('5,5');
 
         // La web pública del club y de una sección responden.
         $this->get('/c/club-de-pruebas')->assertOk()->assertSee('Club de Pruebas');
@@ -78,7 +86,7 @@ class ClubPruebaTest extends TestCase
         $this->assertNotSame($club->id, $nuevo->id);
         $this->assertSame(16, $nuevo->socios()->count());
         $this->assertSame(0, Socio::where('nombre', 'Cambiado por un tester')->count());
-        $this->assertSame(14, Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $nuevo->id))->count());
+        $this->assertSame(17, Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $nuevo->id))->count());
         $this->assertSame(1, User::where('email', 'club@club.com')->count());
         $this->assertSame(0, User::whereNull('club_id')->where('email', 'like', '%@club.com')->count());
     }
