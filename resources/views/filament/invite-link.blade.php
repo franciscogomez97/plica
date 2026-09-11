@@ -26,7 +26,7 @@
         />
         <button
             type="button"
-            onclick="navigator.clipboard?.writeText(@js($url)); this.innerText = '✔';"
+            onclick="plicaCopiar(this, @js($url), 'Copiado ✓')"
             class="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium dark:border-gray-600"
         >
             Copiar

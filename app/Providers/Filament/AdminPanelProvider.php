@@ -67,7 +67,7 @@ class AdminPanelProvider extends PanelProvider
             // MISMA línea que el contenido, también en pantallas pequeñas.
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
-                fn (): string => Marca::iconos().Marca::estilosPanel()
+                fn (): string => Marca::iconos().Marca::estilosPanel().view('partials.copiar')->render()
                     .'<style>'
                     .'.fi-ta-record .fi-ta-record-content-ctn { flex-direction: row; align-items: center; }'
                     .'.fi-ta-record .fi-ta-record-content-ctn > div:first-child { flex: 1 1 0%; min-width: 0; }'

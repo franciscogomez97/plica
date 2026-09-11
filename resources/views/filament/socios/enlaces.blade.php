@@ -25,7 +25,7 @@
 
 <div class="enlaces-todos">
     <button type="button" class="enlaces-btn" data-texto="{{ $mensajes->pluck('texto')->implode("\n\n") }}"
-            onclick="navigator.clipboard.writeText(this.dataset.texto).then(() => { this.textContent = 'Copiados ✓'; })">
+            onclick="plicaCopiar(this, this.dataset.texto, 'Copiados ✓')">
         Copiar todos los mensajes
     </button>
     <span style="font-size:.85rem; opacity:.7">{{ $socios->count() === 1 ? '1 socio activo' : $socios->count().' socios activos' }}</span>
@@ -37,7 +37,7 @@
             <div class="enlaces-nombre">{{ $m['socio']->nombre }}</div>
             <span class="enlaces-estado {{ $m['socio']->user_id ? 'cuenta' : '' }}">{{ $m['socio']->user_id ? 'Con cuenta' : 'Sin cuenta' }}</span>
             <button type="button" class="enlaces-btn" data-texto="{{ $m['texto'] }}"
-                    onclick="navigator.clipboard.writeText(this.dataset.texto).then(() => { this.textContent = 'Copiado ✓'; })">
+                    onclick="plicaCopiar(this, this.dataset.texto, 'Copiado ✓')">
                 Copiar
             </button>
             <button type="button" class="enlaces-btn wa" data-texto="{{ $m['texto'] }}" data-titulo="Acceso a Plica"
