@@ -5,7 +5,6 @@ namespace App\Filament\Widgets;
 use App\Models\Manga;
 use App\Services\Scoring;
 use Filament\Widgets\Widget;
-use Illuminate\Support\Collection;
 
 /** Resumen operativo del club: próxima manga, socios y líderes por sección. */
 class ResumenClubWidget extends Widget

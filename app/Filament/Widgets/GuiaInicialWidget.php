@@ -6,7 +6,6 @@ use App\Filament\Resources\Mangas\MangaResource;
 use App\Filament\Resources\Seccions\SeccionResource;
 use App\Filament\Resources\Socios\SocioResource;
 use App\Filament\Resources\Temporadas\TemporadaResource;
-use App\Models\Manga;
 use Filament\Widgets\Widget;
 
 /**

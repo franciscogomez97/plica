@@ -3,11 +3,12 @@
 namespace Tests\Feature;
 
 use App\Filament\Auth\Login;
+use App\Mail\NuevaSolicitud;
 use App\Models\Socio;
-use App\Models\User;
 use Database\Seeders\DemoSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -144,7 +145,7 @@ class AuthFlowTest extends TestCase
 
     public function test_solicitud_de_la_landing_normaliza_el_email_y_avisa_por_correo(): void
     {
-        \Illuminate\Support\Facades\Mail::fake();
+        Mail::fake();
         config(['plica.notificaciones_email' => 'gestion@plica.test']);
 
         $this->post('/solicitud', [
@@ -153,6 +154,6 @@ class AuthFlowTest extends TestCase
         ])->assertRedirect();
 
         $this->assertDatabaseHas('solicituds', ['email' => 'info@cdprueba.es']);
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\NuevaSolicitud::class, 1);
+        Mail::assertSent(NuevaSolicitud::class, 1);
     }
 }

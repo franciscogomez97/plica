@@ -47,7 +47,7 @@
     }
 </style>
 
-@if ($cuadro->piezaMayor)
+@if ($cuadro->piezaMayor && ! ($sinPiezaMayor ?? false))
     <div class="mb-3 rounded-xl bg-amber-400/10 px-4 py-2.5 text-sm text-amber-200">🐟 Pieza mayor de la temporada: <strong>{{ $cuadro->piezaMayor->socio->nombre }}</strong> · {{ $cuadro->piezaMayor->texto }} ({{ $cuadro->piezaMayor->manga->nombre }})</div>
 @endif
 <div class="rounded-2xl border border-slate-800 bg-slate-900">

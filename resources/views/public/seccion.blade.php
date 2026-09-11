@@ -48,7 +48,8 @@
 
         <section class="pb-8">
             <h2 class="mb-3 text-lg font-bold text-emerald-400">Manga a manga</h2>
-            @include('public.partials.cuadro', ['cuadro' => $cuadro, 'club' => $club])
+            {{-- La pieza mayor de la temporada ya sale arriba, en la general: aquí no se repite. --}}
+            @include('public.partials.cuadro', ['cuadro' => $cuadro, 'club' => $club, 'sinPiezaMayor' => true])
         </section>
 
         @if ($clasifUltima)
