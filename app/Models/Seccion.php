@@ -64,7 +64,7 @@ class Seccion extends Model
             : [
                 self::DESEMPATE_PIEZA_MAYOR => 'La pieza mayor',
                 self::DESEMPATE_PIEZAS => 'Quien más piezas saque',
-                self::DESEMPATE_MENOS_PIEZAS => 'Quien menos piezas haya sacado (el criterio de la federación tras la pieza mayor)',
+                self::DESEMPATE_MENOS_PIEZAS => 'Quien menos piezas haya sacado',
             ];
 
         return $sistema === self::SISTEMA_PUESTOS

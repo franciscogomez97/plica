@@ -98,7 +98,7 @@ class SeccionForm
                         TextInput::make('puntos_no_asistencia')
                             ->label('Puntos por ausencia')
                             ->helperText(fn (Get $get): string => $esPuestos($get)
-                                ? 'Lo que se lleva quien no va a una manga. Lo habitual: el número de socios + 1 (48 con 47 socios). A 0, el último de esa manga + 1.'
+                                ? 'Los puntos que se lleva quien no va a una manga (aquí, cuantos más puntos, peor). Con 0, es automático: el último de esa manga más uno; si fueron 29, el ausente se lleva 30. Con un número fijo, faltar cuesta siempre lo mismo: lo habitual es el número de socios más uno, 48 con 47 socios.'
                                 : 'Por cada manga a la que un socio no va. En negativo, resta (castigo). 0 = nada.')
                             ->numeric()
                             ->integer()
