@@ -67,10 +67,10 @@ class ClubPruebaSeeder extends Seeder
         Temporada::where('club_id', $club->id)->whereKeyNot($temporada->id)->delete();
 
         $secciones = [
-            'orilla' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'orilla'], ['nombre' => 'Orilla', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO, 'puntos_participacion' => 500, 'puntos_no_asistencia' => 0, 'descartes' => 0, 'desempate' => Seccion::DESEMPATE_PIEZA_MAYOR]),
+            'orilla' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'orilla'], ['nombre' => 'Orilla', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO, 'puntos_participacion' => 500, 'puntos_no_asistencia' => 0, 'descartes' => 0, 'descartes_ausencias' => false, 'desempate' => Seccion::DESEMPATE_PIEZA_MAYOR]),
             // Por puestos, el sistema de federación: puesto = puntos, sin desempate (promedio), ausente = socios + 1.
-            'embarcacion' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'embarcacion'], ['nombre' => 'Embarcación', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 17, 'descartes' => 1, 'desempate' => Seccion::DESEMPATE_PROMEDIO]),
-            'pato' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'pato-lucio'], ['nombre' => 'Pato — Lucio', 'criterio' => Seccion::CRITERIO_MEDIDA, 'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 0, 'descartes' => 0, 'desempate' => Seccion::DESEMPATE_PIEZAS]),
+            'embarcacion' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'embarcacion'], ['nombre' => 'Embarcación', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 17, 'descartes' => 1, 'descartes_ausencias' => true, 'desempate' => Seccion::DESEMPATE_PROMEDIO]),
+            'pato' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'pato-lucio'], ['nombre' => 'Pato — Lucio', 'criterio' => Seccion::CRITERIO_MEDIDA, 'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 0, 'descartes' => 0, 'descartes_ausencias' => false, 'desempate' => Seccion::DESEMPATE_PIEZAS]),
         ];
         Seccion::where('club_id', $club->id)->whereNotIn('id', collect($secciones)->pluck('id'))->delete();
 

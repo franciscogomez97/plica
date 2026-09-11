@@ -52,6 +52,7 @@ class BassExtremaduraSeeder extends Seeder
             'puntos_participacion' => 0,
             'puntos_no_asistencia' => count(self::SOCIOS) + 1,
             'descartes' => 0,
+            'descartes_ausencias' => true, // si algún día descartan, faltar cuenta como la peor manga
             'desempate' => Seccion::DESEMPATE_PROMEDIO,
         ]);
 

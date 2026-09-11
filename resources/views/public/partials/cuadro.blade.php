@@ -35,6 +35,7 @@
 .pc .celda .pez { font-size: .8rem; line-height: 1; }
     .pc .celda.descartada .v { text-decoration: line-through; opacity: .45; }
     .pc td.ausente { color: rgb(71 85 105); }
+    .pc td.ausente.descartada { text-decoration: line-through; }
     .pc .n.corto { display: none; }
     @media (max-width: 640px) {
         .pc { font-size: .9rem; }
@@ -83,11 +84,11 @@
                             @php $c = $fila->celdas[$manga->id] ?? null; @endphp
                             @if ($c === null)
                                 @if ($cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS)
-                                <td class="ausente" title="No participó: {{ $cuadro->ausentePorManga[$manga->id] ?? '' }} pts">—<br><small>{{ $cuadro->ausentePorManga[$manga->id] ?? '' }}</small></td>
+                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó: {{ $cuadro->ausentePorManga[$manga->id] ?? '' }} pts{{ $d ? ' · manga descartada' : '' }}">—<br><small>@if ($d)<s>{{ $cuadro->ausentePorManga[$manga->id] ?? '' }}</s>@else{{ $cuadro->ausentePorManga[$manga->id] ?? '' }}@endif</small></td>
                             @elseif (($cuadro->puntosNoAsistencia ?? 0) !== 0)
-                                <td class="ausente" title="No participó: {{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }} pts">—<br><small>{{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }}</small></td>
+                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó: {{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }} pts{{ $d ? ' · manga descartada' : '' }}">—<br><small>{{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }}</small></td>
                             @else
-                                <td class="ausente" title="No participó">—</td>
+                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó{{ $d ? ' · manga descartada' : '' }}">—</td>
                             @endif
                             @else
                                 @php [$numero, $uni] = $partir($c->texto); @endphp

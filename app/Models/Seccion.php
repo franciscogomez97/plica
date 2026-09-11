@@ -47,7 +47,7 @@ class Seccion extends Model
 
     protected $fillable = [
         'club_id', 'nombre', 'slug', 'criterio',
-        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'desempate',
+        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'descartes_ausencias', 'desempate',
     ];
 
     /**
@@ -128,6 +128,7 @@ class Seccion extends Model
             'puntos_participacion' => 'integer',
             'puntos_no_asistencia' => 'integer',
             'descartes' => 'integer',
+            'descartes_ausencias' => 'boolean',
         ];
     }
 
@@ -156,6 +157,7 @@ class Seccion extends Model
             $this->sistema_puntuacion ?? self::SISTEMA_ACUMULADO,
             $this->desempate ?? static::desempatePorDefecto($this->criterio ?? self::CRITERIO_PESO),
             (int) $this->puntos_no_asistencia,
+            (bool) $this->descartes_ausencias,
         );
     }
 
@@ -167,6 +169,7 @@ class Seccion extends Model
         string $sistema = self::SISTEMA_ACUMULADO,
         ?string $desempate = null,
         int $puntosNoAsistencia = 0,
+        bool $descartesAusencias = false,
     ): string {
         $desempate ??= static::desempatePorDefecto($criterio);
         $frases = [
@@ -191,9 +194,10 @@ class Seccion extends Model
         }
 
         if ($descartes > 0) {
-            $frases[] = $descartes === 1
-                ? 'No cuenta la peor manga de cada socio.'
-                : "No cuentan las {$descartes} peores mangas de cada socio.";
+            $frases[] = ($descartes === 1
+                ? 'No cuenta la peor manga de cada socio'
+                : "No cuentan las {$descartes} peores mangas de cada socio")
+                .($descartesAusencias ? ', y no ir a una manga cuenta como la peor.' : '.');
         }
 
         if ($puntosParticipacion > 0 && $sistema !== self::SISTEMA_PUESTOS) {

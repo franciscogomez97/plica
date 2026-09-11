@@ -78,7 +78,10 @@ class SeccionForm
                             ])
                             ->default(Seccion::SISTEMA_ACUMULADO)
                             ->live()
-                            ->afterStateUpdated($corregirDesempate)
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) use ($corregirDesempate): void {
+                                $corregirDesempate($get, $set);
+                                $set('descartes_ausencias', $state === Seccion::SISTEMA_PUESTOS);
+                            })
                             ->required(),
 
                         // Suma lo pescado: se puede premiar ir a las mangas.
@@ -109,6 +112,17 @@ class SeccionForm
                             ->minValue(0)
                             ->default(0)
                             ->live(onBlur: true),
+                        // Con descartes, qué es «la peor manga» para quien faltó a alguna.
+                        Radio::make('descartes_ausencias')
+                            ->label('¿Qué mangas se pueden descartar?')
+                            ->boolean(
+                                'También las no pescadas: faltar cuenta como la peor manga y es la primera que se descarta.',
+                                'Solo las pescadas: se quita la peor de las que fue; las que se perdió cuentan igual.',
+                            )
+                            ->default(false)
+                            ->visible(fn (Get $get): bool => (int) ($get('descartes') ?: 0) > 0)
+                            ->live()
+                            ->required(),
 
                         // Una sola regla para los empates, en las mangas y en el ranking: o
                         // decide algo (pieza mayor, piezas) o no decide nada y comparten.
@@ -137,6 +151,7 @@ class SeccionForm
                                 (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
                                 $get('desempate') ?: null,
                                 $esPuestos($get) ? (int) ($get('puntos_no_asistencia') ?: 0) : 0,
+                                (bool) $get('descartes_ausencias'),
                             )),
                     ]),
             ]);

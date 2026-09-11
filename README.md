@@ -170,6 +170,17 @@ relativas al día en que se ejecuta.
   manga a manga enseña en cada celda los puntos de esa manga y en las de
   «no fue» lo que costó. `BassExtremaduraSeeder` carga su Orilla (47 socios,
   sin pesajes) y `PorPuestosTest` comprueba su hoja al decimal.
+- **Descartes: qué mangas se pueden descartar** (`seccions.descartes_ausencias`,
+  11 de septiembre de 2026): con descartes, el club elige si «la peor manga»
+  puede ser una a la que no se fue (faltar cuenta como la peor y se descarta
+  la primera) o solo entre las pescadas (se quita la peor de las que fue; las
+  perdidas cuentan igual). Antes «suma lo pescado» hacía lo segundo y «por
+  puestos» lo primero sin decirlo, y el cuadro manga a manga tachaba siempre
+  una pescada aunque el ranking hubiera descartado la ausencia. Ahora los dos
+  sistemas y el cuadro usan la misma función (`Scoring::descartadas`), y una
+  ausencia descartada sale tachada en el cuadro. Al migrar, las secciones por
+  puestos quedaron en «también las no pescadas» y las de suma en «solo las
+  pescadas», como venían funcionando.
 - **Una sola regla de empates** (`seccions.desempate`, 11 de septiembre de
   2026): había dos ajustes que se pisaban (el desempate por pieza mayor se
   aplicaba antes que el «promedio» y solo empataban de verdad los que
