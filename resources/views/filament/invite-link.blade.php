@@ -1,9 +1,5 @@
 @php
-    $mensaje = "Hola {$socio->nombre} 👋 Soy del club {$socio->club->nombre}. "
-        .($socio->user_id
-            ? "Abre este enlace para poner una contraseña nueva a tu cuenta y ver los rankings: "
-            : "Abre este enlace para crear tu cuenta y ver las clasificaciones y rankings del club: ")
-        .$url;
+    $mensaje = $socio->mensajeAcceso();
 @endphp
 
 <div class="space-y-3">

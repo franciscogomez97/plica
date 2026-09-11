@@ -61,7 +61,10 @@ class PulidoTest extends TestCase
             ->mountAction('enlaces');
 
         $modal = (string) $componente->instance()->getMountedAction()->getModalContent();
-        $this->assertStringContainsString('Copiar todos los mensajes', $modal);
+        // Nada de «copiar todos»: los enlaces son personales y van uno a uno por WhatsApp.
+        $this->assertStringNotContainsString('Copiar todos', $modal);
+        $this->assertStringContainsString('socios sin cuenta', $modal);
+        $this->assertStringContainsString('WhatsApp', $modal);
         $this->assertStringContainsString('Mario López', $modal);
         $this->assertStringContainsString('Con cuenta', $modal);
         $this->assertStringContainsString('Sin cuenta', $modal);

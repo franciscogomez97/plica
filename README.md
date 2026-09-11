@@ -189,10 +189,14 @@ es `PLICA_SUPERADMIN_EMAIL` ve además las solicitudes.
   mientras Plica sea gratuita van vacíos y su línea no se pinta. Rellenarlos
   antes de cobrar al primer club. Solo hay cookies técnicas, así que no
   hay banner: están exentas de consentimiento (art. 22.2 LSSI).
-- **Enlaces de acceso en bloque**: en Socios, «Enlaces de acceso» genera el
-  mensaje de WhatsApp de cada socio activo con su enlace de un solo uso, con
-  «Copiar», «WhatsApp» (hoja de compartir del móvil) y «Copiar todos». Es el
-  alta de un club en cinco minutos.
+- **Dar acceso a los socios**: en Socios, «Dar acceso» lista a los socios
+  activos (primero los que no tienen cuenta), cada uno con su enlace personal
+  de un solo uso y dos botones: «WhatsApp» (hoja de compartir del móvil o
+  wa.me) y «Copiar». Se mandan uno a uno: el enlace de un socio crea la cuenta
+  *de ese socio*, así que nunca va a un grupo, y por eso no hay «copiar
+  todos» (lo hubo y se quitó en septiembre de 2026). El mismo mensaje sale en
+  la ficha de cada socio (`Socio::mensajeAcceso()`). «Copiar» funciona también
+  sin HTTPS (`partials/copiar.blade.php`).
 - **Instalable en el móvil**: `public/manifest.webmanifest` + iconos en
   `public/icons` (generados desde el SVG de marca), enlazados en la web pública
   y en los dos paneles. «Añadir a pantalla de inicio» abre `/app` a pantalla

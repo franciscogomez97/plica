@@ -56,13 +56,15 @@ class ListSocios extends ListRecords
                     $notificacion->send();
                 }),
             CreateAction::make(),
-            // Los enlaces de acceso de todos a la vez: el alta de un club en cinco minutos.
+            // Dar acceso a todo el club en una tarde: la lista de socios, cada uno con su
+            // enlace personal y su botón de WhatsApp. Se mandan uno a uno (son personales:
+            // con el enlace de otro entrarías como él), por eso no hay «copiar todos».
             Action::make('enlaces')
-                ->label('Enlaces de acceso')
+                ->label('Dar acceso')
                 ->icon(Heroicon::OutlinedLink)
                 ->color('gray')
-                ->modalHeading('Enlaces de acceso para todos')
-                ->modalDescription('Un mensaje por socio, listo para pegar en WhatsApp. Cada enlace es de un solo uso: crea la cuenta o, si ya la tiene, le deja poner una contraseña nueva.')
+                ->modalHeading('Dar acceso a los socios')
+                ->modalDescription('Cada socio tiene su propio enlace, de un solo uso. Mándaselo por WhatsApp a cada uno: al abrirlo crea su cuenta con su email y su contraseña. Si ya tiene cuenta, el enlace le sirve para poner una contraseña nueva. Mientras no lo use, puedes volver a mandárselo.')
                 ->modalContent(fn (): View => view('filament.socios.enlaces', [
                     'club' => auth()->user()->club,
                     'socios' => Socio::query()

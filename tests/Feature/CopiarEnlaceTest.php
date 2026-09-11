@@ -61,8 +61,10 @@ class CopiarEnlaceTest extends TestCase
             ->mountAction('enlaces')
             ->instance()->getMountedAction()->getModalContent();
 
-        $this->assertStringContainsString("plicaCopiar(this, this.dataset.texto, 'Copiados ✓')", $modal);
         $this->assertStringContainsString("plicaCopiar(this, this.dataset.texto, 'Copiado ✓')", $modal);
+        $this->assertStringNotContainsString('Copiar todos', $modal);
+        // El mismo mensaje que en la ficha del socio, y personal.
+        $this->assertStringContainsString('Es solo para ti y de un solo uso.', $modal);
         $this->assertStringNotContainsString('navigator.clipboard', $modal);
     }
 }

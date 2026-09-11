@@ -49,4 +49,18 @@ class Socio extends Model
 
         return route('acceso.show', $this->invite_token);
     }
+
+    /**
+     * El mensaje de WhatsApp con el enlace de acceso, el mismo en la ficha del
+     * socio y en «Dar acceso»: personal y de un solo uso, nunca para un grupo.
+     */
+    public function mensajeAcceso(): string
+    {
+        $url = $this->accessUrl();
+        $club = $this->club->nombre;
+
+        return $this->user_id
+            ? "Hola {$this->nombre} 👋 Este es tu acceso a Plica, la app de {$club}: {$url}\nAl abrirlo eliges una contraseña nueva. Es solo para ti y de un solo uso."
+            : "Hola {$this->nombre} 👋 Este es tu acceso a Plica, la app de {$club}: {$url}\nAl abrirlo creas tu cuenta y ves los rankings, las clasificaciones y las próximas mangas. Es solo para ti y de un solo uso.";
+    }
 }
