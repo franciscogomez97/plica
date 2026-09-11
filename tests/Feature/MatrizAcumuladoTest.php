@@ -9,9 +9,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Cierre del sistema «suma lo pescado»: la matriz del Club de Pruebas (18
- * secciones: peso, medida y piezas × seis combinaciones de asistencia,
- * empates y descartes) contra resultados calculados aparte del motor, a mano
+ * Cierre del sistema «suma lo pescado»: la matriz del Club de Pruebas (24
+ * secciones: peso, medida y piezas × ocho combinaciones de asistencia,
+ * empates, descartes y puntos por ausencia) contra resultados calculados aparte del motor, a mano
  * y con una implementación independiente (scratchpad/oraculo_acumulado.py,
  * 11 de septiembre de 2026). Cada lista: [socio, puesto, puntos, mangas].
  */
@@ -68,6 +68,22 @@ class MatrizAcumuladoTest extends TestCase
             ['Sergio del Río', 5, 3200, 3],
             ['Rubén Castaño', 6, 3000, 2],
         ],
+        'matriz-peso-7' => [
+            ['Paco Jiménez', 1, 7000, 3],
+            ['Iván Perea', 2, 5800, 2],
+            ['Mario López', 3, 5800, 2],
+            ['Andrés Molina', 4, 4000, 2],
+            ['Sergio del Río', 5, 3700, 3],
+            ['Rubén Castaño', 6, 2800, 2],
+        ],
+        'matriz-peso-8' => [
+            ['Paco Jiménez', 1, 5500, 3],
+            ['Iván Perea', 2, 5000, 2],
+            ['Mario López', 3, 5000, 2],
+            ['Andrés Molina', 4, 3200, 2],
+            ['Sergio del Río', 5, 2200, 3],
+            ['Rubén Castaño', 6, 2000, 2],
+        ],
         'matriz-piezas-1' => [
             ['Iván Perea', 1, 6, 2],
             ['Paco Jiménez', 2, 5, 3],
@@ -115,6 +131,22 @@ class MatrizAcumuladoTest extends TestCase
             ['Andrés Molina', 3, 1004, 2],
             ['Rubén Castaño', 3, 1004, 2],
             ['Sergio del Río', 6, 1003, 3],
+        ],
+        'matriz-piezas-7' => [
+            ['Paco Jiménez', 1, 1505, 3],
+            ['Sergio del Río', 2, 1503, 3],
+            ['Iván Perea', 3, 806, 2],
+            ['Mario López', 4, 805, 2],
+            ['Andrés Molina', 5, 804, 2],
+            ['Rubén Castaño', 6, 804, 2],
+        ],
+        'matriz-piezas-8' => [
+            ['Iván Perea', 1, 6, 2],
+            ['Mario López', 2, 5, 2],
+            ['Paco Jiménez', 3, 4, 3],
+            ['Andrés Molina', 4, 4, 2],
+            ['Rubén Castaño', 5, 4, 2],
+            ['Sergio del Río', 6, 3, 3],
         ],
         'matriz-medida-1' => [
             ['Paco Jiménez', 1, 2500, 3],
@@ -164,9 +196,25 @@ class MatrizAcumuladoTest extends TestCase
             ['Rubén Castaño', 5, 2350, 2],
             ['Sergio del Río', 6, 2250, 3],
         ],
+        'matriz-medida-7' => [
+            ['Paco Jiménez', 1, 4000, 3],
+            ['Iván Perea', 2, 2800, 2],
+            ['Mario López', 3, 2800, 2],
+            ['Sergio del Río', 4, 2750, 3],
+            ['Andrés Molina', 5, 2600, 2],
+            ['Rubén Castaño', 6, 2150, 2],
+        ],
+        'matriz-medida-8' => [
+            ['Paco Jiménez', 1, 2500, 3],
+            ['Iván Perea', 2, 2000, 2],
+            ['Mario López', 3, 2000, 2],
+            ['Andrés Molina', 4, 1800, 2],
+            ['Rubén Castaño', 5, 1350, 2],
+            ['Sergio del Río', 6, 1250, 3],
+        ],
     ];
 
-    public function test_las_18_secciones_de_la_matriz_dan_lo_calculado_aparte(): void
+    public function test_las_24_secciones_de_la_matriz_dan_lo_calculado_aparte(): void
     {
         $this->seed(ClubPruebaSeeder::class);
         $club = Club::where('slug', 'club-de-pruebas')->firstOrFail();
@@ -200,10 +248,11 @@ class MatrizAcumuladoTest extends TestCase
         $this->seed(ClubPruebaSeeder::class);
         $secciones = Club::where('slug', 'club-de-pruebas')->firstOrFail()->seccions()->where('slug', 'like', 'matriz-%')->get();
 
-        $this->assertCount(18, $secciones);
+        $this->assertCount(24, $secciones);
         $this->assertSame(['medida', 'peso', 'piezas'], $secciones->pluck('criterio')->unique()->sort()->values()->all());
         $this->assertSame([0, 500], $secciones->pluck('puntos_participacion')->unique()->sort()->values()->all());
-        $this->assertSame(['compartido', 'peso', 'pieza_mayor', 'piezas'], $secciones->pluck('desempate')->unique()->sort()->values()->all());
+        $this->assertSame([-200, 0, 100], $secciones->pluck('puntos_no_asistencia')->unique()->sort()->values()->all());
+        $this->assertSame(['compartido', 'menos_piezas', 'peso', 'pieza_mayor', 'piezas'], $secciones->pluck('desempate')->unique()->sort()->values()->all());
         $this->assertSame([0, 1], $secciones->pluck('descartes')->unique()->sort()->values()->all());
         $this->assertSame([false, true], $secciones->pluck('descartes_ausencias')->unique()->sort()->values()->all());
     }

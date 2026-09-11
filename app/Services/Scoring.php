@@ -478,6 +478,7 @@ class Scoring
             Seccion::DESEMPATE_COMPARTIDO, Seccion::DESEMPATE_PROMEDIO => 0,
             Seccion::DESEMPATE_PIEZA_MAYOR => $criterio === Seccion::CRITERIO_MEDIDA ? $fila->mayorMm : $fila->mayorGramos,
             Seccion::DESEMPATE_PESO => $fila->peso,
+            Seccion::DESEMPATE_MENOS_PIEZAS => -$fila->piezas, // menos piezas es mejor
             default => $fila->piezas,
         };
     }

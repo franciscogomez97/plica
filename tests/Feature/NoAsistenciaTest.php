@@ -49,7 +49,7 @@ class NoAsistenciaTest extends TestCase
     public function test_por_defecto_es_cero_y_no_cambia_nada(): void
     {
         $this->assertSame(0, $this->orilla->puntos_no_asistencia);
-        $this->assertStringNotContainsString('no se va', $this->orilla->resumenReglas());
+        $this->assertStringNotContainsString('ausencia', $this->orilla->resumenReglas());
 
         $antes = $this->puntosOrilla();
         $this->orilla->update(['puntos_no_asistencia' => 0]);
@@ -78,7 +78,7 @@ class NoAsistenciaTest extends TestCase
         // Alguien que no ha pescado ninguna manga sigue sin estar en el ranking.
         $this->assertArrayNotHasKey('Chema Ortiz', $despues);
 
-        $this->assertStringContainsString('Cada manga a la que no se va suma 100 puntos.', $this->orilla->fresh()->resumenReglas());
+        $this->assertStringContainsString('Cada ausencia suma 100 puntos.', $this->orilla->fresh()->resumenReglas());
     }
 
     public function test_en_negativo_resta(): void
@@ -89,7 +89,7 @@ class NoAsistenciaTest extends TestCase
 
         $this->assertSame($antes['Alberto Rey'] - 50, $despues['Alberto Rey']);
         $this->assertSame($antes['Mario López'], $despues['Mario López']);
-        $this->assertStringContainsString('Cada manga a la que no se va resta 50 puntos.', $this->orilla->fresh()->resumenReglas());
+        $this->assertStringContainsString('Cada ausencia resta 50 puntos.', $this->orilla->fresh()->resumenReglas());
     }
 
     public function test_el_cuadro_manga_a_manga_lo_ensena_en_las_celdas_de_no_fue(): void
@@ -104,25 +104,27 @@ class NoAsistenciaTest extends TestCase
         $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
         $this->get("/admin/ranking/{$this->orilla->id}")->assertOk()
             ->assertSee('No participó: +100 pts')
-            ->assertSee('no se va suma 100 puntos');
+            ->assertSee('Cada ausencia suma 100 puntos');
         $this->get('/c/cd-pesca-piloto/orilla')->assertOk()->assertSee('No participó: +100 pts');
     }
 
-    /** En el formulario solo se ofrece con «suma los puestos»: en «suma lo pescado» hay puntos por asistencia y nada más. */
-    public function test_en_el_formulario_solo_se_ofrece_con_el_sistema_por_puestos(): void
+    /** «Puntos por ausencia» en los dos sistemas: en «suma lo pescado» admite negativos (castigo); por puestos es lo que cuesta no ir. */
+    public function test_se_configura_en_los_dos_sistemas(): void
     {
         $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
-        // Orilla suma lo pescado: el campo no se ve, y lo que se rellene a ciegas no se guarda.
+        // Orilla suma lo pescado: un castigo de 200 por cada ausencia.
         Livewire::test(EditSeccion::class, ['record' => $this->orilla->getRouteKey()])
             ->assertFormFieldExists('puntos_participacion')
-            ->fillForm(['puntos_no_asistencia' => 25])
+            ->assertFormFieldExists('puntos_no_asistencia')
+            ->fillForm(['puntos_no_asistencia' => -200])
             ->call('save')
             ->assertHasNoFormErrors();
-        $this->assertSame(0, $this->orilla->fresh()->puntos_no_asistencia);
+        $this->assertSame(-200, $this->orilla->fresh()->puntos_no_asistencia);
+        $this->assertStringContainsString('Cada ausencia resta 200 puntos.', $this->orilla->fresh()->resumenReglas());
 
-        // Por puestos, sí: es lo que cuesta no ir.
+        // Por puestos: lo que cuesta no ir, nunca negativo.
         Livewire::test(EditSeccion::class, ['record' => $this->orilla->getRouteKey()])
             ->fillForm(['sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puntos_no_asistencia' => 25])
             ->call('save')

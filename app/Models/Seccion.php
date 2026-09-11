@@ -41,6 +41,9 @@ class Seccion extends Model
 
     public const DESEMPATE_PIEZA_MAYOR = 'pieza_mayor';
 
+    /** El segundo criterio oficial de la federación tras la pieza mayor: quien menos capturas haya necesitado. */
+    public const DESEMPATE_MENOS_PIEZAS = 'menos_piezas';
+
     public const DESEMPATE_COMPARTIDO = 'compartido';
 
     public const DESEMPATE_PROMEDIO = 'promedio';
@@ -58,7 +61,11 @@ class Seccion extends Model
     {
         $porAlgo = $criterio === self::CRITERIO_PIEZAS
             ? [self::DESEMPATE_PIEZA_MAYOR => 'La pieza mayor', self::DESEMPATE_PESO => 'Quien más peso sume']
-            : [self::DESEMPATE_PIEZA_MAYOR => 'La pieza mayor', self::DESEMPATE_PIEZAS => 'Quien más piezas saque'];
+            : [
+                self::DESEMPATE_PIEZA_MAYOR => 'La pieza mayor',
+                self::DESEMPATE_PIEZAS => 'Quien más piezas saque',
+                self::DESEMPATE_MENOS_PIEZAS => 'Quien menos piezas haya sacado (el criterio de la federación tras la pieza mayor)',
+            ];
 
         return $sistema === self::SISTEMA_PUESTOS
             ? $porAlgo + [
@@ -207,8 +214,8 @@ class Seccion extends Model
         // Puntos por no ir: solo para quien ya está en el ranking (ha pescado alguna manga).
         if ($puntosNoAsistencia !== 0 && $sistema !== self::SISTEMA_PUESTOS) {
             $frases[] = $puntosNoAsistencia > 0
-                ? "Cada manga a la que no se va suma {$puntosNoAsistencia} puntos."
-                : 'Cada manga a la que no se va resta '.abs($puntosNoAsistencia).' puntos.';
+                ? "Cada ausencia suma {$puntosNoAsistencia} puntos."
+                : 'Cada ausencia resta '.abs($puntosNoAsistencia).' puntos.';
         }
 
         $frases[] = match ($desempate) {
@@ -217,6 +224,7 @@ class Seccion extends Model
             default => 'Si empatan, gana '.match ($desempate) {
                 self::DESEMPATE_PIEZA_MAYOR => 'la pieza mayor',
                 self::DESEMPATE_PESO => 'quien más peso sume',
+                self::DESEMPATE_MENOS_PIEZAS => 'quien menos piezas haya sacado',
                 default => 'quien más piezas saque',
             }.'; si siguen igual, comparten puesto.',
         };

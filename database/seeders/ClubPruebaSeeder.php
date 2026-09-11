@@ -208,19 +208,24 @@ class ClubPruebaSeeder extends Seeder
     // ------------------------------------------------------------------
     //  Matriz de «suma lo pescado»: todas las variables, con datos que fuerzan
     //  empates (a valor, con distinta pieza mayor y distinto nº de piezas), ceros
-    //  (fue y no pescó) y ausencias (una y dos mangas perdidas). Seis reglas por
-    //  criterio, 18 secciones; los resultados esperados están en MatrizAcumuladoTest,
+    //  (fue y no pescó) y ausencias (una y dos mangas perdidas). Ocho reglas por
+    //  criterio, 24 secciones; los resultados esperados están en MatrizAcumuladoTest,
     //  calculados aparte del motor.
     // ------------------------------------------------------------------
 
-    /** Las seis combinaciones de reglas: [asistencia, desempate (A = pieza mayor, B = piezas o peso), descartes, también no pescadas]. */
+    /**
+     * Las ocho combinaciones de reglas: [asistencia, desempate, descartes, también no pescadas, puntos por ausencia].
+     * Desempate: A = pieza mayor, B = piezas (o peso en la de piezas), M = menos piezas (o peso en la de piezas).
+     */
     public const MATRIZ_REGLAS = [
-        1 => [0, 'A', 0, false],
-        2 => [500, 'B', 0, false],
-        3 => [0, 'compartido', 0, false],
-        4 => [500, 'A', 1, false],
-        5 => [0, 'B', 1, true],
-        6 => [500, 'compartido', 1, true],
+        1 => [0, 'A', 0, false, 0],
+        2 => [500, 'B', 0, false, 0],
+        3 => [0, 'compartido', 0, false, 0],
+        4 => [500, 'A', 1, false, 0],
+        5 => [0, 'B', 1, true, 0],
+        6 => [500, 'compartido', 1, true, 0],
+        7 => [500, 'M', 0, false, -200],
+        8 => [0, 'A', 1, true, 100],
     ];
 
     /**
@@ -253,7 +258,7 @@ class ClubPruebaSeeder extends Seeder
 
     public static function matrizNombre(string $criterio, int $regla): string
     {
-        [$asistencia, $desempate, $descartes, $ausencias] = self::MATRIZ_REGLAS[$regla];
+        [$asistencia, $desempate, $descartes, $ausencias, $ausencia] = self::MATRIZ_REGLAS[$regla];
         $criterioTexto = match ($criterio) {
             Seccion::CRITERIO_MEDIDA => 'Medida',
             Seccion::CRITERIO_PIEZAS => 'Piezas',
@@ -262,11 +267,13 @@ class ClubPruebaSeeder extends Seeder
         $desempateTexto = match ($desempate) {
             'A' => 'pieza mayor',
             'B' => $criterio === Seccion::CRITERIO_PIEZAS ? 'más peso' : 'más piezas',
+            'M' => $criterio === Seccion::CRITERIO_PIEZAS ? 'más peso' : 'menos piezas',
             default => 'comparten',
         };
         $descartesTexto = $descartes === 0 ? 'sin descartes' : ($ausencias ? '1 descarte, también no pescadas' : '1 descarte, solo pescadas');
+        $ausenciaTexto = $ausencia === 0 ? '' : ' · ausencia '.($ausencia > 0 ? '+' : '').$ausencia;
 
-        return "{$criterioTexto} · ".($asistencia > 0 ? "asistencia {$asistencia}" : 'sin asistencia')." · {$desempateTexto} · {$descartesTexto}";
+        return "{$criterioTexto} · ".($asistencia > 0 ? "asistencia {$asistencia}" : 'sin asistencia')." · {$desempateTexto} · {$descartesTexto}{$ausenciaTexto}";
     }
 
     public static function matrizDesempate(string $criterio, string $letra): string
@@ -274,6 +281,7 @@ class ClubPruebaSeeder extends Seeder
         return match ($letra) {
             'A' => Seccion::DESEMPATE_PIEZA_MAYOR,
             'B' => $criterio === Seccion::CRITERIO_PIEZAS ? Seccion::DESEMPATE_PESO : Seccion::DESEMPATE_PIEZAS,
+            'M' => $criterio === Seccion::CRITERIO_PIEZAS ? Seccion::DESEMPATE_PESO : Seccion::DESEMPATE_MENOS_PIEZAS,
             default => Seccion::DESEMPATE_COMPARTIDO,
         };
     }
@@ -284,13 +292,13 @@ class ClubPruebaSeeder extends Seeder
         $secciones = collect();
 
         foreach (array_keys(self::MATRIZ_DATOS) as $criterio) {
-            foreach (self::MATRIZ_REGLAS as $regla => [$asistencia, $desempate, $descartes, $ausencias]) {
+            foreach (self::MATRIZ_REGLAS as $regla => [$asistencia, $desempate, $descartes, $ausencias, $ausencia]) {
                 $secciones->push(Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => self::matrizSlug($criterio, $regla)], [
                     'nombre' => self::matrizNombre($criterio, $regla),
                     'criterio' => $criterio,
                     'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO,
                     'puntos_participacion' => $asistencia,
-                    'puntos_no_asistencia' => 0,
+                    'puntos_no_asistencia' => $ausencia,
                     'descartes' => $descartes,
                     'descartes_ausencias' => $ausencias,
                     'desempate' => self::matrizDesempate($criterio, $desempate),

@@ -27,7 +27,7 @@ class ClubPruebaTest extends TestCase
         $this->assertTrue($club->perfil_publico);
         $this->assertSame(16, $club->socios()->count());
         $this->assertSame(1, $club->socios()->where('activo', false)->count());
-        $this->assertSame(21, $club->seccions()->count()); // 3 de la demo + 18 de la matriz de «suma lo pescado»
+        $this->assertSame(27, $club->seccions()->count()); // 3 de la demo + 24 de la matriz de «suma lo pescado»
         foreach (['Embarcación', 'Orilla', 'Pato — Lucio'] as $nombre) {
             $this->assertTrue($club->seccions()->where('nombre', $nombre)->exists(), $nombre);
         }
@@ -40,10 +40,10 @@ class ClubPruebaTest extends TestCase
         $this->assertFalse($socioUser->isAdmin());
         $this->assertSame($socioUser->id, Socio::where('nombre', 'Mario López')->firstOrFail()->user_id);
 
-        // Mangas: 12 pesadas con ranking (+54 de la matriz), 2 pasadas sin pesar (pendientes) y 3 próximas con asistencias.
+        // Mangas: 12 pesadas con ranking (+72 de la matriz), 2 pasadas sin pesar (pendientes) y 3 próximas con asistencias.
         $mangas = Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->get();
-        $this->assertCount(17 + 54, $mangas);
-        $this->assertSame(12 + 54, $mangas->where('estado', Manga::ESTADO_CELEBRADA)->count());
+        $this->assertCount(17 + 72, $mangas);
+        $this->assertSame(12 + 72, $mangas->where('estado', Manga::ESTADO_CELEBRADA)->count());
         $pendientes = $mangas->filter(fn (Manga $m) => $m->pendienteDeGestion());
         $this->assertCount(2, $pendientes);
         $this->assertSame(0, $pendientes->sum(fn (Manga $m) => $m->participacions()->count()));
@@ -57,7 +57,7 @@ class ClubPruebaTest extends TestCase
         // Rankings hechos en las tres secciones, con pieza mayor.
         $temporada = Temporada::where('club_id', $club->id)->where('activa', true)->firstOrFail();
         $ranking = Scoring::rankingTemporada($temporada);
-        $this->assertCount(21, $ranking);
+        $this->assertCount(27, $ranking);
         foreach ($ranking as $grupo) {
             $this->assertGreaterThan(3, $grupo->filas->count(), $grupo->nombre);
             $this->assertNotNull($grupo->piezaMayor, $grupo->nombre);
@@ -106,9 +106,9 @@ class ClubPruebaTest extends TestCase
         // Y lo de los testers, fuera; lo de siempre, de vuelta.
         $this->assertSame(16, $club->socios()->count());
         $this->assertSame(0, Socio::whereIn('nombre', ['Cambiado por un tester', 'Socio de un tester'])->count());
-        $this->assertSame(21, $club->seccions()->count());
+        $this->assertSame(27, $club->seccions()->count());
         $this->assertSame(0, User::where('email', 'tester@club.com')->count());
-        $this->assertSame(17 + 54, Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->count());
+        $this->assertSame(17 + 72, Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->count());
         $this->assertSame(0, User::whereNull('club_id')->where('email', 'like', '%@club.com')->count());
     }
 

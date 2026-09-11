@@ -14,9 +14,8 @@ use Illuminate\Validation\Rules\Unique;
 
 /**
  * La ficha de una sección, en tres bloques y en el orden en que se piensa:
- * qué es, cómo se hace el ranking de la temporada (sistema, sus ajustes y una
- * sola regla de empates) y el resumen en una frase. Cada sistema enseña solo
- * lo suyo.
+ * qué es, cómo se hace el ranking de la temporada (sistema, asistencia o
+ * ausencia, descartes y una sola regla de empates) y el resumen en una frase.
  */
 class SeccionForm
 {
@@ -94,15 +93,17 @@ class SeccionForm
                             ->visible($esAcumulado)
                             ->live(onBlur: true),
 
-                        // Suma los puestos: qué cuesta no ir.
+                        // Puntos por ausencia. Suma lo pescado: lo que suma (o resta, en negativo) cada
+                        // manga a la que no se va. Por puestos: lo que se lleva quien no va.
                         TextInput::make('puntos_no_asistencia')
-                            ->label('Puntos por no ir a una manga')
-                            ->helperText('Lo que se lleva quien no va. Lo habitual: el número de socios + 1 (48 con 47 socios). A 0, el último de esa manga + 1.')
+                            ->label('Puntos por ausencia')
+                            ->helperText(fn (Get $get): string => $esPuestos($get)
+                                ? 'Lo que se lleva quien no va a una manga. Lo habitual: el número de socios + 1 (48 con 47 socios). A 0, el último de esa manga + 1.'
+                                : 'Por cada manga a la que un socio no va. En negativo, resta (castigo). 0 = nada.')
                             ->numeric()
                             ->integer()
-                            ->minValue(0)
+                            ->minValue(fn (Get $get): ?int => $esPuestos($get) ? 0 : null)
                             ->default(0)
-                            ->visible($esPuestos)
                             ->live(onBlur: true),
 
                         TextInput::make('descartes')
@@ -150,7 +151,7 @@ class SeccionForm
                                 (int) ($get('descartes') ?: 0),
                                 (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
                                 $get('desempate') ?: null,
-                                $esPuestos($get) ? (int) ($get('puntos_no_asistencia') ?: 0) : 0,
+                                (int) ($get('puntos_no_asistencia') ?: 0),
                                 (bool) $get('descartes_ausencias'),
                             )),
                     ]),

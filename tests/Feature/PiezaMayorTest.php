@@ -166,7 +166,7 @@ class PiezaMayorTest extends TestCase
 
         $this->assertSame(Seccion::DESEMPATE_PESO, $seccion->fresh()->desempate);
         $this->assertSame([Seccion::DESEMPATE_PIEZA_MAYOR, Seccion::DESEMPATE_PESO, Seccion::DESEMPATE_COMPARTIDO], array_keys(Seccion::desempatesPara(Seccion::CRITERIO_PIEZAS)));
-        $this->assertSame([Seccion::DESEMPATE_PIEZA_MAYOR, Seccion::DESEMPATE_PIEZAS, Seccion::DESEMPATE_COMPARTIDO], array_keys(Seccion::desempatesPara(Seccion::CRITERIO_PESO)));
+        $this->assertSame([Seccion::DESEMPATE_PIEZA_MAYOR, Seccion::DESEMPATE_PIEZAS, Seccion::DESEMPATE_MENOS_PIEZAS, Seccion::DESEMPATE_COMPARTIDO], array_keys(Seccion::desempatesPara(Seccion::CRITERIO_PESO)));
         // Sumando puestos, además, «se reparten el promedio».
         $this->assertArrayHasKey(Seccion::DESEMPATE_PROMEDIO, Seccion::desempatesPara(Seccion::CRITERIO_PESO, Seccion::SISTEMA_PUESTOS));
         $this->assertArrayNotHasKey(Seccion::DESEMPATE_PROMEDIO, Seccion::desempatesPara(Seccion::CRITERIO_PESO));

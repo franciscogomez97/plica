@@ -170,6 +170,18 @@ relativas al día en que se ejecuta.
   manga a manga enseña en cada celda los puntos de esa manga y en las de
   «no fue» lo que costó. `BassExtremaduraSeeder` carga su Orilla (47 socios,
   sin pesajes) y `PorPuestosTest` comprueba su hoja al decimal.
+- **Cierre de «suma lo pescado»** (11 de septiembre de 2026): `puntos_no_asistencia`
+  vuelve al formulario como **«Puntos por ausencia»** en los dos sistemas (en
+  suma lo pescado admite negativos: castigo por cada manga a la que no se va;
+  por puestos es lo que se lleva quien no va). Nuevo desempate
+  `menos_piezas` («quien menos piezas haya sacado», el segundo criterio
+  oficial de la FEPyC tras la pieza mayor; no se ofrece en las secciones por
+  piezas). El Club de Pruebas lleva una **matriz de 24 secciones** de suma lo
+  pescado (peso, medida y piezas × ocho combinaciones de asistencia, empates,
+  descartes y ausencia) con datos que fuerzan empates, ceros y ausencias;
+  `MatrizAcumuladoTest` fija sus resultados, calculados aparte del motor con
+  una implementación independiente, y comprueba que el cuadro coincide con
+  el ranking.
 - **Descartes: qué mangas se pueden descartar** (`seccions.descartes_ausencias`,
   11 de septiembre de 2026): con descartes, el club elige si «la peor manga»
   puede ser una a la que no se fue (faltar cuenta como la peor y se descarta
