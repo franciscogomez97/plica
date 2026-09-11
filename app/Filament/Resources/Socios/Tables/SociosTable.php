@@ -29,6 +29,11 @@ class SociosTable
                     TextColumn::make('nombre')
                         ->weight(FontWeight::SemiBold)
                         ->searchable(),
+                    TextColumn::make('telefono')
+                        ->placeholder('— sin teléfono —')
+                        ->color('gray')
+                        ->searchable()
+                        ->grow(false),
                     TextColumn::make('email')
                         ->placeholder('— sin email —')
                         ->color('gray')

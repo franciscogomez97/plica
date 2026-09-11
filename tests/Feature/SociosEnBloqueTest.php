@@ -27,21 +27,31 @@ class SociosEnBloqueTest extends TestCase
         $club = Club::create(['nombre' => 'Club nuevo', 'slug' => 'club-nuevo']);
 
         $resultado = $club->altaDeSocios(<<<'TXT'
-            Mario López
+            Mario López 600 11 22 33
             Paco Jiménez, paco@gmail.com
 
             3. Andrés  Molina
             - Toni Salgado toni@salgado.es
             • Chema Ortiz;
+            Rubén Castaño, 611 22 33 44, ruben@castano.es
+            Iván Perea ivan@perea.es +34 622 33 44 55
             TXT);
 
-        $this->assertSame(['Mario López', 'Paco Jiménez', 'Andrés Molina', 'Toni Salgado', 'Chema Ortiz'], $resultado['creados']);
+        $this->assertSame(['Mario López', 'Paco Jiménez', 'Andrés Molina', 'Toni Salgado', 'Chema Ortiz', 'Rubén Castaño', 'Iván Perea'], $resultado['creados']);
         $this->assertSame([], $resultado['repetidos']);
 
-        $this->assertSame(5, $club->socios()->count());
+        $this->assertSame(7, $club->socios()->count());
         $this->assertSame('paco@gmail.com', $club->socios()->where('nombre', 'Paco Jiménez')->value('email'));
         $this->assertSame('toni@salgado.es', $club->socios()->where('nombre', 'Toni Salgado')->value('email'));
         $this->assertNull($club->socios()->where('nombre', 'Mario López')->value('email'));
+
+        // El teléfono, en cualquier orden respecto al email, tal como se tecleó.
+        $this->assertSame('600 11 22 33', $club->socios()->where('nombre', 'Mario López')->value('telefono'));
+        $this->assertSame('611 22 33 44', $club->socios()->where('nombre', 'Rubén Castaño')->value('telefono'));
+        $this->assertSame('ruben@castano.es', $club->socios()->where('nombre', 'Rubén Castaño')->value('email'));
+        $this->assertSame('+34 622 33 44 55', $club->socios()->where('nombre', 'Iván Perea')->value('telefono'));
+        $this->assertSame('ivan@perea.es', $club->socios()->where('nombre', 'Iván Perea')->value('email'));
+        $this->assertNull($club->socios()->where('nombre', 'Paco Jiménez')->value('telefono'));
     }
 
     public function test_los_que_ya_estan_no_se_duplican_aunque_cambien_mayusculas_o_tildes(): void

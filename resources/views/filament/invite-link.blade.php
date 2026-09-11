@@ -4,13 +4,16 @@
 
 <div class="space-y-3">
     <a
-        href="https://wa.me/?text={{ rawurlencode($mensaje) }}"
+        href="{{ $socio->urlWhatsAppAcceso() }}"
         target="_blank"
         rel="noopener"
         class="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-base font-semibold text-white hover:bg-emerald-500"
     >
-        💬 Enviar por WhatsApp
+        💬 {{ $socio->numeroWhatsApp() ? 'Enviar por WhatsApp a '.$socio->telefono : 'Enviar por WhatsApp' }}
     </a>
+    @unless ($socio->numeroWhatsApp())
+        <p class="text-xs" style="opacity:.6">Sin teléfono en su ficha: WhatsApp te pedirá elegir el contacto. Si se lo pones, se abre su chat directamente.</p>
+    @endunless
 
     <div class="flex items-center gap-2">
         <input

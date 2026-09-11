@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class Socio extends Model
 {
-    protected $fillable = ['club_id', 'nombre', 'email', 'user_id', 'invite_token', 'activo'];
+    protected $fillable = ['club_id', 'nombre', 'email', 'telefono', 'user_id', 'invite_token', 'activo'];
 
     protected function casts(): array
     {
@@ -48,6 +48,43 @@ class Socio extends Model
         }
 
         return route('acceso.show', $this->invite_token);
+    }
+
+    /**
+     * El teléfono tal como lo teclea el club («600 11 22 33», «+34 600112233»,
+     * «0034600112233») al formato de wa.me: solo dígitos con prefijo de país.
+     * Un móvil español de 9 cifras lleva el 34 por defecto. Null si no es un teléfono.
+     */
+    public static function telefonoWhatsApp(?string $telefono): ?string
+    {
+        $digitos = preg_replace('/\D+/', '', (string) $telefono) ?? '';
+
+        if (str_starts_with($digitos, '00')) {
+            $digitos = substr($digitos, 2);
+        }
+
+        if (strlen($digitos) === 9 && preg_match('/^[6-9]/', $digitos)) {
+            $digitos = '34'.$digitos;
+        }
+
+        return strlen($digitos) >= 10 && strlen($digitos) <= 15 ? $digitos : null;
+    }
+
+    public function numeroWhatsApp(): ?string
+    {
+        return static::telefonoWhatsApp($this->telefono);
+    }
+
+    /**
+     * El botón de WhatsApp de «Dar acceso» y de la ficha: con teléfono, abre
+     * directamente el chat del socio con el mensaje escrito; sin él, WhatsApp
+     * pide elegir el contacto.
+     */
+    public function urlWhatsAppAcceso(): string
+    {
+        $numero = $this->numeroWhatsApp();
+
+        return 'https://wa.me/'.($numero ?? '').'?text='.rawurlencode($this->mensajeAcceso());
     }
 
     /**

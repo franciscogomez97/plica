@@ -95,12 +95,30 @@ class Club extends Model
                 continue;
             }
 
-            // Email opcional al final, separado por coma, punto y coma, tabulador o espacio.
+            // Email y teléfono opcionales al final, en cualquier orden, separados por
+            // coma, punto y coma, tabulador o espacio: «Paco Jiménez 600 11 22 33, paco@gmail.com».
             $email = null;
-            if (preg_match('/^(.*?)[\s,;]+([^\s,;]+@[^\s,;]+)\s*$/u', $linea, $m)
-                && filter_var($m[2], FILTER_VALIDATE_EMAIL)) {
-                $linea = $m[1];
-                $email = mb_strtolower($m[2]);
+            $telefono = null;
+            for ($i = 0; $i < 2; $i++) {
+                if ($email === null
+                    && preg_match('/^(.*?)[\s,;]+([^\s,;]+@[^\s,;]+)\s*$/u', $linea, $m)
+                    && filter_var($m[2], FILTER_VALIDATE_EMAIL)) {
+                    $linea = $m[1];
+                    $email = mb_strtolower($m[2]);
+
+                    continue;
+                }
+
+                if ($telefono === null
+                    && preg_match('/^(.*?)[\s,;]+(\+?\d[\d\s.\-]{6,}\d)\s*$/u', $linea, $m)
+                    && Socio::telefonoWhatsApp($m[2]) !== null) {
+                    $linea = $m[1];
+                    $telefono = trim(preg_replace('/\s+/u', ' ', $m[2]) ?? $m[2]);
+
+                    continue;
+                }
+
+                break;
             }
 
             // Fuera numeración y viñetas, y separadores que sobren.
@@ -120,7 +138,7 @@ class Club extends Model
             }
 
             $vistos[$clave] = true;
-            $this->socios()->create(['nombre' => $nombre, 'email' => $email]);
+            $this->socios()->create(['nombre' => $nombre, 'email' => $email, 'telefono' => $telefono]);
             $creados[] = $nombre;
         }
 

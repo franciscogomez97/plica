@@ -25,12 +25,12 @@ class ListSocios extends ListRecords
                 ->label('Añadir varios')
                 ->icon(Heroicon::OutlinedUserGroup)
                 ->modalHeading('Añadir varios socios de golpe')
-                ->modalDescription('Pega la lista tal cual la tengas: del WhatsApp, del Excel o escrita a mano. Un socio por línea. El email es opcional, detrás del nombre.')
+                ->modalDescription('Pega la lista tal cual la tengas: del WhatsApp, del Excel o escrita a mano. Un socio por línea. Teléfono y email, opcionales, detrás del nombre: con el teléfono, «Dar acceso» le abre su WhatsApp directamente.')
                 ->modalSubmitActionLabel('Añadir')
                 ->schema([
                     Textarea::make('lista')
                         ->label('Un socio por línea')
-                        ->placeholder("Mario López\nPaco Jiménez, paco@gmail.com\nAndrés Molina")
+                        ->placeholder("Mario López 600 11 22 33\nPaco Jiménez, 611 22 33 44, paco@gmail.com\nAndrés Molina")
                         ->rows(10)
                         ->autofocus()
                         ->required(),

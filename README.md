@@ -196,7 +196,13 @@ es `PLICA_SUPERADMIN_EMAIL` ve además las solicitudes.
   *de ese socio*, así que nunca va a un grupo, y por eso no hay «copiar
   todos» (lo hubo y se quitó en septiembre de 2026). El mismo mensaje sale en
   la ficha de cada socio (`Socio::mensajeAcceso()`). «Copiar» funciona también
-  sin HTTPS (`partials/copiar.blade.php`).
+  sin HTTPS (`partials/copiar.blade.php`). **Con teléfono en la ficha**, el
+  botón de WhatsApp abre directamente el chat del socio con el mensaje
+  (`wa.me/<número>?text=`); sin él, WhatsApp pide elegir el contacto. El
+  número se normaliza para wa.me con `Socio::telefonoWhatsApp()` (un móvil
+  español de 9 cifras lleva el 34 por defecto). La ficha del socio pide solo
+  nombre, teléfono y email; el alta en bloque acepta teléfono y email detrás
+  del nombre, en cualquier orden.
 - **Instalable en el móvil**: `public/manifest.webmanifest` + iconos en
   `public/icons` (generados desde el SVG de marca), enlazados en la web pública
   y en los dos paneles. «Añadir a pantalla de inicio» abre `/app` a pantalla
