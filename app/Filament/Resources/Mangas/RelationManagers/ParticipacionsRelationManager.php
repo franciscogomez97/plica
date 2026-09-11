@@ -3,10 +3,12 @@
 namespace App\Filament\Resources\Mangas\RelationManagers;
 
 use App\Filament\Resources\Mangas\Actions\AsistenciaAction;
+use App\Filament\Resources\Mangas\MangaResource;
 use App\Models\Manga;
 use App\Models\Seccion;
 use App\Models\Socio;
 use App\Services\Scoring;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -19,6 +21,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -175,10 +178,18 @@ class ParticipacionsRelationManager extends RelationManager
             ])
             // Tocar la fila = editar el pesaje.
             ->recordAction('edit')
+            // Lo primero y lo grande: pesar. Añadir una participación a mano queda como
+            // opción secundaria (sirve para un pez a pez con notas).
             ->headerActions([
+                Action::make('pesaje')
+                    ->label('Pesaje rápido')
+                    ->icon(Heroicon::OutlinedScale)
+                    ->url(fn (): string => MangaResource::getUrl('pesaje', ['record' => $this->getOwnerRecord()])),
                 AsistenciaAction::make(fn (): Manga => $this->getOwnerRecord()),
                 CreateAction::make()
-                    ->label('Añadir participación')
+                    ->label('Añadir a mano')
+                    ->color('gray')
+                    ->outlined()
                     // Toda participación compite en la sección de su manga.
                     ->mutateDataUsing(function (array $data): array {
                         $data['seccion_id'] = $this->getOwnerRecord()->seccion_id;
