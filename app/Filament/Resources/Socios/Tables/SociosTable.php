@@ -24,13 +24,14 @@ class SociosTable
         return $table
             ->modifyQueryUsing(fn ($query) => $query->withCount('participacions'))
             ->columns([
-                // Una sola línea por socio; el email, donde cabe.
+                // En pantalla ancha, una línea por socio; en el móvil se apila (nombre,
+                // teléfono, insignias) y así el botón «Acceso» no se sale por la derecha.
                 Split::make([
                     TextColumn::make('nombre')
                         ->weight(FontWeight::SemiBold)
                         ->searchable(),
                     TextColumn::make('telefono')
-                        ->placeholder('— sin teléfono —')
+                        ->placeholder('sin teléfono')
                         ->color('gray')
                         ->searchable()
                         ->grow(false),
@@ -53,7 +54,7 @@ class SociosTable
                         })
                         ->tooltip('Con cuenta: puede entrar y ver los rankings')
                         ->grow(false),
-                ]),
+                ])->from('md'),
             ])
             ->defaultSort('nombre')
             // Todos los socios de una vez: un club tiene decenas, no miles, y nadie busca «página 2» de su lista.
