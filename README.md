@@ -454,16 +454,20 @@ Aparcado a propósito, no olvidado:
 9. ~~Blindar secciones en BD~~: hecho. `mangas.seccion_id` es obligatorio y
    con `restrictOnDelete`; como toda participación cuelga de una manga de su
    sección, borrar una sección con historial lo impide la base de datos.
-11. **Secciones por socio** (decidido el 11 de septiembre de 2026: de momento,
-    no): hoy un socio «es» de una sección cuando pesca alguna manga de ella;
-    el ranking y los puntos por no ir solo cuentan a esa gente. Lo que no
-    cubre: el listado de asistencia del pesaje enseña a todos los socios del
-    club (con 60 socios y 3 secciones cansará), y un socio de la sección sin
-    ninguna manga no sale en el ranking (los Excel de los clubes los listan
-    con ceros). Si molesta: tabla socio–sección aprendida de los pesajes y
-    corregible en la ficha del socio y en la sección; en el pesaje, primero
-    los de la sección y plegados «otros socios»; en el ranking, los de la
-    sección sin mangas al final con 0.
+11. **Secciones por socio: PENDIENTE DE HACER** (decidido el 11 de septiembre
+    de 2026 por la noche, tras cuadrar la general de Bass Extremadura): hoy
+    un socio «es» de una sección cuando pesca alguna manga de ella, y quien
+    no ha ido a ninguna no sale en el ranking. En la hoja de Bass Extremadura
+    esos socios sí salen (cuatro con 96 puntos: 48 + 48), y el club lo espera.
+    Diseño: tabla socio–sección aprendida de los pesajes (quien pesca en una
+    manga pasa a ser de la sección) y corregible en la ficha del socio y en
+    la sección (marcar en bloque); en el ranking, los socios de la sección
+    sin ninguna manga salen al final con sus puntos por ausencia (por
+    puestos, 48 por manga; en suma lo pescado, 0 más lo que dé o quite la
+    ausencia); los puntos por ausencia y los descartes se calculan sobre los
+    socios de la sección; en el pesaje, primero los de la sección y plegados
+    «otros socios». Al hacerlo, añadir a los tests de Bass Extremadura los
+    cuatro de 96 y a las matrices un socio sin mangas.
 10. **Panel de Plica (superadmin), con cobros** (apuntado el 11 de septiembre
     de 2026, se hará después del lanzamiento): hoy el superadmin es un admin
     de club más que además ve «Solicitudes». Falta un tercer panel `/plica`,
