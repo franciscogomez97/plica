@@ -9,11 +9,13 @@ use App\Models\Seccion;
 use App\Models\Socio;
 use App\Models\Temporada;
 use App\Models\User;
+use App\Services\AntiSpam;
 use App\Services\Scoring;
 use Database\Seeders\DemoSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -42,7 +44,7 @@ class SmokeTest extends TestCase
 
     public function test_solicitud_de_acceso_se_guarda(): void
     {
-        $this->post('/solicitud', ['club_nombre' => 'CD Test', 'email' => 'test@test.es'])
+        $this->post('/solicitud', ['club_nombre' => 'CD Test', 'email' => 'test@test.es', AntiSpam::CAMPO_SELLO => Crypt::encryptString((string) now()->subSeconds(30)->timestamp)])
             ->assertRedirect();
         $this->assertDatabaseHas('solicituds', ['club_nombre' => 'CD Test']);
     }

@@ -1,2 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /whatsapp
+Disallow: /acceso/
+Disallow: /admin/
+Disallow: /app/
+Disallow: /livewire/

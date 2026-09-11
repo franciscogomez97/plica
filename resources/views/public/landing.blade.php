@@ -9,9 +9,8 @@
         $plan = config('plica.plan');
         $gratisHasta = \Illuminate\Support\Carbon::parse($plan['gratis_hasta'])->locale('es');
         $anioOtono = $gratisHasta->year - 1;
-        $whatsapp = config('plica.whatsapp')
-            ? 'https://wa.me/'.config('plica.whatsapp').'?text='.rawurlencode('Hola, soy de un club de pesca y quiero probar Plica.')
-            : null;
+        // El número no va en el HTML (los bots rastrean teléfonos): /whatsapp redirige al pulsar.
+        $whatsapp = config('plica.whatsapp') ? route('whatsapp') : null;
     @endphp
 
     {{-- Portada --}}
@@ -162,6 +161,12 @@
             @else
                 <form method="POST" action="{{ route('solicitud.store') }}" class="mt-4 space-y-3">
                     @csrf
+                    {{-- Trampas para bots (App\Services\AntiSpam): un campo que las personas no ven y el momento en que se pintó el formulario. --}}
+                    <input type="hidden" name="{{ \App\Services\AntiSpam::CAMPO_SELLO }}" value="{{ \App\Services\AntiSpam::sello() }}">
+                    <div aria-hidden="true" style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden">
+                        <label for="web">Web</label>
+                        <input id="web" name="{{ \App\Services\AntiSpam::CAMPO_TRAMPA }}" type="text" tabindex="-1" autocomplete="off" value="">
+                    </div>
                     <div>
                         <label class="mb-1 block text-sm text-slate-300" for="club_nombre">Nombre del club</label>
                         <input id="club_nombre" name="club_nombre" required maxlength="120" value="{{ old('club_nombre') }}"

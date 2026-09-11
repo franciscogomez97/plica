@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Filament\Auth\Login;
 use App\Mail\NuevaSolicitud;
 use App\Models\Socio;
+use App\Services\AntiSpam;
 use Database\Seeders\DemoSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -151,6 +153,8 @@ class AuthFlowTest extends TestCase
         $this->post('/solicitud', [
             'club_nombre' => 'CD Prueba',
             'email' => '  INFO@CdPrueba.ES ',
+            // Como una persona: formulario pintado hace un rato (ver AntiSpamTest).
+            AntiSpam::CAMPO_SELLO => Crypt::encryptString((string) now()->subSeconds(30)->timestamp),
         ])->assertRedirect();
 
         $this->assertDatabaseHas('solicituds', ['email' => 'info@cdprueba.es']);

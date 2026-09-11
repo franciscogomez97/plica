@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Services\AntiSpam;
 use App\Support\Marca;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
 use Tests\TestCase;
 
 /** La landing, las páginas legales y la marca de Plica en todas partes. */
@@ -40,7 +42,7 @@ class LandingYLegalTest extends TestCase
             ->assertSee('Condiciones');
 
         // El formulario sigue funcionando.
-        $this->post('/solicitud', ['club_nombre' => 'CD Test', 'email' => 'test@test.es'])->assertRedirect();
+        $this->post('/solicitud', ['club_nombre' => 'CD Test', 'email' => 'test@test.es', AntiSpam::CAMPO_SELLO => Crypt::encryptString((string) now()->subSeconds(30)->timestamp)])->assertRedirect();
         $this->assertDatabaseHas('solicituds', ['club_nombre' => 'CD Test']);
     }
 
@@ -54,7 +56,8 @@ class LandingYLegalTest extends TestCase
         config(['plica.whatsapp' => '34600111222']);
         $this->get('/')->assertOk()
             ->assertSee('Escríbenos por WhatsApp')
-            ->assertSee('https://wa.me/34600111222?text=', escape: false);
+            ->assertSee(route('whatsapp'))       // el número no va en el HTML: redirige al pulsar
+            ->assertDontSee('34600111222');
     }
 
     public function test_sin_club_de_demo_la_landing_no_enlaza_a_un_ejemplo_que_no_existe(): void

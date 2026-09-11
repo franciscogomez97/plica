@@ -5,9 +5,11 @@ use App\Mail\NuevaSolicitud;
 use App\Models\Socio;
 use App\Models\Solicitud;
 use App\Models\User;
+use App\Services\AntiSpam;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +32,14 @@ Route::post('/solicitud', function (Request $request) {
 
     $data['email'] = mb_strtolower(trim($data['email']));
 
+    // Trampas para bots: se les dice «recibido» igual (para que no insistan), pero
+    // ni se guarda ni se avisa. Ver App\Services\AntiSpam.
+    if ($motivo = AntiSpam::motivoParaDescartar($request, $data)) {
+        Log::warning('Solicitud descartada como spam', ['motivo' => $motivo, 'ip' => $request->ip(), 'email' => $data['email']]);
+
+        return back()->with('solicitud_ok', true);
+    }
+
     $solicitud = Solicitud::create($data);
 
     // El aviso por email nunca debe tumbar el formulario si el correo falla.
@@ -38,7 +48,15 @@ Route::post('/solicitud', function (Request $request) {
     }
 
     return back()->with('solicitud_ok', true);
-})->middleware('throttle:10,1')->name('solicitud.store');
+})->middleware('throttle:5,10')->name('solicitud.store');
+
+// El WhatsApp de Plica no va en el HTML (los bots rastrean números): se entra
+// por aquí y se redirige al pulsar. robots.txt lo excluye.
+Route::get('/whatsapp', function () {
+    abort_unless(filled(config('plica.whatsapp')), 404);
+
+    return redirect()->away('https://wa.me/'.config('plica.whatsapp').'?text='.rawurlencode('Hola, soy de un club de pesca y quiero probar Plica.'));
+})->name('whatsapp');
 
 // ---------- Páginas públicas del club ----------
 // La portada respeta «perfil público»; sección y manga son públicas SIEMPRE

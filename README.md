@@ -142,6 +142,16 @@ relativas al día en que se ejecuta.
 
 ## Decisiones tomadas (y por qué)
 
+- **Antispam sin captcha** (`App\Services\AntiSpam`, septiembre de 2026): el
+  formulario de solicitud lleva un campo trampa que las personas no ven y un
+  sello de tiempo cifrado; se descarta lo que rellena la trampa, lo que llega
+  en menos de cuatro segundos, lo que trae enlaces en el mensaje y el mismo
+  email dos veces en 24 h. Al bot se le dice «recibido» igual (para que no
+  insista), pero ni se guarda ni se avisa; queda en el log como aviso. Límite
+  de 5 envíos por IP cada 10 minutos. El WhatsApp de Plica no va en el HTML:
+  `/whatsapp` redirige al pulsar y `robots.txt` lo excluye (también
+  `/acceso/`, los paneles y Livewire). Si algún día pasa spam de verdad, el
+  siguiente paso es Cloudflare Turnstile (gratis, sin puzzles).
 - **Páginas de error y cabeceras** (septiembre de 2026): 403, 404, 419, 429,
   500 y 503 en `resources/views/errors`, en castellano, con la marca y un
   botón a la portada (o «Volver atrás» en la 419). El middleware
