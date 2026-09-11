@@ -142,6 +142,11 @@ relativas al día en que se ejecuta.
 
 ## Decisiones tomadas (y por qué)
 
+- **Páginas de error y cabeceras** (septiembre de 2026): 403, 404, 419, 429,
+  500 y 503 en `resources/views/errors`, en castellano, con la marca y un
+  botón a la portada (o «Volver atrás» en la 419). El middleware
+  `CabecerasSeguridad` pone `X-Frame-Options`, `nosniff` y `Referrer-Policy`
+  en todas las respuestas; HSTS lo pone Nginx.
 - **Puntos por no ir** (`seccions.puntos_no_asistencia`, septiembre de 2026):
   algunos clubes dan puntos también por las mangas a las que no se va (o los
   quitan). Por sección, 0 por defecto (nada cambia para nadie), puede ser
@@ -357,9 +362,10 @@ Aparcado a propósito, no olvidado:
    de fórmulas genérico sin reglamentos reales delante).
 2. **Datos reales**: nombre del club, socios y calendario de mangas de la
    temporada (hoy hay placeholders de demo).
-3. **Deploy a VPS**: hecho el 11 de septiembre de 2026 por IP y HTTP (ver
-   «Producción»). Quedan dominio + HTTPS, cron de backup, copias fuera de la
-   máquina y el correo por Gmail.
+3. **Deploy a VPS**: hecho el 11 de septiembre de 2026, con dominio, HTTPS,
+   cron de backup y réplica en Drive (ver «Producción»). Quedan el correo por
+   Gmail (las solicitudes van al log mientras tanto) y el número de WhatsApp
+   de la landing (`PLICA_WHATSAPP`).
 4. **SMTP opcional**: la recuperación de contraseña ya funciona por enlace de
    acceso (sin correo). Si algún día se quiere el "olvidé mi contraseña"
    autoservicio clásico, configurar mailer y `->passwordReset()`.
