@@ -70,14 +70,42 @@ sección, la navegación «Atrás» jerárquica y el encadenado sección → man
 
 ## Producción
 
+Plica vive en un VPS (Ubuntu 24.04, Nginx, PHP-FPM 8.4, PostgreSQL 16) en
+`/var/www/plica`, desplegado el 11 de septiembre de 2026 por IP y HTTP
+(dominio y HTTPS, después). Se despliega desde el Mac, sin git en el servidor:
+
 ```bash
-composer install --no-dev --optimize-autoloader && npm ci && npm run build
-composer deploy   # migra y cachea config, rutas, vistas y componentes de Filament
+deploy/desplegar.sh          # tests → npm run build → rsync → composer install → composer deploy
 ```
 
-`composer deploy` se ejecuta en cada despliegue. Con OPcache activado en PHP
-el panel responde en decenas de milisegundos; sin las cachés, Filament
-descubre recursos y componentes en cada petición y se nota.
+El script compila los assets aquí, sube el código por rsync (sin `.env`,
+`vendor`, `storage/app` ni logs), instala dependencias sin dev, pone la app
+en mantenimiento unos segundos mientras migra y cachea (`composer deploy` =
+`migrate --force` + `optimize` + `filament:optimize`), enlaza `storage`,
+deja permisos (código de root, `storage` y `bootstrap/cache` de `www-data`)
+y comprueba que la web responde. Con OPcache activado el panel responde en
+decenas de milisegundos; sin las cachés, Filament descubre recursos y
+componentes en cada petición y se nota.
+
+**En el servidor, fuera del repo:** el `.env` de producción (clave de
+Postgres en `/root/.plica_db_pass`), el sitio de Nginx en
+`/etc/nginx/sites-available/plica` (raíz `public/`, subidas hasta 12 MB) y
+la copia nocturna: `deploy/plica-backup` copiado a `/usr/local/bin` y una
+línea de cron de root a las 3:30 (volcado de Postgres + logos, 14 días, en
+`/var/backups/plica`). Pendiente sacar esas copias de la máquina.
+
+**Correo de las solicitudes:** el formulario de la landing guarda la
+solicitud (menú «Solicitudes» del superadmin) y avisa por email a
+`PLICA_NOTIFICACIONES_EMAIL` o, si falta, a `PLICA_SUPERADMIN_EMAIL`. Con
+`MAIL_MAILER=log` el aviso solo va al log: para recibirlo en Gmail, activar
+la verificación en dos pasos, crear una «contraseña de aplicación» y poner
+`MAIL_MAILER=smtp`, `MAIL_SCHEME=tls`, `MAIL_HOST=smtp.gmail.com`,
+`MAIL_PORT=587`, `MAIL_USERNAME` y `MAIL_PASSWORD` en el `.env`, y después
+`php artisan config:cache`.
+
+**Primer acceso:** `php artisan plica:club "Nombre" email@club.es` crea el
+club, su temporada y el admin con contraseña generada. El usuario cuyo email
+es `PLICA_SUPERADMIN_EMAIL` ve además las solicitudes.
 
 ## Decisiones tomadas (y por qué)
 

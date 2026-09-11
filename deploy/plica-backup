@@ -1,0 +1,12 @@
+#!/bin/bash
+# Copia nocturna de Plica en el VPS: volcado de Postgres + logos subidos. Guarda 14 días.
+# Instalar: cp deploy/plica-backup /usr/local/bin/ && chmod 700 /usr/local/bin/plica-backup
+# Cron (root):  30 3 * * * /usr/local/bin/plica-backup >> /var/log/plica-backup.log 2>&1
+set -euo pipefail
+DEST=/var/backups/plica
+DIA=$(date +%Y%m%d-%H%M)
+mkdir -p "$DEST" && chmod 700 "$DEST"
+sudo -u postgres pg_dump -Fc plica > "$DEST/plica-$DIA.dump"
+tar -czf "$DEST/logos-$DIA.tar.gz" -C /var/www/plica/storage/app/public . 2>/dev/null || true
+find "$DEST" -type f -mtime +14 -delete
+echo "$(date '+%F %T') ok $DEST/plica-$DIA.dump"
