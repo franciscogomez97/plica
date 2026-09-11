@@ -74,7 +74,7 @@
             </div>
             <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5">
                 <h3 class="font-bold text-emerald-400">Secciones con sus reglas</h3>
-                <p class="mt-2 text-sm text-slate-400">Orilla, embarcación, pato, black bass, carpfishing… Cada sección compite por peso, medida o piezas, con sus descartes, sus puntos por participar y su desempate. Las reglas de vuestro reglamento, no las de un programa.</p>
+                <p class="mt-2 text-sm text-slate-400">Orilla, embarcación, pato, black bass, carpfishing… Cada sección compite por peso, medida o piezas, con sus descartes, sus puntos por asistencia y su desempate. Las reglas de vuestro reglamento, no las de un programa.</p>
             </div>
             <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5">
                 <h3 class="font-bold text-emerald-400">Manga a manga</h3>
@@ -120,7 +120,7 @@
             <details class="group p-5">
                 <summary class="cursor-pointer list-none font-semibold">¿Mi reglamento es distinto?
                     <span class="float-right text-slate-500 group-open:rotate-45">+</span></summary>
-                <p class="mt-2 text-sm text-slate-400">Cada sección se configura con sus reglas: por peso, medida o piezas; descartes; puntos por participar; qué decide un empate. Y la app te lo explica en una frase para que compruebes que es lo vuestro. Si falta algo que un club real necesite, lo añadimos.</p>
+                <p class="mt-2 text-sm text-slate-400">Cada sección se configura con sus reglas: por peso, medida o piezas; descartes; puntos por asistencia; qué decide un empate. Y la app te lo explica en una frase para que compruebes que es lo vuestro. Si falta algo que un club real necesite, lo añadimos.</p>
             </details>
             <details class="group p-5">
                 <summary class="cursor-pointer list-none font-semibold">¿Los socios necesitan cuenta?

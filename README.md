@@ -62,7 +62,7 @@ php artisan test
 
 Cubren: páginas públicas, panel admin completo, clasificación por secciones,
 panel de socio, control de acceso, flujo de invitación completo, el motor
-de puntuación (puestos, descartes, puntos de participación) con casos
+de puntuación (puestos, descartes, puntos por asistencia) con casos
 calculados a mano, el pesaje rápido (guardado por casilla, medidas pez a
 pez, aislamiento entre clubes), el alta de socios en bloque, el resumen de
 reglas en formulario, rankings y página pública, el cuadro manga a manga por
@@ -170,13 +170,14 @@ relativas al día en que se ejecuta.
   «no fue» lo que costó. `BassExtremaduraSeeder` carga su Orilla (47 socios,
   sin pesajes) y `PorPuestosTest` comprueba su hoja al decimal.
 - **Puntos por no ir** (`seccions.puntos_no_asistencia`, septiembre de 2026):
-  algunos clubes dan puntos también por las mangas a las que no se va (o los
-  quitan). Por sección, 0 por defecto (nada cambia para nadie), puede ser
-  negativo. En el ranking acumulado, cada socio del ranking (quien ha pescado
-  alguna manga de la sección) suma esos puntos por cada manga celebrada que
-  no pescó; no entran en los descartes ni en el sistema por puestos (ahí no
-  ir ya es «último + 1»). Sale en el resumen de reglas y en las celdas «—»
-  del cuadro manga a manga.
+  en el sistema por puestos es lo que se lleva un ausente por manga (socios +
+  1; a 0, el último de esa manga + 1) y se configura en el formulario. El
+  motor admite también un valor (incluso negativo) en el sistema «suma lo
+  pescado», sumado por cada manga celebrada que un socio del ranking no
+  pescó, pero **el formulario ya no lo ofrece ahí** (decisión del 11 de
+  septiembre de 2026: en «suma lo pescado» solo hay puntos por asistencia,
+  que es lo que entienden los clubes). Sale en el resumen de reglas y en las
+  celdas «—» del cuadro manga a manga.
 - **Enlaces de acceso de un solo uso** (WhatsApp), no emails: el admin genera
   el enlace desde la ficha del socio y se lo manda. Sin cuenta → la crea; con
   cuenta → restablece su contraseña. Cero dependencia de SMTP, cuentas y
@@ -373,7 +374,7 @@ relativas al día en que se ejecuta.
   `sistema_puntuacion` en el formulario de secciones.
 - **El ranking enseña el valor que ordena**: con descartes, la suma bruta
   puede desordenarse a la vista; se muestra `puntos` en su unidad natural
-  (kg/cm/piezas), y como «pts» solo si hay puntos de participación.
+  (kg/cm/piezas), y como «pts» solo si hay puntos por asistencia.
 
 ## PENDIENTES — leer antes de desplegar
 

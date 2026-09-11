@@ -53,7 +53,7 @@ class BassMadridTest extends TestCase
         $temporada = Temporada::where('club_id', $club->id)->where('activa', true)->firstOrFail();
 
         $this->assertSame(23, Socio::where('club_id', $club->id)->count());
-        $this->assertSame('Cada manga la gana quien más peso saca. El ranking suma el peso de todas las mangas. Cada manga pescada suma además 500 puntos. Si empatan, gana quien más piezas saque; si siguen igual, comparten puesto.', Seccion::where('club_id', $club->id)->firstOrFail()->resumenReglas());
+        $this->assertSame('Cada manga la gana quien más peso saca. El ranking suma el peso de todas las mangas. Cada manga a la que se va suma además 500 puntos de asistencia. Si empatan, gana quien más piezas saque; si siguen igual, comparten puesto.', Seccion::where('club_id', $club->id)->firstOrFail()->resumenReglas());
 
         $ranking = Scoring::rankingTemporada($temporada);
         $this->assertCount(1, $ranking);

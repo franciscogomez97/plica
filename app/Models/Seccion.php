@@ -188,7 +188,7 @@ class Seccion extends Model
         }
 
         if ($puntosParticipacion > 0 && $sistema !== self::SISTEMA_PUESTOS) {
-            $frases[] = "Cada manga pescada suma además {$puntosParticipacion} puntos.";
+            $frases[] = "Cada manga a la que se va suma además {$puntosParticipacion} puntos de asistencia.";
         }
 
         // Puntos por no ir: solo para quien ya está en el ranking (ha pescado alguna manga).

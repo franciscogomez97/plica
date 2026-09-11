@@ -108,17 +108,26 @@ class NoAsistenciaTest extends TestCase
         $this->get('/c/cd-pesca-piloto/orilla')->assertOk()->assertSee('No participó: +100 pts');
     }
 
-    public function test_se_configura_en_el_formulario_de_la_seccion(): void
+    /** En el formulario solo se ofrece con «suma los puestos»: en «suma lo pescado» hay puntos por asistencia y nada más. */
+    public function test_en_el_formulario_solo_se_ofrece_con_el_sistema_por_puestos(): void
     {
         $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
+        // Orilla suma lo pescado: el campo no se ve, y lo que se rellene a ciegas no se guarda.
         Livewire::test(EditSeccion::class, ['record' => $this->orilla->getRouteKey()])
-            ->assertFormFieldExists('puntos_no_asistencia')
+            ->assertFormFieldExists('puntos_participacion')
             ->fillForm(['puntos_no_asistencia' => 25])
             ->call('save')
             ->assertHasNoFormErrors();
+        $this->assertSame(0, $this->orilla->fresh()->puntos_no_asistencia);
 
+        // Por puestos, sí: es lo que cuesta no ir.
+        Livewire::test(EditSeccion::class, ['record' => $this->orilla->getRouteKey()])
+            ->fillForm(['sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puntos_no_asistencia' => 25])
+            ->call('save')
+            ->assertHasNoFormErrors();
         $this->assertSame(25, $this->orilla->fresh()->puntos_no_asistencia);
+        $this->assertStringContainsString('No ir a una manga cuesta 25 puntos', $this->orilla->fresh()->resumenReglas());
     }
 }

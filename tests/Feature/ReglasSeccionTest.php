@@ -34,7 +34,7 @@ class ReglasSeccionTest extends TestCase
         );
 
         $this->assertSame(
-            'Cada manga la gana quien más piezas saca. El ranking suma las piezas de todas las mangas. No cuentan las 2 peores mangas de cada socio. Cada manga pescada suma además 10 puntos. Si empatan, gana quien más peso sume; si siguen igual, comparten puesto.',
+            'Cada manga la gana quien más piezas saca. El ranking suma las piezas de todas las mangas. No cuentan las 2 peores mangas de cada socio. Cada manga a la que se va suma además 10 puntos de asistencia. Si empatan, gana quien más peso sume; si siguen igual, comparten puesto.',
             Seccion::resumenReglasDe(Seccion::CRITERIO_PIEZAS, puntosParticipacion: 10, descartes: 2),
         );
 
