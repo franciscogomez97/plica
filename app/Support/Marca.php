@@ -29,6 +29,21 @@ class Marca
         );
     }
 
+    /**
+     * Estilos de las páginas «simples» de los paneles (login, perfil): todo
+     * gris, sin un cuadro gris sobre fondo negro. En claro, gris muy suave;
+     * en oscuro, el mismo gris del cuadro para la página entera.
+     */
+    public static function estilosPanel(): string
+    {
+        return '<style>'
+            .':root:has(.fi-simple-layout) body, .fi-simple-layout { background: #f4f4f5; }'
+            .'.fi-simple-main { box-shadow: 0 1px 2px rgba(0,0,0,.05); }'
+            .'.dark:has(.fi-simple-layout) body, .dark .fi-simple-layout { background: #27272a; }'
+            .'.dark .fi-simple-main { background: #27272a; box-shadow: none; --tw-ring-color: rgba(255,255,255,.08); }'
+            .'</style>';
+    }
+
     /** Etiquetas de icono para cualquier <head>. */
     public static function iconos(): string
     {

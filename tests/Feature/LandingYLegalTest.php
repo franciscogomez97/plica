@@ -84,7 +84,9 @@ class LandingYLegalTest extends TestCase
         $this->get('/app/login')->assertOk()
             ->assertSee(Marca::LOGO)
             ->assertSee('favicon-32.png')
-            ->assertSee('apple-touch-icon.png');
+            ->assertSee('apple-touch-icon.png')
+            // Login todo gris: sin cuadro gris sobre fondo negro en modo oscuro.
+            ->assertSee('.dark .fi-simple-layout { background: #27272a; }', escape: false);
 
         foreach (['favicon-16', 'favicon-32', 'apple-touch-icon', 'icon-192', 'icon-512', 'icon-maskable-512'] as $icono) {
             $this->assertFileExists(public_path("icons/{$icono}.png"));

@@ -62,7 +62,7 @@ class AppPanelProvider extends PanelProvider
             // puede «añadir a pantalla de inicio» como una app de verdad.
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
-                fn (): string => Marca::iconos(),
+                fn (): string => Marca::iconos().Marca::estilosPanel(),
             )
             // Flecha «Atrás» en las páginas interiores del socio (ranking de una
             // sección, clasificación de una manga, perfil): siempre al Inicio.
