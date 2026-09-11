@@ -1,0 +1,98 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Club;
+use App\Models\Manga;
+use App\Models\Socio;
+use App\Models\Temporada;
+use App\Models\User;
+use App\Services\Scoring;
+use Database\Seeders\ClubPruebaSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
+use Tests\TestCase;
+
+/** El club de pruebas de producción: completo, con accesos sencillos y reiniciable. */
+class ClubPruebaTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_el_club_de_pruebas_esta_completo(): void
+    {
+        $this->seed(ClubPruebaSeeder::class);
+
+        $club = Club::where('slug', 'club-de-pruebas')->firstOrFail();
+        $this->assertTrue($club->perfil_publico);
+        $this->assertSame(16, $club->socios()->count());
+        $this->assertSame(1, $club->socios()->where('activo', false)->count());
+        $this->assertSame(['Embarcación', 'Orilla', 'Pato — Lucio'], $club->seccions()->orderBy('nombre')->pluck('nombre')->all());
+
+        // Los dos accesos entran, cada uno con su rol.
+        $this->assertTrue(Auth::validate(['email' => 'club@club.com', 'password' => 'club1234']));
+        $this->assertTrue(Auth::validate(['email' => 'socio@club.com', 'password' => 'club1234']));
+        $this->assertTrue(User::where('email', 'club@club.com')->firstOrFail()->isAdmin());
+        $socioUser = User::where('email', 'socio@club.com')->firstOrFail();
+        $this->assertFalse($socioUser->isAdmin());
+        $this->assertSame($socioUser->id, Socio::where('nombre', 'Mario López')->firstOrFail()->user_id);
+
+        // Mangas: 9 pesadas con ranking, 2 pasadas sin pesar (pendientes) y 3 próximas con asistencias.
+        $mangas = Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->get();
+        $this->assertCount(14, $mangas);
+        $this->assertSame(9, $mangas->where('estado', Manga::ESTADO_CELEBRADA)->count());
+        $pendientes = $mangas->filter(fn (Manga $m) => $m->pendienteDeGestion());
+        $this->assertCount(2, $pendientes);
+        $this->assertSame(0, $pendientes->sum(fn (Manga $m) => $m->participacions()->count()));
+        $proximas = $mangas->filter(fn (Manga $m) => $m->estado === Manga::ESTADO_PROGRAMADA && $m->fecha->isFuture());
+        $this->assertCount(3, $proximas);
+        foreach ($proximas as $proxima) {
+            $this->assertNotNull($proxima->ubicacion_url);
+            $this->assertSame(4, $proxima->confirmacions()->count());
+        }
+
+        // Rankings hechos en las tres secciones, con pieza mayor.
+        $temporada = Temporada::where('club_id', $club->id)->where('activa', true)->firstOrFail();
+        $ranking = Scoring::rankingTemporada($temporada);
+        $this->assertCount(3, $ranking);
+        foreach ($ranking as $grupo) {
+            $this->assertGreaterThan(3, $grupo->filas->count(), $grupo->nombre);
+            $this->assertNotNull($grupo->piezaMayor, $grupo->nombre);
+        }
+
+        // La web pública del club y de una sección responden.
+        $this->get('/c/club-de-pruebas')->assertOk()->assertSee('Club de Pruebas');
+        $this->get('/c/club-de-pruebas/orilla')->assertOk()->assertSee('Ranking Orilla');
+    }
+
+    public function test_volver_a_ejecutarlo_reinicia_el_club_sin_duplicar_nada(): void
+    {
+        $this->seed(ClubPruebaSeeder::class);
+        $club = Club::where('slug', 'club-de-pruebas')->firstOrFail();
+        $club->socios()->first()->update(['nombre' => 'Cambiado por un tester']);
+        Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->first()->delete();
+
+        $this->seed(ClubPruebaSeeder::class);
+
+        $this->assertSame(1, Club::where('slug', 'club-de-pruebas')->count());
+        $nuevo = Club::where('slug', 'club-de-pruebas')->firstOrFail();
+        $this->assertNotSame($club->id, $nuevo->id);
+        $this->assertSame(16, $nuevo->socios()->count());
+        $this->assertSame(0, Socio::where('nombre', 'Cambiado por un tester')->count());
+        $this->assertSame(14, Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $nuevo->id))->count());
+        $this->assertSame(1, User::where('email', 'club@club.com')->count());
+        $this->assertSame(0, User::whereNull('club_id')->where('email', 'like', '%@club.com')->count());
+    }
+
+    public function test_los_resultados_son_los_mismos_en_cada_reinicio(): void
+    {
+        $this->seed(ClubPruebaSeeder::class);
+        $temporada = Temporada::where('activa', true)->firstOrFail();
+        $antes = Scoring::rankingTemporada($temporada)->map(fn ($g) => $g->filas->map(fn ($f) => [$f->socio->nombre, $f->puntos])->all())->all();
+
+        $this->seed(ClubPruebaSeeder::class);
+        $temporada = Temporada::where('activa', true)->firstOrFail();
+        $despues = Scoring::rankingTemporada($temporada)->map(fn ($g) => $g->filas->map(fn ($f) => [$f->socio->nombre, $f->puntos])->all())->all();
+
+        $this->assertSame($antes, $despues);
+    }
+}

@@ -4,7 +4,8 @@
 
 @section('content')
     @php
-        $demo = \App\Models\Club::where('slug', 'cd-pesca-piloto')->where('perfil_publico', true)->first();
+        // El club de ejemplo de la landing: el de pruebas en producción, el de demo en desarrollo.
+        $demo = \App\Models\Club::whereIn('slug', ['club-de-pruebas', 'cd-pesca-piloto'])->where('perfil_publico', true)->first();
         $plan = config('plica.plan');
         $gratisHasta = \Illuminate\Support\Carbon::parse($plan['gratis_hasta'])->locale('es');
         $anioOtono = $gratisHasta->year - 1;

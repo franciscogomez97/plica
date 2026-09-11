@@ -101,7 +101,13 @@ Postgres en `/root/.plica_db_pass`), el sitio de Nginx en
 `/etc/nginx/sites-available/plica` (raíz `public/`, subidas hasta 12 MB) y
 la copia nocturna: `deploy/plica-backup` copiado a `/usr/local/bin` y una
 línea de cron de root a las 3:30 (volcado de Postgres + logos, 14 días, en
-`/var/backups/plica`). Pendiente sacar esas copias de la máquina.
+`/var/backups/plica`). El mismo script deja una réplica idéntica en el
+Google Drive de `plica.contacto@gmail.com` (carpeta «Backups-Plica») con
+`rclone sync`: remoto `gdrive` en `/root/.config/rclone/rclone.conf`,
+autorizado una vez con `rclone authorize "drive"` desde el Mac y con permiso
+`drive.file` (rclone solo ve lo que él sube). Si el token dejara de
+renovarse, repetir esa autorización y volver a escribir el `token` del
+remoto. Restaurar: `pg_restore -d plica --clean plica-FECHA.dump`.
 
 **Correo de las solicitudes:** el formulario de la landing guarda la
 solicitud (menú «Solicitudes» del superadmin) y avisa por email a
@@ -115,6 +121,24 @@ la verificación en dos pasos, crear una «contraseña de aplicación» y poner
 **Primer acceso:** `php artisan plica:club "Nombre" email@club.es` crea el
 club, su temporada y el admin con contraseña generada. El usuario cuyo email
 es `PLICA_SUPERADMIN_EMAIL` ve además las solicitudes.
+
+**Club de pruebas en producción** (`ClubPruebaSeeder`, cargado el 11 de
+septiembre de 2026): «Club de Pruebas» (`/c/club-de-pruebas`, con perfil
+público, así que es el «club de ejemplo» de la landing) para que la gente
+toquetee sin miedo. Admin `club@club.com` y socio `socio@club.com` (Mario
+López), los dos con contraseña `club1234`. Tres secciones con reglas
+distintas (Orilla por peso con 500 puntos por asistir y desempate por pieza
+mayor; Embarcación por peso con un descarte; Pato — Lucio por medida), 16
+socios (uno de baja), 9 mangas pesadas con ranking, 2 pasadas sin pesar
+(salen como pendientes) y 3 próximas con ubicación y «Asistiré». Para
+dejarlo como nuevo después de que lo destrocen:
+
+```bash
+php artisan db:seed --class=ClubPruebaSeeder --force   # borra el club de pruebas y lo recrea igual
+```
+
+Los resultados son deterministas (semilla fija); solo las fechas son
+relativas al día en que se ejecuta.
 
 ## Decisiones tomadas (y por qué)
 
