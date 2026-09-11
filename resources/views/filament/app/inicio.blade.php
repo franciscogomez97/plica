@@ -37,6 +37,8 @@
         </x-filament::section>
     @endif
 
+    @include('filament.partials.instalar-app')
+
     <x-filament::section>
         <x-slot name="heading">
             <span class="plica-h">

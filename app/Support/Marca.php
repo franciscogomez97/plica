@@ -53,6 +53,9 @@ class Marca
             .'<link rel="manifest" href="'.e(asset('/manifest.webmanifest')).'">'
             .'<meta name="apple-mobile-web-app-capable" content="yes">'
             .'<meta name="apple-mobile-web-app-title" content="Plica">'
-            .'<meta name="theme-color" content="#059669">';
+            .'<meta name="theme-color" content="#059669">'
+            // Android/Chrome avisa de que la app se puede instalar antes de que
+            // Alpine arranque: se guarda el evento para el aviso «Lleva Plica en el móvil».
+            .'<script>window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); window.plicaInstallPrompt = e; });</script>';
     }
 }

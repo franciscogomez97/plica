@@ -12,6 +12,10 @@
         .plica-accion.principal svg { color: #fff; }
     </style>
 
+    <div style="margin-bottom:.9rem">
+        @include('filament.partials.instalar-app')
+    </div>
+
     {{-- Un botón por cada sección del menú (el menú lateral no se ve en el móvil), y la acción más frecuente destacada. --}}
     <div class="plica-acciones">
         <a class="plica-accion principal" href="{{ \App\Filament\Resources\Mangas\MangaResource::getUrl('create') }}" wire:navigate>

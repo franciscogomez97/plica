@@ -112,7 +112,17 @@ class PulidoTest extends TestCase
         $this->get('/')->assertOk()->assertSee('rel="manifest"', escape: false);
 
         $this->actingAs(User::where('email', 'socio@plica.test')->firstOrFail());
-        $this->get('/app')->assertOk()->assertSee('rel="manifest"', escape: false)->assertSee('apple-touch-icon');
+        $this->get('/app')->assertOk()
+            ->assertSee('rel="manifest"', escape: false)
+            ->assertSee('apple-touch-icon')
+            // Y se le cuenta cómo: el aviso «Lleva Plica en el móvil» con el botón Instalar / el camino de Safari.
+            ->assertSee('Lleva Plica en el móvil')
+            ->assertSee('Añadir a pantalla de inicio')
+            ->assertSee('beforeinstallprompt');
+
+        $this->flushSession();
+        $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
+        $this->get('/admin')->assertOk()->assertSee('Lleva Plica en el móvil');
     }
 
     public function test_en_diciembre_el_inicio_propone_crear_la_temporada_siguiente(): void
