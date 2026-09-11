@@ -13,7 +13,7 @@ class LandingYLegalTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_la_landing_cuenta_el_producto_el_precio_y_recoge_solicitudes(): void
+    public function test_la_landing_cuenta_el_producto_sin_precio_y_recoge_solicitudes(): void
     {
         $this->seed(DemoSeeder::class);
 
@@ -25,10 +25,10 @@ class LandingYLegalTest extends TestCase
             ->assertDontSee('clubes deportivos')
             ->assertSee('Empieza con lo que ya tienes')
             ->assertSee('vuestro Excel')
-            ->assertSee('150 €')
-            ->assertSee('Gratis hasta el 1 de enero de 2027')
-            ->assertSee('otoño de 2026')
-            ->assertSee('enero de 2027')
+            // El precio está oculto de momento: ni cifra ni «gratis hasta».
+            ->assertDontSee('150 €')
+            ->assertDontSee('Gratis hasta')
+            ->assertDontSee('fundadores')
             ->assertSee('Lo que preguntan los presidentes')
             ->assertSee('Solicita acceso')
             ->assertSee('Ver un club de ejemplo') // hay club de demo con portada pública
