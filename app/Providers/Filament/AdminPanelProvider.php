@@ -75,6 +75,12 @@ class AdminPanelProvider extends PanelProvider
                     .'</style>',
             )
             ->renderHook(PanelsRenderHook::PAGE_START, $atras)
+            // «Lleva Plica en el móvil»: en el Inicio del admin, justo debajo del «Hola» y antes de los widgets.
+            ->renderHook(
+                PanelsRenderHook::PAGE_HEADER_WIDGETS_BEFORE,
+                fn (): string => view('filament.partials.instalar-app')->render(),
+                scopes: Inicio::class,
+            )
             // El perfil usa el layout «simple» de Filament, que tiene su propio hook.
             ->renderHook(PanelsRenderHook::SIMPLE_PAGE_START, $atras)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

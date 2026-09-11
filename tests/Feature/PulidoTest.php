@@ -119,11 +119,21 @@ class PulidoTest extends TestCase
             ->assertSee('Lleva Plica en el móvil')
             ->assertSee('Añadir a pantalla de inicio')
             ->assertSee('beforeinstallprompt');
+    }
 
-        // En el panel del admin no hay aviso: es cosa del socio.
-        $this->flushSession();
+    /** En un test aparte: Filament arranca un solo panel por proceso, y aquí toca el del club. */
+    public function test_el_admin_tambien_ve_el_aviso_de_instalar_pero_solo_en_su_inicio(): void
+    {
         $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
-        $this->get('/admin')->assertOk()->assertDontSee('Lleva Plica en el móvil');
+
+        // Justo bajo el «Hola, Admin», antes de los widgets.
+        $html = $this->get('/admin')->assertOk()->assertSee('Lleva Plica en el móvil')->getContent();
+        $this->assertLessThan(mb_strpos($html, 'Lleva Plica en el móvil'), mb_strpos($html, 'Hola, Admin'));
+        $this->assertLessThan(mb_strpos($html, '¿Qué quieres hacer?'), mb_strpos($html, 'Lleva Plica en el móvil'));
+
+        // Y en ninguna otra página del panel.
+        $this->get('/admin/mangas')->assertOk()->assertDontSee('Lleva Plica en el móvil');
+        $this->get('/admin/socios')->assertOk()->assertDontSee('Lleva Plica en el móvil');
     }
 
     public function test_en_diciembre_el_inicio_propone_crear_la_temporada_siguiente(): void
