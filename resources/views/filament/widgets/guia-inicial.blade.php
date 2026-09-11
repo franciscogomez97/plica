@@ -19,7 +19,7 @@
         .guia-num { flex: none; width: 2rem; height: 2rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; background: rgba(128,128,128,.15); }
         .guia-hecho .guia-num { background: rgba(16,185,129,.2); color: rgb(16 185 129); }
         .guia-hecho .guia-titulo { opacity: .55; text-decoration: line-through; }
-        .guia-futuro { opacity: .45; }
+        .guia-actual .guia-num { box-shadow: 0 0 0 2px rgb(16 185 129); }
         .guia-titulo { font-weight: 700; font-size: 1rem; padding-top: .3rem; }
         .guia-texto { font-size: .9rem; opacity: .75; margin-top: .35rem; line-height: 1.5; }
         .guia-boton { display: inline-block; margin-top: .7rem; padding: .65rem 1.1rem; border-radius: .7rem; background: rgb(16 185 129); color: white; font-weight: 600; font-size: .95rem; }
@@ -35,16 +35,18 @@
     @else
         <div class="guia-cabecera">
             <h2>👋 ¡Bienvenido, {{ str(auth()->user()->name)->before(' ') }}!</h2>
-            <p>Te guiamos para dejar tu club listo. Ve a tu ritmo — cada paso se marca solo cuando lo completas.</p>
+            <p>Te guiamos para dejar tu club listo. Ve a tu ritmo y en el orden que quieras: cada paso se marca solo cuando lo completas.</p>
         </div>
         <div class="guia-barra"><div style="width: {{ round($hechos / count($pasos) * 100) }}%"></div></div>
 
+        {{-- Todos los pasos pendientes se ven enteros, con su explicación y su botón: el
+             admin elige por dónde empezar. Los hechos se tachan y se pliegan. --}}
         @foreach ($pasos as $i => $paso)
-            <div @class(['guia-paso', 'guia-hecho' => $paso['hecho'] && ! ($paso['informativo'] ?? false), 'guia-futuro' => ! $paso['hecho'] && $i !== $actual])>
+            <div @class(['guia-paso', 'guia-hecho' => $paso['hecho'] && ! ($paso['informativo'] ?? false), 'guia-actual' => $i === $actual])>
                 <div class="guia-num" @if($paso['hecho']) style="background:rgba(16,185,129,.2); color:rgb(16 185 129)" @endif>{{ $paso['hecho'] ? '✓' : $i + 1 }}</div>
                 <div style="min-width:0">
                     <div class="guia-titulo">{{ $paso['titulo'] }}</div>
-                    @if ($i === $actual || ($paso['informativo'] ?? false))
+                    @if (! $paso['hecho'] || ($paso['informativo'] ?? false))
                         <div class="guia-texto">{{ $paso['texto'] }}</div>
                         @if ($paso['boton'])
                             <a href="{{ $paso['url'] }}" class="guia-boton">{{ $paso['boton'] }} →</a>

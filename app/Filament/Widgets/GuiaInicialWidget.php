@@ -9,9 +9,10 @@ use App\Filament\Resources\Temporadas\TemporadaResource;
 use Filament\Widgets\Widget;
 
 /**
- * Guía de primeros pasos para admins nuevos. Cada paso se tacha solo
- * cuando el sistema detecta que está hecho; al completarlos (o al
- * omitirla) desaparece y el Inicio pasa a modo operativo.
+ * Guía de primeros pasos para admins nuevos. Todos los pasos pendientes se
+ * ven enteros (explicación y botón), en el orden que quiera el admin; cada
+ * uno se tacha solo cuando el sistema detecta que está hecho. Al completarlos
+ * (o al omitirla) desaparece y el Inicio pasa a modo operativo.
  */
 class GuiaInicialWidget extends Widget
 {
@@ -39,7 +40,7 @@ class GuiaInicialWidget extends Widget
             [
                 'hecho' => $user->password_cambiada_at !== null,
                 'titulo' => 'Pon tu propia contraseña',
-                'texto' => 'Entraste con una contraseña generada. Ponte una tuya: menú de arriba a la derecha → «Perfil».',
+                'texto' => 'Entraste con la contraseña que te dieron. Ponte una tuya, que solo sepas tú: menú de arriba a la derecha → «Perfil».',
                 'boton' => 'Cambiar mi contraseña',
                 'url' => url('/admin/profile'),
             ],

@@ -36,6 +36,37 @@ class GuiaInicialTest extends TestCase
             ->assertSee('La temporada agrupa las mangas de un año');
     }
 
+    /**
+     * Todos los pasos pendientes se ven enteros, con explicación y botón, no solo
+     * el «siguiente»: un admin nuevo tiene que poder ir a crear sus secciones
+     * aunque no haya cambiado aún la contraseña.
+     */
+    public function test_todos_los_pasos_pendientes_llevan_su_explicacion_y_su_boton(): void
+    {
+        $this->actingAs($this->adminNuevo())->get('/admin')
+            ->assertOk()
+            ->assertSee('en el orden que quieras')
+            ->assertSee('Cambiar mi contraseña')
+            ->assertSee('Crear mis secciones')
+            ->assertSee('Cada modalidad es una sección con sus reglas')
+            ->assertSee('Añadir socios')
+            ->assertSee('Pega la lista de nombres tal cual la tengas')
+            ->assertSee('Crear mi primera manga')
+            ->assertDontSee('guia-futuro');
+    }
+
+    public function test_los_pasos_hechos_se_pliegan(): void
+    {
+        $admin = $this->adminNuevo();
+        $admin->club->seccions()->create(['nombre' => 'Bass orilla']);
+
+        $this->actingAs($admin)->get('/admin')
+            ->assertOk()
+            ->assertSee('Crea tus secciones')      // tachado, sin explicación ni botón
+            ->assertDontSee('Crear mis secciones')
+            ->assertSee('Añadir socios');          // los pendientes siguen enteros
+    }
+
     public function test_los_pasos_se_tachan_solos(): void
     {
         $admin = $this->adminNuevo();
