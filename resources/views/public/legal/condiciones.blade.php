@@ -1,10 +1,6 @@
 @extends('public.legal._layout', ['titulo' => 'Condiciones del servicio'])
 
 @section('legal')
-    @php
-        $plan = config('plica.plan');
-        $gratisHasta = \Illuminate\Support\Carbon::parse($plan['gratis_hasta'])->locale('es');
-    @endphp
     <p>Estas condiciones regulan el uso de Plica por parte de los clubes de pesca deportiva («el club») y sus miembros. Al solicitar el alta y usar el panel de administración, el club las acepta. Incluyen, como anexo, el contrato de encargo del tratamiento de datos personales que exige el artículo 28 del RGPD.</p>
 
     @include('public.legal._titular')
@@ -19,6 +15,16 @@
         <li>El club garantiza que tiene derecho a introducir los datos de sus socios y que les ha informado de que sus resultados deportivos se publican en la plataforma.</li>
     </ul>
 
+    <h2>3. Precio</h2>
+    <p>Durante el periodo de lanzamiento, Plica es <strong>gratuito</strong> para los clubes. Si el titular decide establecer un precio, lo comunicará a los administradores con al menos dos meses de antelación y se aplicará a partir de la temporada siguiente; hasta entonces, el club puede darse de baja sin coste. <strong>Nunca se borran datos por impago.</strong></p>
+
+    {{-- Precio y pago: oculto de momento, igual que en la landing (decisión de septiembre de 2026).
+         Para volver a enseñarlo, sustituir la cláusula anterior por este bloque y quitar el comentario.
+
+    @php
+        $plan = config('plica.plan');
+        $gratisHasta = \Illuminate\Support\Carbon::parse($plan['gratis_hasta'])->locale('es');
+    @endphp
     <h2>3. Precio y pago</h2>
     <ul>
         <li>El precio es de <strong>{{ $plan['precio'] }} € por temporada, IVA incluido</strong>, por club, sin límite de socios ni de mangas. Los clubes que entren durante el otoño de {{ $gratisHasta->year - 1 }} no pagan hasta el <strong>{{ $gratisHasta->isoFormat('D [de] MMMM [de] YYYY') }}</strong>; su primera temporada de pago es la {{ $gratisHasta->year }}. Los diez primeros clubes («clubes fundadores») pagan {{ $plan['fundadores'] }} € por temporada mientras mantengan el servicio.</li>
@@ -26,6 +32,8 @@
         <li>Si el 1 de marzo no se ha recibido el pago, el club pasa a <strong>solo lectura</strong>: los socios siguen viendo sus rankings, pero no se pueden crear mangas ni pesajes hasta regularizarlo. <strong>Nunca se borran datos por impago.</strong></li>
         <li>El titular puede actualizar el precio para la temporada siguiente avisando antes del 1 de noviembre. Los clubes fundadores conservan su precio.</li>
     </ul>
+
+    --}}
 
     <h2>4. Duración y baja</h2>
     <p>El servicio se presta por temporadas, sin permanencia. El club puede darse de baja en cualquier momento escribiendo al titular; no se devuelven importes de la temporada en curso. Al causar baja, el club puede pedir una <strong>exportación de todos sus datos</strong> (socios, mangas y capturas) y su supresión definitiva.</p>

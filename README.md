@@ -144,14 +144,22 @@ descubre recursos y componentes en cada petición y se nota.
   degradado raster y vectorizarlo a mano lo estropearía; los PNG cubren todos
   los tamaños. Donde no hay club en sesión (login, web), la marca es Plica.
 - **Landing y textos legales**: la portada cuenta el ciclo de una manga
-  (convocar, pesar, compartir), lo que hace, el precio del plan (150 €/temporada,
-  gratis hasta enero, fundadores a 99 €) y las preguntas de los presidentes;
-  el formulario de solicitud es el de siempre. `/aviso-legal`, `/privacidad`,
+  (convocar, pesar, compartir), lo que hace y las preguntas de los presidentes;
+  el formulario de solicitud es el de siempre. El precio del plan
+  (150 €/temporada, gratis hasta enero, fundadores a 99 €) sigue en
+  `config/plica.php` pero **está oculto de momento** (decisión de septiembre
+  de 2026): la sección de la landing y la cláusula «Precio y pago» de
+  `/condiciones` van dentro de un comentario Blade, y condiciones dice
+  «gratuito durante el lanzamiento». Para volver a enseñarlo, quitar los dos
+  comentarios y actualizar `LandingYLegalTest`. `/aviso-legal`, `/privacidad`,
   `/cookies` y `/condiciones` (con el anexo de encargo de tratamiento del
   art. 28 RGPD) son plantillas adaptadas al producto, **pendientes de que un
   gestor las revise**; el titular sale de `config/plica.php` (`PLICA_TITULAR`,
-  `PLICA_NIF`, `PLICA_DIRECCION`, `PLICA_EMAIL_LEGAL` en `.env`) y, mientras
-  no se rellene, se ven los corchetes. Solo hay cookies técnicas, así que no
+  `PLICA_NIF`, `PLICA_DIRECCION`, `PLICA_EMAIL_LEGAL` en `.env`). Titular y
+  email son obligatorios (RGPD) y salen entre corchetes hasta rellenarlos; NIF
+  y dirección solo los exige la LSSI cuando hay actividad económica, así que
+  mientras Plica sea gratuita van vacíos y su línea no se pinta. Rellenarlos
+  antes de cobrar al primer club. Solo hay cookies técnicas, así que no
   hay banner: están exentas de consentimiento (art. 22.2 LSSI).
 - **Enlaces de acceso en bloque**: en Socios, «Enlaces de acceso» genera el
   mensaje de WhatsApp de cada socio activo con su enlace de un solo uso, con

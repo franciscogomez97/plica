@@ -69,12 +69,31 @@ class LandingYLegalTest extends TestCase
         $this->get('/aviso-legal')->assertOk()->assertSee('Aviso legal')->assertSee('Blinders Group SL')->assertSee('B12345678')->assertSee('LSSI-CE');
         $this->get('/privacidad')->assertOk()->assertSee('Política de privacidad')->assertSee('encargado del tratamiento')->assertSee('hola@plica.test')->assertSee('aepd.es');
         $this->get('/cookies')->assertOk()->assertSee('solo cookies técnicas')->assertSee('plica_session')->assertSee('XSRF-TOKEN');
-        $this->get('/condiciones')->assertOk()->assertSee('150 € por temporada')->assertSee('1 de enero de 2027')->assertSee('otoño de 2026')->assertSee('solo lectura')->assertSee('Anexo: contrato de encargo del tratamiento')->assertSee('art. 28 RGPD');
+        // El precio está oculto también en condiciones (igual que en la landing): periodo de lanzamiento gratuito.
+        $this->get('/condiciones')->assertOk()->assertSee('gratuito')->assertDontSee('150 €')->assertDontSee('otoño de 2026')->assertDontSee('fundadores')->assertSee('Nunca se borran datos por impago')->assertSee('Anexo: contrato de encargo del tratamiento')->assertSee('art. 28 RGPD');
     }
 
     public function test_sin_titular_configurado_se_ve_que_falta_rellenarlo(): void
     {
         $this->get('/aviso-legal')->assertOk()->assertSee('[Nombre o razón social del titular]');
+    }
+
+    public function test_nif_y_direccion_son_opcionales_mientras_no_haya_actividad_economica(): void
+    {
+        // Sin dato, la línea no se pinta (nada de corchetes en una web pública).
+        config(['plica.legal.titular' => 'Francisco Gómez', 'plica.legal.nif' => null, 'plica.legal.direccion' => null]);
+        $this->get('/aviso-legal')->assertOk()
+            ->assertSee('Francisco Gómez')
+            ->assertDontSee('<dt>NIF</dt>', escape: false)
+            ->assertDontSee('<dt>Domicilio</dt>', escape: false)
+            ->assertDontSee('[NIF]')
+            ->assertDontSee('[Dirección postal]');
+
+        // Con dato, sale.
+        config(['plica.legal.nif' => '12345678Z', 'plica.legal.direccion' => 'Apartado de correos 1, 28001 Madrid']);
+        $this->get('/aviso-legal')->assertOk()
+            ->assertSee('<dt>NIF</dt>', escape: false)->assertSee('12345678Z')
+            ->assertSee('<dt>Domicilio</dt>', escape: false)->assertSee('Apartado de correos 1');
     }
 
     public function test_la_marca_de_plica_esta_en_el_login_los_iconos_y_el_manifiesto(): void
