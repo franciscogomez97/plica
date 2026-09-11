@@ -168,6 +168,19 @@ class BassMadridTest extends TestCase
         $this->assertSame($club->id, User::where('email', 'fran@plica.test')->firstOrFail()->club_id);
     }
 
+    public function test_el_admin_ve_a_los_23_socios_de_una_vez_sin_paginar(): void
+    {
+        $this->seed(BassMadridSeeder::class);
+        $club = Club::where('slug', 'bass-madrid')->firstOrFail();
+        $admin = User::create(['name' => 'Admin', 'email' => 'admin@bassmadrid.test', 'password' => 'secreto123', 'club_id' => $club->id, 'role' => User::ROLE_ADMIN]);
+
+        $this->actingAs($admin);
+        $respuesta = $this->get('/admin/socios')->assertOk();
+        foreach (BassMadridSeeder::SOCIOS as $nombre) {
+            $respuesta->assertSee($nombre);
+        }
+    }
+
     public function test_el_ranking_publico_de_orilla_se_puede_compartir(): void
     {
         $this->seed(BassMadridSeeder::class);

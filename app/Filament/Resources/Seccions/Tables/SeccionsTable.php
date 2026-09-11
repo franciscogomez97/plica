@@ -46,6 +46,7 @@ class SeccionsTable
                 ]),
             ])
             ->defaultSort('nombre')
+            ->paginated(false)
             ->recordUrl(fn (Seccion $record): string => SeccionResource::getUrl('edit', ['record' => $record]))
             ->recordActions([
                 EditAction::make()

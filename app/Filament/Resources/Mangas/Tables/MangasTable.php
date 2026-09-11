@@ -62,6 +62,7 @@ class MangasTable
                 ]),
             ])
             ->defaultSort('fecha', 'desc')
+            ->paginated(false)
             // Tocar la fila = pesaje rápido, que es lo que se hace con una manga.
             ->recordUrl(fn (Manga $record): string => MangaResource::getUrl('pesaje', ['record' => $record]))
             ->recordActions([

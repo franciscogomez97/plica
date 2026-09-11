@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Socios\Tables;
 
+use App\Filament\Resources\Socios\SocioResource;
 use App\Models\Socio;
 use App\Models\User;
 use Filament\Actions\Action;
@@ -11,10 +12,10 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
-use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class SociosTable
 {
@@ -50,8 +51,10 @@ class SociosTable
                 ]),
             ])
             ->defaultSort('nombre')
+            // Todos los socios de una vez: un club tiene decenas, no miles, y nadie busca «página 2» de su lista.
+            ->paginated(false)
             // Tocar la fila = editar la ficha del socio.
-            ->recordUrl(fn (Socio $record): string => \App\Filament\Resources\Socios\SocioResource::getUrl('edit', ['record' => $record]))
+            ->recordUrl(fn (Socio $record): string => SocioResource::getUrl('edit', ['record' => $record]))
             ->recordActions([
                 Action::make('acceso')
                     ->label('Acceso')
