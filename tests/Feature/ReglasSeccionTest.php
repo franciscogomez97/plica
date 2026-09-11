@@ -3,11 +3,15 @@
 namespace Tests\Feature;
 
 use App\Filament\App\Pages\RankingSeccion;
+use App\Filament\Resources\Seccions\Pages\EditSeccion;
 use App\Models\Seccion;
+use App\Models\Temporada;
 use App\Models\User;
+use App\Services\Scoring;
 use Database\Seeders\DemoSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /** Las reglas de una sección se explican igual en el formulario, el listado y los rankings. */
@@ -42,6 +46,25 @@ class ReglasSeccionTest extends TestCase
             'Cada manga la gana quien más peso saca. El ranking suma los puestos de cada manga: gana quien menos suma. No ir a una manga cuesta el último puesto de esa manga más uno. Si empatan, gana la pieza mayor; si siguen igual, comparten puesto.',
             Seccion::resumenReglasDe(Seccion::CRITERIO_PESO, sistema: Seccion::SISTEMA_PUESTOS, desempate: Seccion::DESEMPATE_PIEZA_MAYOR),
         );
+    }
+
+    /** «Número de socios»: solo informativo, se guarda y se ve en el listado; no toca el cálculo. */
+    public function test_el_numero_de_socios_se_guarda_y_se_ve_pero_no_cambia_nada(): void
+    {
+        $admin = User::where('email', 'admin@plica.test')->firstOrFail();
+        $orilla = Seccion::where('nombre', 'Orilla')->firstOrFail();
+        $antes = Scoring::rankingTemporada(Temporada::where('activa', true)->firstOrFail())->firstWhere('nombre', 'Orilla')->filas->pluck('puntos')->all();
+
+        $this->actingAs($admin);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Livewire::test(EditSeccion::class, ['record' => $orilla->getRouteKey()])
+            ->fillForm(['numero_socios' => 47])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame(47, $orilla->fresh()->numero_socios);
+        $this->get('/admin/seccions')->assertOk()->assertSee('47 socios');
+        $this->assertSame($antes, Scoring::rankingTemporada(Temporada::where('activa', true)->firstOrFail())->firstWhere('nombre', 'Orilla')->filas->pluck('puntos')->all());
     }
 
     public function test_el_formulario_y_los_rankings_ensenan_las_reglas(): void

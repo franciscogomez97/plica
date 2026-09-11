@@ -48,6 +48,7 @@ class BassExtremaduraSeeder extends Seeder
         Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'orilla'], [
             'nombre' => 'Orilla',
             'criterio' => Seccion::CRITERIO_PESO,
+            'numero_socios' => count(self::SOCIOS),
             'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS,
             'puntos_participacion' => 0,
             'puntos_no_asistencia' => count(self::SOCIOS) + 1,

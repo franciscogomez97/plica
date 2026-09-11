@@ -49,7 +49,7 @@ class Seccion extends Model
     public const DESEMPATE_PROMEDIO = 'promedio';
 
     protected $fillable = [
-        'club_id', 'nombre', 'slug', 'criterio',
+        'club_id', 'nombre', 'slug', 'criterio', 'numero_socios',
         'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'descartes_ausencias', 'desempate',
     ];
 
@@ -132,6 +132,7 @@ class Seccion extends Model
     protected function casts(): array
     {
         return [
+            'numero_socios' => 'integer',
             'puntos_participacion' => 'integer',
             'puntos_no_asistencia' => 'integer',
             'descartes' => 'integer',

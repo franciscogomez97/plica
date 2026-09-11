@@ -60,6 +60,14 @@ class SeccionForm
                             ->live()
                             ->afterStateUpdated($corregirDesempate)
                             ->required(),
+                        // Solo informativo: no entra en ningún cálculo.
+                        TextInput::make('numero_socios')
+                            ->label('Número de socios de la sección')
+                            ->helperText('Solo para tenerlo a la vista: no afecta a ningún cálculo. Sirve, por ejemplo, para poner los puntos por ausencia (socios + 1).')
+                            ->numeric()
+                            ->integer()
+                            ->minValue(0)
+                            ->nullable(),
                     ]),
 
                 Section::make('El ranking de la temporada')
