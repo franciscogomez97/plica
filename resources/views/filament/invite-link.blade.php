@@ -25,7 +25,7 @@
     .acceso-btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 2.6rem; padding: .5rem .9rem; border-radius: .7rem; border: 1px solid rgba(128,128,128,.45); background: transparent; color: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
     .acceso-btn:hover { background: rgba(128,128,128,.12); }
     .acceso-btn:focus-visible { outline: 3px solid #10b981; outline-offset: 2px; }
-    .acceso-pasos { margin: 0; padding: 0 0 0 1.25rem; font-size: .88rem; line-height: 1.5; opacity: .85; }
+    .acceso-pasos { margin: 0; padding: 0 0 0 1.25rem; list-style: decimal; font-size: .88rem; line-height: 1.5; opacity: .85; }
     .acceso-pasos li + li { margin-top: .25rem; }
     .acceso-nota { margin: 0; font-size: .82rem; line-height: 1.45; opacity: .7; }
 </style>
