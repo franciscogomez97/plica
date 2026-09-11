@@ -7,6 +7,10 @@ return [
     // Dónde avisar cuando llega una solicitud nueva (por defecto, al superadmin).
     'notificaciones_email' => env('PLICA_NOTIFICACIONES_EMAIL', env('PLICA_SUPERADMIN_EMAIL')),
 
+    // WhatsApp de atención a clubes, en formato internacional sin «+» (p. ej. 34600111222).
+    // Si está, la landing enseña «Escríbenos por WhatsApp»; si no, solo el formulario.
+    'whatsapp' => env('PLICA_WHATSAPP'),
+
     // Titular del servicio para el aviso legal, la privacidad y las condiciones.
     // RELLENAR EN PRODUCCIÓN (.env). Mientras, salen los valores entre corchetes.
     'legal' => [

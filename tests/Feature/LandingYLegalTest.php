@@ -38,6 +38,19 @@ class LandingYLegalTest extends TestCase
         $this->assertDatabaseHas('solicituds', ['club_nombre' => 'CD Test']);
     }
 
+    public function test_la_landing_atiende_por_whatsapp_y_no_por_videollamada(): void
+    {
+        $this->get('/')->assertOk()
+            ->assertDontSee('videollamada')
+            ->assertSee('te atendemos por WhatsApp')
+            ->assertDontSee('wa.me/');
+
+        config(['plica.whatsapp' => '34600111222']);
+        $this->get('/')->assertOk()
+            ->assertSee('Escríbenos por WhatsApp')
+            ->assertSee('https://wa.me/34600111222?text=', escape: false);
+    }
+
     public function test_sin_club_de_demo_la_landing_no_enlaza_a_un_ejemplo_que_no_existe(): void
     {
         $this->get('/')->assertOk()->assertDontSee('Ver un club de ejemplo');

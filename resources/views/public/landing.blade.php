@@ -5,6 +5,9 @@
 @section('content')
     @php
         $demo = \App\Models\Club::where('slug', 'cd-pesca-piloto')->where('perfil_publico', true)->first();
+        $whatsapp = config('plica.whatsapp')
+            ? 'https://wa.me/'.config('plica.whatsapp').'?text='.rawurlencode('Hola, soy de un club de pesca y quiero probar Plica.')
+            : null;
     @endphp
 
     {{-- Portada --}}
@@ -23,7 +26,13 @@
                 <a href="{{ route('club.publico', $demo) }}" class="inline-flex min-h-12 items-center rounded-xl border border-slate-700 px-6 text-base font-semibold text-slate-200 hover:border-emerald-500 hover:text-emerald-300">Ver un club de ejemplo →</a>
             @endif
         </div>
-        <p class="mt-4 text-sm text-slate-500">Gratis hasta enero. Te lo montamos nosotros en una videollamada de media hora.</p>
+        <p class="mt-4 text-sm text-slate-500">Gratis hasta enero. Te lo montamos nosotros y te atendemos por WhatsApp, sin reuniones.</p>
+        @if ($whatsapp)
+            <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#25d366] px-5 text-base font-bold text-white hover:brightness-110">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="size-5"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.15c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.24 3.7 8.24 8.24 0 4.55-3.7 8.24-8.24 8.24zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg>
+                Escríbenos por WhatsApp
+            </a>
+        @endif
     </section>
 
     {{-- Cómo funciona: el ciclo real de una manga --}}
@@ -89,7 +98,7 @@
             <ul class="mx-auto mt-6 max-w-md space-y-2 text-left text-sm text-slate-300">
                 <li class="flex gap-2"><span class="text-emerald-400">✓</span> Gratis hasta el 1 de enero para los clubes que entren este otoño.</li>
                 <li class="flex gap-2"><span class="text-emerald-400">✓</span> Los diez primeros clubes: 99 € por temporada, para siempre.</li>
-                <li class="flex gap-2"><span class="text-emerald-400">✓</span> Alta acompañada: media hora de videollamada y te lo dejamos montado con tus socios.</li>
+                <li class="flex gap-2"><span class="text-emerald-400">✓</span> Alta acompañada por WhatsApp: nos pasas tus secciones y tu lista de socios y te lo dejamos montado.</li>
                 <li class="flex gap-2"><span class="text-emerald-400">✓</span> Sin permanencia. Si el club no renueva, los datos se conservan en solo lectura; nunca se borran.</li>
             </ul>
             <p class="mt-6 text-sm text-slate-500">Menos que los trofeos de una manga. Menos de 2 € por socio y año en un club de 80.</p>
@@ -123,7 +132,7 @@
             <details class="group p-5">
                 <summary class="cursor-pointer list-none font-semibold">¿Cuánto tarda el alta?
                     <span class="float-right text-slate-500 group-open:rotate-45">+</span></summary>
-                <p class="mt-2 text-sm text-slate-400">Normalmente el mismo día. Nos mandas el nombre del club y el email del que será administrador, y te llega el acceso. Luego, media hora de videollamada para meter secciones, socios y la primera manga juntos.</p>
+                <p class="mt-2 text-sm text-slate-400">Normalmente el mismo día. Nos mandas el nombre del club y el email del que será administrador, y te llega el acceso. El resto lo resolvemos por WhatsApp: secciones, socios y la primera manga, sin reuniones ni tutoriales.</p>
             </details>
         </div>
     </section>
@@ -166,6 +175,9 @@
                     </button>
                     <p class="text-center text-xs text-slate-500">
                         Solo usamos estos datos para darte de alta. <a href="{{ route('legal.privacidad') }}" class="underline hover:text-emerald-400">Privacidad</a>.
+                        @if ($whatsapp)
+                            <br>¿Prefieres hablar? <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="underline hover:text-emerald-400">Escríbenos por WhatsApp</a>.
+                        @endif
                     </p>
                 </form>
             @endif
