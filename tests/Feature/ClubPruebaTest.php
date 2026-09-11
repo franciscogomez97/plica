@@ -63,7 +63,7 @@ class ClubPruebaTest extends TestCase
         // Embarcación va por puestos con promedio: la 2ª manga trae empates a propósito (1,5 y 5,5).
         $embarcacion = $club->seccions()->where('nombre', 'Embarcación')->firstOrFail();
         $segunda = Manga::where('seccion_id', $embarcacion->id)->where('estado', Manga::ESTADO_CELEBRADA)->orderBy('fecha')->skip(1)->firstOrFail();
-        $puntos = Scoring::puntosPorPuesto(Scoring::clasificacionManga($segunda)->first()->filas, Seccion::EMPATE_PROMEDIO);
+        $puntos = Scoring::puntosPorPuesto(Scoring::clasificacionManga($segunda)->first()->filas, Seccion::DESEMPATE_PROMEDIO);
         $this->assertSame([1.5, 1.5, 3, 5.5, 5.5, 5.5, 5.5], array_values($puntos));
         $this->get('/c/club-de-pruebas/embarcacion')->assertOk()->assertSee('1,5')->assertSee('5,5');
 

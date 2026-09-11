@@ -30,34 +30,48 @@ class Seccion extends Model
         self::SISTEMA_PUESTOS => 'Por puestos (gana quien menos suma)',
     ];
 
-    /** En «por puestos», qué se llevan los empatados de una manga. */
-    public const EMPATE_COMPARTIDO = 'compartido';
-
-    public const EMPATE_PROMEDIO = 'promedio';
-
-    public const EMPATES = [
-        self::EMPATE_COMPARTIDO => 'Comparten el mejor puesto (los dos el 18)',
-        self::EMPATE_PROMEDIO => 'Se reparten el promedio (18,5 cada uno)',
-    ];
-
-    /** Qué decide un empate. Si sigue igual, se comparte el puesto (1º, 1º, 3º). */
+    /**
+     * Qué pasa con un empate, en las mangas y en el ranking. Una sola regla:
+     * o se desempata por algo (y si siguen igual, comparten puesto), o no se
+     * desempata: comparten el puesto o, por puestos, se reparten el promedio.
+     */
     public const DESEMPATE_PIEZAS = 'piezas';
 
     public const DESEMPATE_PESO = 'peso';
 
     public const DESEMPATE_PIEZA_MAYOR = 'pieza_mayor';
 
+    public const DESEMPATE_COMPARTIDO = 'compartido';
+
+    public const DESEMPATE_PROMEDIO = 'promedio';
+
     protected $fillable = [
         'club_id', 'nombre', 'slug', 'criterio',
-        'sistema_puntuacion', 'puestos_empate', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'desempate',
+        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'desempate',
     ];
 
-    /** Desempates que tienen sentido para un criterio: nunca por lo mismo en lo que se empata. */
-    public static function desempatesPara(string $criterio): array
+    /**
+     * Las opciones de empate que tienen sentido: nunca por lo mismo en lo que se
+     * empata, y «se reparten el promedio» solo cuando se suman puestos.
+     */
+    public static function desempatesPara(string $criterio, string $sistema = self::SISTEMA_ACUMULADO): array
     {
-        return $criterio === self::CRITERIO_PIEZAS
+        $porAlgo = $criterio === self::CRITERIO_PIEZAS
             ? [self::DESEMPATE_PIEZA_MAYOR => 'La pieza mayor', self::DESEMPATE_PESO => 'Quien más peso sume']
             : [self::DESEMPATE_PIEZA_MAYOR => 'La pieza mayor', self::DESEMPATE_PIEZAS => 'Quien más piezas saque'];
+
+        return $sistema === self::SISTEMA_PUESTOS
+            ? $porAlgo + [
+                self::DESEMPATE_COMPARTIDO => 'Nadie: comparten el mejor puesto (los dos el 18)',
+                self::DESEMPATE_PROMEDIO => 'Nadie: se reparten el promedio de sus puestos (18,5 cada uno)',
+            ]
+            : $porAlgo + [self::DESEMPATE_COMPARTIDO => 'Nadie: comparten el puesto'];
+    }
+
+    /** Los empates que no se desempatan por nada. */
+    public static function sinDesempate(?string $desempate): bool
+    {
+        return in_array($desempate, [self::DESEMPATE_COMPARTIDO, self::DESEMPATE_PROMEDIO], true);
     }
 
     public static function desempatePorDefecto(string $criterio): string
@@ -74,8 +88,9 @@ class Seccion extends Model
     {
         static::saving(function (Seccion $seccion): void {
             $criterio = $seccion->criterio ?? self::CRITERIO_PESO;
+            $sistema = $seccion->sistema_puntuacion ?? self::SISTEMA_ACUMULADO;
 
-            if (! array_key_exists($seccion->desempate ?? '', static::desempatesPara($criterio))) {
+            if (! array_key_exists($seccion->desempate ?? '', static::desempatesPara($criterio, $sistema))) {
                 $seccion->desempate = static::desempatePorDefecto($criterio);
             }
 
@@ -141,7 +156,6 @@ class Seccion extends Model
             $this->sistema_puntuacion ?? self::SISTEMA_ACUMULADO,
             $this->desempate ?? static::desempatePorDefecto($this->criterio ?? self::CRITERIO_PESO),
             (int) $this->puntos_no_asistencia,
-            $this->puestos_empate ?? self::EMPATE_COMPARTIDO,
         );
     }
 
@@ -153,7 +167,6 @@ class Seccion extends Model
         string $sistema = self::SISTEMA_ACUMULADO,
         ?string $desempate = null,
         int $puntosNoAsistencia = 0,
-        string $puestosEmpate = self::EMPATE_COMPARTIDO,
     ): string {
         $desempate ??= static::desempatePorDefecto($criterio);
         $frases = [
@@ -172,10 +185,6 @@ class Seccion extends Model
         ];
 
         if ($sistema === self::SISTEMA_PUESTOS) {
-            if ($puestosEmpate === self::EMPATE_PROMEDIO) {
-                $frases[] = 'Los empatados en una manga se reparten el promedio de sus puestos.';
-            }
-
             $frases[] = $puntosNoAsistencia > 0
                 ? "No ir a una manga cuesta {$puntosNoAsistencia} puntos."
                 : 'No ir a una manga cuesta el último puesto de esa manga más uno.';
@@ -198,11 +207,15 @@ class Seccion extends Model
                 : 'Cada manga a la que no se va resta '.abs($puntosNoAsistencia).' puntos.';
         }
 
-        $frases[] = 'Si empatan, gana '.match ($desempate) {
-            self::DESEMPATE_PIEZA_MAYOR => 'la pieza mayor',
-            self::DESEMPATE_PESO => 'quien más peso sume',
-            default => 'quien más piezas saque',
-        }.'; si siguen igual, comparten puesto.';
+        $frases[] = match ($desempate) {
+            self::DESEMPATE_PROMEDIO => 'Si empatan en una manga, se reparten el promedio de sus puestos; si empatan en el ranking, comparten puesto.',
+            self::DESEMPATE_COMPARTIDO => 'Si empatan, comparten puesto.',
+            default => 'Si empatan, gana '.match ($desempate) {
+                self::DESEMPATE_PIEZA_MAYOR => 'la pieza mayor',
+                self::DESEMPATE_PESO => 'quien más peso sume',
+                default => 'quien más piezas saque',
+            }.'; si siguen igual, comparten puesto.',
+        };
 
         return implode(' ', $frases);
     }

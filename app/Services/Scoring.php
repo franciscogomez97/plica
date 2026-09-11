@@ -24,15 +24,15 @@ use Illuminate\Support\Collection;
  *    negativo). Gana quien MÁS suma. Descartes: se ignoran las N peores mangas
  *    pescadas (menor valor); las no pescadas no entran en los descartes.
  *  - 'puestos': cada manga da tantos puntos como tu puesto (1º = 1). Los
- *    empatados comparten el mejor puesto o se reparten el promedio
- *    (puestos_empate: 18 y 18, o 18,5 y 18,5). No participar cuesta
+ *    empatados (según el desempate de la sección) comparten el mejor puesto
+ *    o se reparten el promedio (desempate 'promedio': 18,5 y 18,5). No participar cuesta
  *    puntos_no_asistencia si está puesto (p. ej. socios + 1) y, si no,
  *    último + 1 de esa manga. Gana quien MENOS suma. Descartes: se ignoran
  *    las N peores mangas (más puntos).
  *
- * Por SECCIÓN (desempate): piezas | peso | pieza_mayor. Si tras el desempate
- * siguen iguales, comparten puesto (1º, 1º, 3º). Nunca decide el azar ni el
- * orden de la base de datos.
+ * Por SECCIÓN (desempate): piezas | peso | pieza_mayor, o ninguno ('compartido'
+ * y, por puestos, 'promedio'). Si tras el desempate siguen iguales, comparten
+ * puesto (1º, 1º, 3º). Nunca decide el azar ni el orden de la base de datos.
  *
  * Pieza mayor: se calcula por manga y por temporada (siempre hay premio).
  *
@@ -83,9 +83,9 @@ class Scoring
                 $sistema = $grupo->seccion?->sistema_puntuacion ?? Seccion::SISTEMA_ACUMULADO;
                 $puntosParticipacion = $grupo->seccion?->puntos_participacion ?? 0;
                 $puntosNoAsistencia = $grupo->seccion?->puntos_no_asistencia ?? 0;
-                $puestosEmpate = $grupo->seccion?->puestos_empate ?? Seccion::EMPATE_COMPARTIDO;
                 $descartes = $grupo->seccion?->descartes ?? 0;
                 $desempate = static::desempateDe($grupo->seccion, $grupo->criterio);
+                $puestosEmpate = $desempate; // por puestos: 'promedio' reparte; cualquier otro comparte
 
                 $grupo->sistema = $sistema;
                 $grupo->puntosParticipacion = $puntosParticipacion;
@@ -129,8 +129,8 @@ class Scoring
         $descartes = (int) $seccion->descartes;
         $puntosParticipacion = (int) $seccion->puntos_participacion;
         $puntosNoAsistencia = (int) $seccion->puntos_no_asistencia;
-        $puestosEmpate = $seccion->puestos_empate ?? Seccion::EMPATE_COMPARTIDO;
         $desempate = static::desempateDe($seccion, $criterio);
+        $puestosEmpate = $desempate;
 
         $mangas = $participaciones->pluck('manga')->unique('id')->sortBy(['fecha', 'id'])->values();
 
@@ -236,7 +236,7 @@ class Scoring
         return static::numerar($filas->sort(fn ($a, $b) => $clave($b) <=> $clave($a))->values(), $clave);
     }
 
-    private static function rankingPorPuestos(Collection $participaciones, string $criterio, int $descartes, string $desempate, string $empate = Seccion::EMPATE_COMPARTIDO, int $puntosNoAsistencia = 0): Collection
+    private static function rankingPorPuestos(Collection $participaciones, string $criterio, int $descartes, string $desempate, string $empate = Seccion::DESEMPATE_COMPARTIDO, int $puntosNoAsistencia = 0): Collection
     {
         // Puntos de cada socio en cada manga de esta sección (su puesto, o el promedio
         // si empata y así lo quiere la sección) y lo que cuesta no ir a cada una.
@@ -357,7 +357,7 @@ class Scoring
         $puntos = [];
         foreach ($clasif as $fila) {
             $tamano = $porPuesto->get($fila->puesto)->count();
-            $valor = $empate === Seccion::EMPATE_PROMEDIO && $tamano > 1
+            $valor = $empate === Seccion::DESEMPATE_PROMEDIO && $tamano > 1
                 ? $fila->puesto + ($tamano - 1) / 2
                 : $fila->puesto;
             $puntos[$fila->socio->id] = $valor == (int) $valor ? (int) $valor : $valor;
@@ -404,10 +404,11 @@ class Scoring
         };
     }
 
-    /** Lo que decide un empate, según la sección (más es mejor). */
+    /** Lo que decide un empate, según la sección (más es mejor). Sin desempate, nada lo decide: comparten. */
     private static function valorDesempate(object $fila, string $criterio, string $desempate): int
     {
         return match ($desempate) {
+            Seccion::DESEMPATE_COMPARTIDO, Seccion::DESEMPATE_PROMEDIO => 0,
             Seccion::DESEMPATE_PIEZA_MAYOR => $criterio === Seccion::CRITERIO_MEDIDA ? $fila->mayorMm : $fila->mayorGramos,
             Seccion::DESEMPATE_PESO => $fila->peso,
             default => $fila->piezas,

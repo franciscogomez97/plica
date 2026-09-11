@@ -90,10 +90,10 @@ class PorPuestosTest extends TestCase
     {
         $this->assertSame(47, $this->club->socios()->count());
         $this->assertSame(Seccion::SISTEMA_PUESTOS, $this->orilla->sistema_puntuacion);
-        $this->assertSame(Seccion::EMPATE_PROMEDIO, $this->orilla->puestos_empate);
+        $this->assertSame(Seccion::DESEMPATE_PROMEDIO, $this->orilla->desempate);
         $this->assertSame(48, $this->orilla->puntos_no_asistencia);
         $this->assertSame(
-            'Cada manga la gana quien más peso saca. El ranking suma los puestos de cada manga: gana quien menos suma. Los empatados en una manga se reparten el promedio de sus puestos. No ir a una manga cuesta 48 puntos. Si empatan, gana la pieza mayor; si siguen igual, comparten puesto.',
+            'Cada manga la gana quien más peso saca. El ranking suma los puestos de cada manga: gana quien menos suma. No ir a una manga cuesta 48 puntos. Si empatan en una manga, se reparten el promedio de sus puestos; si empatan en el ranking, comparten puesto.',
             $this->orilla->resumenReglas(),
         );
 
@@ -149,7 +149,7 @@ class PorPuestosTest extends TestCase
         $this->assertEquals(1 + 4, $this->puntos()['Fernando Díaz']);
 
         // Con empates compartidos, Óscar y Pedro se llevan 18 (no 18,5) y los de cero, 22.
-        $this->orilla->update(['puntos_no_asistencia' => 48, 'puestos_empate' => Seccion::EMPATE_COMPARTIDO]);
+        $this->orilla->update(['puntos_no_asistencia' => 48, 'desempate' => Seccion::DESEMPATE_COMPARTIDO]);
         $puntos = $this->puntos();
         $this->assertEquals(18 + 3, $puntos['Pedro Yuste']);
         $this->assertEquals(22 + 48, $puntos['Eduardo Vega']);
@@ -186,16 +186,15 @@ class PorPuestosTest extends TestCase
             ->assertFormFieldExists('puntos_participacion')
             ->fillForm([
                 'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS,
-                'puestos_empate' => Seccion::EMPATE_PROMEDIO,
+                'desempate' => Seccion::DESEMPATE_PROMEDIO,
                 'puntos_no_asistencia' => 48,
             ])
-            ->assertFormFieldExists('puestos_empate')
             ->call('save')
             ->assertHasNoFormErrors();
 
         $seccion->refresh();
         $this->assertSame(Seccion::SISTEMA_PUESTOS, $seccion->sistema_puntuacion);
-        $this->assertSame(Seccion::EMPATE_PROMEDIO, $seccion->puestos_empate);
+        $this->assertSame(Seccion::DESEMPATE_PROMEDIO, $seccion->desempate);
         $this->assertSame(48, $seccion->puntos_no_asistencia);
         $this->assertStringContainsString('se reparten el promedio', $seccion->resumenReglas());
     }

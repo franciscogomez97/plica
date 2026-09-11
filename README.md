@@ -160,15 +160,27 @@ relativas al día en que se ejecuta.
 - **Sistema «por puestos» completo** (septiembre de 2026, para Bass
   Extremadura): vuelve al formulario de sección («El ranking de la temporada:
   suma lo pescado / suma los puestos»). Cada manga da tantos puntos como tu
-  puesto y gana quien menos suma. `seccions.puestos_empate`: los empatados
-  comparten el mejor puesto (18 y 18) o se reparten el promedio (18,5 cada
-  uno; ocho con cero en el 22 → 25,5), el sistema de federación. En este
+  puesto y gana quien menos suma. Los empates van en la misma regla que el
+  desempate (`seccions.desempate`, ver abajo): con «promedio», los empatados
+  se reparten el promedio de sus puestos (18,5 cada uno; ocho con cero en el
+  22 → 25,5), el sistema de federación. En este
   sistema, «Puntos por no ir» es lo que se lleva un ausente por manga (el
   club pone socios + 1, p. ej. 48); a 0, el último de esa manga + 1. Los
   puntos pueden llevar decimales (`Scoring::formatPuntos`: «18,5»). El cuadro
   manga a manga enseña en cada celda los puntos de esa manga y en las de
   «no fue» lo que costó. `BassExtremaduraSeeder` carga su Orilla (47 socios,
   sin pesajes) y `PorPuestosTest` comprueba su hoja al decimal.
+- **Una sola regla de empates** (`seccions.desempate`, 11 de septiembre de
+  2026): había dos ajustes que se pisaban (el desempate por pieza mayor se
+  aplicaba antes que el «promedio» y solo empataban de verdad los que
+  coincidían en todo). Ahora la sección responde una sola pregunta, «si
+  empatan, ¿quién gana?», que vale para cada manga y para el ranking:
+  `pieza_mayor` / `piezas` / `peso` (desempata algo; si siguen igual,
+  comparten puesto), `compartido` (nadie: comparten el puesto) o, solo
+  sumando puestos, `promedio` (nadie: se reparten el promedio de sus
+  puestos). Sin desempate, dos socios a igual peso empatan aunque uno tenga
+  la pieza mayor, que es lo que hacen las federaciones. Bass Extremadura va
+  en «promedio». La columna `puestos_empate` se fundió en `desempate`.
 - **Puntos por no ir** (`seccions.puntos_no_asistencia`, septiembre de 2026):
   en el sistema por puestos es lo que se lleva un ausente por manga (socios +
   1; a 0, el último de esa manga + 1) y se configura en el formulario. El

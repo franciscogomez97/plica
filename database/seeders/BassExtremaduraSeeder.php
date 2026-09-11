@@ -12,11 +12,11 @@ use Illuminate\Database\Seeder;
  * Bass Extremadura: la sección Orilla con su reglamento y sus 47 socios, tal
  * como vienen en la hoja que pasó su directivo en septiembre de 2026. Sin
  * pesajes: las mangas las mete el club. Su sistema es el de federación: cada
- * manga da tantos puntos como tu puesto, los empatados se reparten el
- * promedio, no ir cuesta 48 (47 socios + 1) y gana quien menos suma.
+ * manga da tantos puntos como tu puesto, no se desempata (los empatados se
+ * reparten el promedio), no ir cuesta 48 (47 socios + 1) y gana quien menos suma.
  *
  * Idempotente: encuentra el club por slug (existe en producción, creado vacío),
- * la sección por slug y los socios por nombre.
+ * la sección por slug (y deja sus reglas como aquí) y los socios por nombre.
  *
  *   php artisan db:seed --class=BassExtremaduraSeeder --force
  */
@@ -44,14 +44,15 @@ class BassExtremaduraSeeder extends Seeder
 
         Temporada::firstOrCreate(['club_id' => $club->id, 'nombre' => 'Temporada '.now()->year], ['activa' => true]);
 
-        Seccion::firstOrCreate(['club_id' => $club->id, 'slug' => 'orilla'], [
+        // Federación: no se desempata; los empatados se reparten el promedio de sus puestos.
+        Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'orilla'], [
             'nombre' => 'Orilla',
             'criterio' => Seccion::CRITERIO_PESO,
             'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS,
-            'puestos_empate' => Seccion::EMPATE_PROMEDIO,
+            'puntos_participacion' => 0,
             'puntos_no_asistencia' => count(self::SOCIOS) + 1,
             'descartes' => 0,
-            'desempate' => Seccion::DESEMPATE_PIEZA_MAYOR,
+            'desempate' => Seccion::DESEMPATE_PROMEDIO,
         ]);
 
         foreach (self::SOCIOS as $nombre) {

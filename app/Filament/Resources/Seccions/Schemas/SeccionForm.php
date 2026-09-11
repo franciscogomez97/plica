@@ -13,9 +13,10 @@ use Filament\Schemas\Schema;
 use Illuminate\Validation\Rules\Unique;
 
 /**
- * La ficha de una sección, en cuatro bloques y en el orden en que se piensa:
- * qué es, cómo se hace el ranking de la temporada, qué decide un empate y el
- * resumen en una frase. Cada sistema de ranking enseña solo lo suyo.
+ * La ficha de una sección, en tres bloques y en el orden en que se piensa:
+ * qué es, cómo se hace el ranking de la temporada (sistema, sus ajustes y una
+ * sola regla de empates) y el resumen en una frase. Cada sistema enseña solo
+ * lo suyo.
  */
 class SeccionForm
 {
@@ -23,6 +24,15 @@ class SeccionForm
     {
         $esPuestos = fn (Get $get): bool => $get('sistema_puntuacion') === Seccion::SISTEMA_PUESTOS;
         $esAcumulado = fn (Get $get): bool => ! $esPuestos($get);
+
+        // Si el desempate elegido deja de tener sentido (cambia el criterio o el sistema), vuelve al de siempre.
+        $corregirDesempate = function (Get $get, Set $set): void {
+            $opciones = Seccion::desempatesPara((string) ($get('criterio') ?: Seccion::CRITERIO_PESO), (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO));
+
+            if (! array_key_exists((string) $get('desempate'), $opciones)) {
+                $set('desempate', Seccion::desempatePorDefecto((string) ($get('criterio') ?: Seccion::CRITERIO_PESO)));
+            }
+        };
 
         return $schema
             ->components([
@@ -49,8 +59,7 @@ class SeccionForm
                             ])
                             ->default(Seccion::CRITERIO_PESO)
                             ->live()
-                            // Al cambiar el criterio, el desempate vuelve al que tiene sentido para él.
-                            ->afterStateUpdated(fn (Set $set, ?string $state) => $set('desempate', Seccion::desempatePorDefecto((string) $state)))
+                            ->afterStateUpdated($corregirDesempate)
                             ->required(),
                     ]),
 
@@ -69,6 +78,7 @@ class SeccionForm
                             ])
                             ->default(Seccion::SISTEMA_ACUMULADO)
                             ->live()
+                            ->afterStateUpdated($corregirDesempate)
                             ->required(),
 
                         // Suma lo pescado: se puede premiar ir a las mangas.
@@ -81,14 +91,7 @@ class SeccionForm
                             ->visible($esAcumulado)
                             ->live(onBlur: true),
 
-                        // Suma los puestos: qué pasa al empatar y qué cuesta no ir.
-                        Radio::make('puestos_empate')
-                            ->label('Si dos o más empatan en una manga')
-                            ->options(Seccion::EMPATES)
-                            ->default(Seccion::EMPATE_COMPARTIDO)
-                            ->visible($esPuestos)
-                            ->live()
-                            ->required(),
+                        // Suma los puestos: qué cuesta no ir.
                         TextInput::make('puntos_no_asistencia')
                             ->label('Puntos por no ir a una manga')
                             ->helperText('Lo que se lleva quien no va. Lo habitual: el número de socios + 1 (48 con 47 socios). A 0, el último de esa manga + 1.')
@@ -106,17 +109,17 @@ class SeccionForm
                             ->minValue(0)
                             ->default(0)
                             ->live(onBlur: true),
-                    ]),
 
-                Section::make('Empates')
-                    ->schema([
-                        // Nunca se desempata por lo mismo en lo que se empata; si sigue
-                        // igual, se comparte el puesto. Nada de sorteos.
+                        // Una sola regla para los empates, en las mangas y en el ranking: o
+                        // decide algo (pieza mayor, piezas) o no decide nada y comparten.
                         Radio::make('desempate')
-                            ->label('Si empatan, gana…')
-                            ->options(fn (Get $get): array => Seccion::desempatesPara((string) ($get('criterio') ?: Seccion::CRITERIO_PESO)))
+                            ->label('Si empatan, ¿quién gana?')
+                            ->options(fn (Get $get): array => Seccion::desempatesPara(
+                                (string) ($get('criterio') ?: Seccion::CRITERIO_PESO),
+                                (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
+                            ))
                             ->default(Seccion::DESEMPATE_PIEZAS)
-                            ->helperText('Vale para las mangas y para el ranking. Si siguen igual, comparten puesto (1º, 1º, 3º).')
+                            ->helperText('Vale para cada manga y para el ranking. Si desempata algo y siguen igual, comparten puesto (1º, 1º, 3º).')
                             ->live()
                             ->required(),
                     ]),
@@ -134,7 +137,6 @@ class SeccionForm
                                 (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
                                 $get('desempate') ?: null,
                                 $esPuestos($get) ? (int) ($get('puntos_no_asistencia') ?: 0) : 0,
-                                (string) ($get('puestos_empate') ?: Seccion::EMPATE_COMPARTIDO),
                             )),
                     ]),
             ]);
