@@ -64,10 +64,10 @@ class SociosTable
                 Action::make('acceso')
                     ->label('Acceso')
                     ->icon('heroicon-o-link')
-                    ->modalHeading('Enlace de acceso (un solo uso)')
+                    ->modalHeading(fn (Socio $record): string => "Dar acceso a {$record->nombre}")
                     ->modalDescription(fn (Socio $record): string => $record->user_id === null
-                        ? 'Envíaselo por WhatsApp: al abrirlo creará su cuenta y verá los rankings.'
-                        : 'Envíaselo por WhatsApp: al abrirlo elegirá una contraseña nueva (por si la ha olvidado).')
+                        ? 'Aún no tiene cuenta. Mándale su enlace y, al abrirlo, la crea.'
+                        : 'Ya tiene cuenta. Este enlace le sirve para poner una contraseña nueva.')
                     ->modalContent(fn (Socio $record) => view('filament.invite-link', ['url' => $record->accessUrl(), 'socio' => $record]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),

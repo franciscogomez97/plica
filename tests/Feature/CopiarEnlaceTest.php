@@ -53,6 +53,14 @@ class CopiarEnlaceTest extends TestCase
         $this->assertStringContainsString('plicaCopiar(this,', $modal);
         $this->assertStringNotContainsString('navigator.clipboard', $modal);
         $this->assertStringContainsString('wa.me/?text=', $modal);
+
+        // Con jerarquía: primero WhatsApp, luego copiar (mensaje o solo el enlace), luego qué pasa después.
+        $this->assertStringContainsString('Enviar por WhatsApp', $modal);
+        $this->assertStringContainsString('Copiar mensaje', $modal);
+        $this->assertStringContainsString('Copiar solo el enlace', $modal);
+        $this->assertStringContainsString('Crea su cuenta', $modal);
+        $this->assertStringContainsString('de un solo uso', $modal);
+        $this->assertStringNotContainsString('class="flex', $modal); // nada de utilidades de Tailwind: el panel no las carga
     }
 
     public function test_los_enlaces_en_bloque_tambien_copian_con_el_fallback(): void
