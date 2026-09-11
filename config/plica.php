@@ -20,11 +20,14 @@ return [
     ],
 
     // Titular del servicio para el aviso legal, la privacidad y las condiciones.
-    // RELLENAR EN PRODUCCIÓN (.env). Mientras, salen los valores entre corchetes.
+    // RELLENAR EN PRODUCCIÓN (.env). Titular y email son obligatorios (RGPD: quién
+    // responde de los datos y cómo contactarle); mientras falten, salen entre
+    // corchetes. NIF y dirección solo los exige la LSSI cuando hay actividad
+    // económica: mientras Plica sea gratuita pueden ir vacíos y su línea no se pinta.
     'legal' => [
         'titular' => env('PLICA_TITULAR', '[Nombre o razón social del titular]'),
-        'nif' => env('PLICA_NIF', '[NIF]'),
-        'direccion' => env('PLICA_DIRECCION', '[Dirección postal]'),
+        'nif' => env('PLICA_NIF'),
+        'direccion' => env('PLICA_DIRECCION'),
         'email' => env('PLICA_EMAIL_LEGAL', env('PLICA_SUPERADMIN_EMAIL', '[email de contacto]')),
         'actualizado' => '11 de septiembre de 2026',
     ],
