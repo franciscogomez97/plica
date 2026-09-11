@@ -15,6 +15,8 @@ class SeccionForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $esPuestos = fn (Get $get): bool => $get('sistema_puntuacion') === Seccion::SISTEMA_PUESTOS;
+
         return $schema
             ->components([
                 TextInput::make('nombre')
@@ -41,21 +43,43 @@ class SeccionForm
                     // Al cambiar el criterio, el desempate vuelve al que tiene sentido para él.
                     ->afterStateUpdated(fn (Set $set, ?string $state) => $set('desempate', Seccion::desempatePorDefecto((string) $state)))
                     ->required(),
-                // El ranking de temporada es siempre por suma total (gana quien
-                // más acumula). El sistema «por puestos» sigue en Scoring,
-                // desactivado del formulario: nadie lo usaba. Para reactivarlo,
-                // re-añadir aquí el radio de sistema_puntuacion.
+                // Dos formas de hacer el ranking de temporada: sumar lo pescado (con puntos
+                // por participar si se quiere) o sumar puestos, el sistema de federación.
+                Radio::make('sistema_puntuacion')
+                    ->label('El ranking de la temporada')
+                    ->options([
+                        Seccion::SISTEMA_ACUMULADO => 'Suma lo pescado',
+                        Seccion::SISTEMA_PUESTOS => 'Suma los puestos',
+                    ])
+                    ->descriptions([
+                        Seccion::SISTEMA_ACUMULADO => 'Gana quien más suma en el año (gramos, centímetros o piezas), más los puntos por participar si los hay.',
+                        Seccion::SISTEMA_PUESTOS => 'Cada manga da tantos puntos como tu puesto (1º = 1): gana quien menos suma. El sistema de federación.',
+                    ])
+                    ->default(Seccion::SISTEMA_ACUMULADO)
+                    ->live()
+                    ->required(),
+                Radio::make('puestos_empate')
+                    ->label('Si empatan en una manga, los puestos…')
+                    ->options(Seccion::EMPATES)
+                    ->default(Seccion::EMPATE_COMPARTIDO)
+                    ->visible($esPuestos)
+                    ->live()
+                    ->required(),
                 TextInput::make('puntos_participacion')
                     ->label('Puntos por participar')
                     ->helperText('Se suman por manga pescada. 0 = no se usan.')
                     ->numeric()
                     ->minValue(0)
                     ->default(0)
+                    ->hidden($esPuestos)
                     ->live(onBlur: true),
-                // Algunos clubes dan puntos también a quien no va (o se los quitan).
+                // Algunos clubes dan puntos también a quien no va (o se los quitan). Por
+                // puestos es lo que se lleva un ausente (p. ej. socios + 1).
                 TextInput::make('puntos_no_asistencia')
-                    ->label('Puntos por no ir')
-                    ->helperText('Por cada manga a la que un socio no va. 0 = nada. En negativo, resta.')
+                    ->label(fn (Get $get): string => $esPuestos($get) ? 'Puntos de un ausente por manga' : 'Puntos por no ir')
+                    ->helperText(fn (Get $get): string => $esPuestos($get)
+                        ? '0 = el último de esa manga + 1. Muchos clubes ponen el número de socios + 1 (48 con 47 socios).'
+                        : 'Por cada manga a la que un socio no va. 0 = nada. En negativo, resta.')
                     ->numeric()
                     ->integer()
                     ->default(0)
@@ -84,9 +108,10 @@ class SeccionForm
                         (string) ($get('criterio') ?: Seccion::CRITERIO_PESO),
                         (int) ($get('puntos_participacion') ?: 0),
                         (int) ($get('descartes') ?: 0),
-                        Seccion::SISTEMA_ACUMULADO,
+                        (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
                         $get('desempate') ?: null,
                         (int) ($get('puntos_no_asistencia') ?: 0),
+                        (string) ($get('puestos_empate') ?: Seccion::EMPATE_COMPARTIDO),
                     ))
                     ->columnSpanFull(),
             ]);

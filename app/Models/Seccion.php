@@ -30,6 +30,16 @@ class Seccion extends Model
         self::SISTEMA_PUESTOS => 'Por puestos (gana quien menos suma)',
     ];
 
+    /** En «por puestos», qué se llevan los empatados de una manga. */
+    public const EMPATE_COMPARTIDO = 'compartido';
+
+    public const EMPATE_PROMEDIO = 'promedio';
+
+    public const EMPATES = [
+        self::EMPATE_COMPARTIDO => 'Comparten el mejor puesto (los dos el 18)',
+        self::EMPATE_PROMEDIO => 'Se reparten el promedio (18,5 cada uno)',
+    ];
+
     /** Qué decide un empate. Si sigue igual, se comparte el puesto (1º, 1º, 3º). */
     public const DESEMPATE_PIEZAS = 'piezas';
 
@@ -39,7 +49,7 @@ class Seccion extends Model
 
     protected $fillable = [
         'club_id', 'nombre', 'slug', 'criterio',
-        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'desempate',
+        'sistema_puntuacion', 'puestos_empate', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'desempate',
     ];
 
     /** Desempates que tienen sentido para un criterio: nunca por lo mismo en lo que se empata. */
@@ -131,6 +141,7 @@ class Seccion extends Model
             $this->sistema_puntuacion ?? self::SISTEMA_ACUMULADO,
             $this->desempate ?? static::desempatePorDefecto($this->criterio ?? self::CRITERIO_PESO),
             (int) $this->puntos_no_asistencia,
+            $this->puestos_empate ?? self::EMPATE_COMPARTIDO,
         );
     }
 
@@ -142,6 +153,7 @@ class Seccion extends Model
         string $sistema = self::SISTEMA_ACUMULADO,
         ?string $desempate = null,
         int $puntosNoAsistencia = 0,
+        string $puestosEmpate = self::EMPATE_COMPARTIDO,
     ): string {
         $desempate ??= static::desempatePorDefecto($criterio);
         $frases = [
@@ -158,6 +170,16 @@ class Seccion extends Model
                     default => 'el peso',
                 }.' de todas las mangas.',
         ];
+
+        if ($sistema === self::SISTEMA_PUESTOS) {
+            if ($puestosEmpate === self::EMPATE_PROMEDIO) {
+                $frases[] = 'Los empatados en una manga se reparten el promedio de sus puestos.';
+            }
+
+            $frases[] = $puntosNoAsistencia > 0
+                ? "No ir a una manga cuesta {$puntosNoAsistencia} puntos."
+                : 'No ir a una manga cuesta el último puesto de esa manga más uno.';
+        }
 
         if ($descartes > 0) {
             $frases[] = $descartes === 1

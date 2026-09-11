@@ -60,7 +60,8 @@ class ClubPruebaSeeder extends Seeder
 
         $secciones = [
             'orilla' => Seccion::create(['club_id' => $club->id, 'nombre' => 'Orilla', 'criterio' => Seccion::CRITERIO_PESO, 'puntos_participacion' => 500, 'desempate' => Seccion::DESEMPATE_PIEZA_MAYOR]),
-            'embarcacion' => Seccion::create(['club_id' => $club->id, 'nombre' => 'Embarcación', 'criterio' => Seccion::CRITERIO_PESO, 'descartes' => 1]),
+            // Por puestos, el sistema de federación: puesto = puntos, empates promediados, ausente = socios + 1.
+            'embarcacion' => Seccion::create(['club_id' => $club->id, 'nombre' => 'Embarcación', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puestos_empate' => Seccion::EMPATE_PROMEDIO, 'puntos_no_asistencia' => 17, 'descartes' => 1]),
             'pato' => Seccion::create(['club_id' => $club->id, 'nombre' => 'Pato — Lucio', 'criterio' => Seccion::CRITERIO_MEDIDA]),
         ];
 

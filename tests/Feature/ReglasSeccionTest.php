@@ -39,7 +39,7 @@ class ReglasSeccionTest extends TestCase
         );
 
         $this->assertSame(
-            'Cada manga la gana quien más peso saca. El ranking suma los puestos de cada manga: gana quien menos suma. Si empatan, gana la pieza mayor; si siguen igual, comparten puesto.',
+            'Cada manga la gana quien más peso saca. El ranking suma los puestos de cada manga: gana quien menos suma. No ir a una manga cuesta el último puesto de esa manga más uno. Si empatan, gana la pieza mayor; si siguen igual, comparten puesto.',
             Seccion::resumenReglasDe(Seccion::CRITERIO_PESO, sistema: Seccion::SISTEMA_PUESTOS, desempate: Seccion::DESEMPATE_PIEZA_MAYOR),
         );
     }

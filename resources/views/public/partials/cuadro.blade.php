@@ -82,7 +82,9 @@
                         @foreach ($cuadro->mangas as $manga)
                             @php $c = $fila->celdas[$manga->id] ?? null; @endphp
                             @if ($c === null)
-                                @if (($cuadro->puntosNoAsistencia ?? 0) !== 0)
+                                @if ($cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS)
+                                <td class="ausente" title="No participó: {{ $cuadro->ausentePorManga[$manga->id] ?? '' }} pts">—<br><small>{{ $cuadro->ausentePorManga[$manga->id] ?? '' }}</small></td>
+                            @elseif (($cuadro->puntosNoAsistencia ?? 0) !== 0)
                                 <td class="ausente" title="No participó: {{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }} pts">—<br><small>{{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }}</small></td>
                             @else
                                 <td class="ausente" title="No participó">—</td>
@@ -93,7 +95,7 @@
 <div @class(['celda', 'gana' => $c->puesto === 1, 'mayor' => $c->mayorDeLaManga, 'descartada' => $c->descartada]) title="{{ $c->texto }} · {{ $c->puesto }}º{{ $c->mayorDeLaManga ? ' · pieza mayor de la manga ('.$c->mayor.')' : '' }}">
     <span class="v font-semibold">{{ $numero }}@if ($uni !== '')<span class="u"> {{ $uni }}</span>@endif</span>
     <span class="m">
-        <span class="pm">{{ $c->puesto }}º</span>
+        <span class="pm">{{ $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS && $c->puntos !== null ? \App\Services\Scoring::formatPuntos($c->puntos) : $c->puesto.'º' }}</span>
         @if ($c->mayorDeLaManga)
             <span class="pez" title="Pieza mayor de la manga: {{ $c->mayor }}">🐟</span>
         @endif

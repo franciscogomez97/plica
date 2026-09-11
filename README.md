@@ -157,6 +157,18 @@ relativas al día en que se ejecuta.
   botón a la portada (o «Volver atrás» en la 419). El middleware
   `CabecerasSeguridad` pone `X-Frame-Options`, `nosniff` y `Referrer-Policy`
   en todas las respuestas; HSTS lo pone Nginx.
+- **Sistema «por puestos» completo** (septiembre de 2026, para Bass
+  Extremadura): vuelve al formulario de sección («El ranking de la temporada:
+  suma lo pescado / suma los puestos»). Cada manga da tantos puntos como tu
+  puesto y gana quien menos suma. `seccions.puestos_empate`: los empatados
+  comparten el mejor puesto (18 y 18) o se reparten el promedio (18,5 cada
+  uno; ocho con cero en el 22 → 25,5), el sistema de federación. En este
+  sistema, «Puntos por no ir» es lo que se lleva un ausente por manga (el
+  club pone socios + 1, p. ej. 48); a 0, el último de esa manga + 1. Los
+  puntos pueden llevar decimales (`Scoring::formatPuntos`: «18,5»). El cuadro
+  manga a manga enseña en cada celda los puntos de esa manga y en las de
+  «no fue» lo que costó. `BassExtremaduraSeeder` carga su Orilla (47 socios,
+  sin pesajes) y `PorPuestosTest` comprueba su hoja al decimal.
 - **Puntos por no ir** (`seccions.puntos_no_asistencia`, septiembre de 2026):
   algunos clubes dan puntos también por las mangas a las que no se va (o los
   quitan). Por sección, 0 por defecto (nada cambia para nadie), puede ser
