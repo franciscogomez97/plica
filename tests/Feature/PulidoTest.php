@@ -120,9 +120,10 @@ class PulidoTest extends TestCase
             ->assertSee('Añadir a pantalla de inicio')
             ->assertSee('beforeinstallprompt');
 
+        // En el panel del admin no hay aviso: es cosa del socio.
         $this->flushSession();
         $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
-        $this->get('/admin')->assertOk()->assertSee('Lleva Plica en el móvil');
+        $this->get('/admin')->assertOk()->assertDontSee('Lleva Plica en el móvil');
     }
 
     public function test_en_diciembre_el_inicio_propone_crear_la_temporada_siguiente(): void
