@@ -304,8 +304,9 @@ Aparcado a propósito, no olvidado:
    de fórmulas genérico sin reglamentos reales delante).
 2. **Datos reales**: nombre del club, socios y calendario de mangas de la
    temporada (hoy hay placeholders de demo).
-3. **Deploy a VPS**: MySQL/PostgreSQL, HTTPS, backups de BD automatizados,
-   `APP_ENV=production`, colas si algún día hay emails.
+3. **Deploy a VPS**: hecho el 11 de septiembre de 2026 por IP y HTTP (ver
+   «Producción»). Quedan dominio + HTTPS, cron de backup, copias fuera de la
+   máquina y el correo por Gmail.
 4. **SMTP opcional**: la recuperación de contraseña ya funciona por enlace de
    acceso (sin correo). Si algún día se quiere el "olvidé mi contraseña"
    autoservicio clásico, configurar mailer y `->passwordReset()`.
@@ -323,3 +324,17 @@ Aparcado a propósito, no olvidado:
 9. ~~Blindar secciones en BD~~: hecho. `mangas.seccion_id` es obligatorio y
    con `restrictOnDelete`; como toda participación cuelga de una manga de su
    sección, borrar una sección con historial lo impide la base de datos.
+10. **Panel de Plica (superadmin), con cobros** (apuntado el 11 de septiembre
+    de 2026, se hará después del lanzamiento): hoy el superadmin es un admin
+    de club más que además ve «Solicitudes». Falta un tercer panel `/plica`,
+    solo para `PLICA_SUPERADMIN_EMAIL`, con: Inicio (clubes activos, socios y
+    mangas totales, solicitudes sin atender, último acceso por club); Clubes
+    (lista con socios, mangas, temporada activa, logo y perfil público;
+    «Nuevo club» que hace lo de `plica:club` y enseña el enlace de acceso;
+    «Entrar como su admin» para dar soporte); Solicitudes con «Montar club»
+    que rellena el alta y la marca atendida; y **cobros por temporada**: para
+    cada club y temporada, si es fundador (99 €) o normal (150 €), gratis
+    hasta el 1 de enero de 2027, pagado / pendiente, fecha y método
+    (transferencia), para saber de un vistazo quién paga y quién no. Al
+    hacerlo, borrar el club «Plica» de producción y dejar al superadmin
+    fuera de `/admin` salvo cuando entre como admin de un club.
