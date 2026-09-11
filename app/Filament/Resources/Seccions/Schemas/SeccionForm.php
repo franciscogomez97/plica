@@ -55,7 +55,7 @@ class SeccionForm
                 // Algunos clubes dan puntos también a quien no va (o se los quitan).
                 TextInput::make('puntos_no_asistencia')
                     ->label('Puntos por no ir')
-                    ->helperText('Por cada manga a la que un socio no va. 0 = nada (lo normal). En negativo, resta.')
+                    ->helperText('Por cada manga a la que un socio no va. 0 = nada. En negativo, resta.')
                     ->numeric()
                     ->integer()
                     ->default(0)
