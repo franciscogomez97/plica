@@ -11,6 +11,7 @@ use App\Models\Socio;
 use App\Models\Temporada;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -72,7 +73,9 @@ class ClubPruebaSeeder extends Seeder
             'embarcacion' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'embarcacion'], ['nombre' => 'Embarcación', 'criterio' => Seccion::CRITERIO_PESO, 'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 17, 'descartes' => 1, 'descartes_ausencias' => true, 'desempate' => Seccion::DESEMPATE_PROMEDIO]),
             'pato' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'pato-lucio'], ['nombre' => 'Pato — Lucio', 'criterio' => Seccion::CRITERIO_MEDIDA, 'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 0, 'descartes' => 0, 'descartes_ausencias' => false, 'desempate' => Seccion::DESEMPATE_PIEZAS]),
         ];
-        Seccion::where('club_id', $club->id)->whereNotIn('id', collect($secciones)->pluck('id'))->delete();
+        // La matriz de «suma lo pescado»: una sección por combinación de reglas, para cerrar el sistema.
+        $matriz = $this->matrizAcumulado($club);
+        Seccion::where('club_id', $club->id)->whereNotIn('id', collect($secciones)->pluck('id')->merge($matriz->pluck('id')))->delete();
 
         $socios = collect(self::SOCIOS)->map(fn (string $nombre, int $i) => Socio::updateOrCreate(['club_id' => $club->id, 'nombre' => $nombre], [
             'email' => $i % 3 === 0 ? str($nombre)->slug('.').'@ejemplo.es' : null,
@@ -195,6 +198,143 @@ class ClubPruebaSeeder extends Seeder
 
                     Captura::create(['participacion_id' => $participacion->id, 'piezas' => $piezas, 'peso_gramos' => array_sum($pesos)]);
                     $participacion->update(['pieza_mayor_gramos' => max($pesos)]);
+                }
+            }
+        }
+
+        $this->pesarMatriz($temporada, $matriz, $socios);
+    }
+
+    // ------------------------------------------------------------------
+    //  Matriz de «suma lo pescado»: todas las variables, con datos que fuerzan
+    //  empates (a valor, con distinta pieza mayor y distinto nº de piezas), ceros
+    //  (fue y no pescó) y ausencias (una y dos mangas perdidas). Seis reglas por
+    //  criterio, 18 secciones; los resultados esperados están en MatrizAcumuladoTest,
+    //  calculados aparte del motor.
+    // ------------------------------------------------------------------
+
+    /** Las seis combinaciones de reglas: [asistencia, desempate (A = pieza mayor, B = piezas o peso), descartes, también no pescadas]. */
+    public const MATRIZ_REGLAS = [
+        1 => [0, 'A', 0, false],
+        2 => [500, 'B', 0, false],
+        3 => [0, 'compartido', 0, false],
+        4 => [500, 'A', 1, false],
+        5 => [0, 'B', 1, true],
+        6 => [500, 'compartido', 1, true],
+    ];
+
+    /**
+     * Resultados por criterio, manga y socio (A..F = los seis primeros socios).
+     * Peso y piezas: [piezas, gramos, pieza mayor]. Medida: lista de peces en mm.
+     * [] o [0,0,0] = fue y no pescó. Sin entrada = no fue.
+     */
+    public const MATRIZ_DATOS = [
+        Seccion::CRITERIO_PESO => [
+            ['A' => [2, 3000, 2000], 'B' => [3, 3000, 1500], 'C' => [1, 1000, 1000], 'D' => [0, 0, 0], 'E' => [1, 500, 500]],
+            ['A' => [1, 2000, 2000], 'B' => [2, 2500, 1300], 'D' => [1, 1500, 1500], 'E' => [2, 1500, 800], 'F' => [1, 4000, 4000]],
+            ['B' => [0, 0, 0], 'C' => [2, 2200, 1200], 'D' => [1, 700, 700], 'F' => [1, 1000, 1000]],
+        ],
+        Seccion::CRITERIO_PIEZAS => [
+            ['A' => [3, 3400, 1500], 'B' => [3, 2400, 2000], 'C' => [1, 1000, 1000], 'D' => [0, 0, 0], 'E' => [2, 900, 500]],
+            ['A' => [2, 2000, 1200], 'B' => [1, 2500, 2500], 'D' => [2, 1400, 900], 'E' => [2, 1400, 1000], 'F' => [4, 3000, 1200]],
+            ['B' => [1, 300, 300], 'C' => [3, 2200, 1200], 'D' => [1, 700, 700], 'F' => [2, 1500, 900]],
+        ],
+        Seccion::CRITERIO_MEDIDA => [
+            ['A' => [400, 400, 400], 'B' => [700, 500], 'C' => [500], 'D' => [], 'E' => [450]],
+            ['A' => [800], 'B' => [650, 650], 'D' => [900], 'E' => [450, 450], 'F' => [1000, 500]],
+            ['B' => [], 'C' => [700, 600], 'D' => [350], 'F' => [500]],
+        ],
+    ];
+
+    public static function matrizSlug(string $criterio, int $regla): string
+    {
+        return "matriz-{$criterio}-{$regla}";
+    }
+
+    public static function matrizNombre(string $criterio, int $regla): string
+    {
+        [$asistencia, $desempate, $descartes, $ausencias] = self::MATRIZ_REGLAS[$regla];
+        $criterioTexto = match ($criterio) {
+            Seccion::CRITERIO_MEDIDA => 'Medida',
+            Seccion::CRITERIO_PIEZAS => 'Piezas',
+            default => 'Peso',
+        };
+        $desempateTexto = match ($desempate) {
+            'A' => 'pieza mayor',
+            'B' => $criterio === Seccion::CRITERIO_PIEZAS ? 'más peso' : 'más piezas',
+            default => 'comparten',
+        };
+        $descartesTexto = $descartes === 0 ? 'sin descartes' : ($ausencias ? '1 descarte, también no pescadas' : '1 descarte, solo pescadas');
+
+        return "{$criterioTexto} · ".($asistencia > 0 ? "asistencia {$asistencia}" : 'sin asistencia')." · {$desempateTexto} · {$descartesTexto}";
+    }
+
+    public static function matrizDesempate(string $criterio, string $letra): string
+    {
+        return match ($letra) {
+            'A' => Seccion::DESEMPATE_PIEZA_MAYOR,
+            'B' => $criterio === Seccion::CRITERIO_PIEZAS ? Seccion::DESEMPATE_PESO : Seccion::DESEMPATE_PIEZAS,
+            default => Seccion::DESEMPATE_COMPARTIDO,
+        };
+    }
+
+    /** @return Collection<int, Seccion> */
+    private function matrizAcumulado(Club $club): Collection
+    {
+        $secciones = collect();
+
+        foreach (array_keys(self::MATRIZ_DATOS) as $criterio) {
+            foreach (self::MATRIZ_REGLAS as $regla => [$asistencia, $desempate, $descartes, $ausencias]) {
+                $secciones->push(Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => self::matrizSlug($criterio, $regla)], [
+                    'nombre' => self::matrizNombre($criterio, $regla),
+                    'criterio' => $criterio,
+                    'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO,
+                    'puntos_participacion' => $asistencia,
+                    'puntos_no_asistencia' => 0,
+                    'descartes' => $descartes,
+                    'descartes_ausencias' => $ausencias,
+                    'desempate' => self::matrizDesempate($criterio, $desempate),
+                ]));
+            }
+        }
+
+        return $secciones;
+    }
+
+    private function pesarMatriz(Temporada $temporada, Collection $secciones, Collection $socios): void
+    {
+        $letras = ['A' => 0, 'B' => 1, 'C' => 2, 'D' => 3, 'E' => 4, 'F' => 5];
+
+        foreach ($secciones as $seccion) {
+            $criterio = $seccion->criterio;
+
+            foreach (self::MATRIZ_DATOS[$criterio] as $i => $resultados) {
+                $manga = Manga::create([
+                    'temporada_id' => $temporada->id,
+                    'seccion_id' => $seccion->id,
+                    'nombre' => ($i + 1).'ª Manga',
+                    'fecha' => today()->subWeeks(9 - 3 * $i)->next('Sunday'),
+                    'lugar' => 'Embalse de pruebas',
+                    'estado' => Manga::ESTADO_CELEBRADA,
+                ]);
+
+                foreach ($resultados as $letra => $resultado) {
+                    $participacion = Participacion::create(['manga_id' => $manga->id, 'socio_id' => $socios[$letras[$letra]]->id, 'seccion_id' => $seccion->id, 'plica' => true]);
+
+                    if ($criterio === Seccion::CRITERIO_MEDIDA) {
+                        foreach ($resultado as $mm) {
+                            Captura::create(['participacion_id' => $participacion->id, 'piezas' => 1, 'peso_gramos' => 0, 'medida_mm' => $mm]);
+                        }
+
+                        continue;
+                    }
+
+                    [$piezas, $gramos, $mayor] = $resultado;
+
+                    if ($piezas > 0) {
+                        Captura::create(['participacion_id' => $participacion->id, 'piezas' => $piezas, 'peso_gramos' => $gramos]);
+                        $participacion->update(['pieza_mayor_gramos' => $mayor]);
+                    }
                 }
             }
         }
