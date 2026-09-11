@@ -6,8 +6,8 @@ use App\Filament\Resources\Mangas\MangaResource;
 use App\Models\Manga;
 use App\Services\Scoring;
 use Filament\Actions\Action;
-use Filament\Resources\Pages\Page;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
+use Filament\Resources\Pages\Page;
 use Illuminate\Support\Collection;
 
 class ClasificacionManga extends Page
@@ -36,6 +36,11 @@ class ClasificacionManga extends Page
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('pesaje')
+                ->label('Corregir pesajes')
+                ->icon('heroicon-o-scale')
+                ->color('gray')
+                ->url(fn (): string => MangaResource::getUrl('pesaje', ['record' => $this->getRecord()])),
             Action::make('marcarCelebrada')
                 ->label('Marcar como celebrada')
                 ->icon('heroicon-o-check-circle')

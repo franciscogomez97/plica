@@ -1,19 +1,25 @@
 <?php
 
-use App\Models\Club;
-use App\Models\Manga;
+use App\Http\Controllers\ClubPublicoController;
+use App\Mail\NuevaSolicitud;
 use App\Models\Socio;
 use App\Models\Solicitud;
 use App\Models\User;
-use App\Services\Scoring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 // ---------- Landing ----------
 
 Route::view('/', 'public.landing')->name('landing');
+
+// ---------- Páginas legales ----------
+Route::view('/aviso-legal', 'public.legal.aviso-legal')->name('legal.aviso');
+Route::view('/privacidad', 'public.legal.privacidad')->name('legal.privacidad');
+Route::view('/cookies', 'public.legal.cookies')->name('legal.cookies');
+Route::view('/condiciones', 'public.legal.condiciones')->name('legal.condiciones');
 
 Route::post('/solicitud', function (Request $request) {
     $data = $request->validate([
@@ -28,40 +34,22 @@ Route::post('/solicitud', function (Request $request) {
 
     // El aviso por email nunca debe tumbar el formulario si el correo falla.
     if ($para = config('plica.notificaciones_email')) {
-        rescue(fn () => \Illuminate\Support\Facades\Mail::to($para)->send(new \App\Mail\NuevaSolicitud($solicitud)));
+        rescue(fn () => Mail::to($para)->send(new NuevaSolicitud($solicitud)));
     }
 
     return back()->with('solicitud_ok', true);
 })->middleware('throttle:10,1')->name('solicitud.store');
 
-// ---------- Página pública del club ----------
+// ---------- Páginas públicas del club ----------
+// La portada respeta «perfil público»; sección y manga son públicas SIEMPRE
+// (se comparten por WhatsApp con gente de fuera del club).
 
-Route::get('/c/{club:slug}', function (Club $club) {
-    abort_unless($club->perfil_publico, 404);
-
-    $temporada = $club->temporadaActiva();
-
-    $proximas = $temporada
-        ?->mangas()
-        ->where('estado', Manga::ESTADO_PROGRAMADA)
-        ->orderBy('fecha')
-        ->get() ?? collect();
-
-    $ultimaManga = $temporada
-        ?->mangas()
-        ->where('estado', Manga::ESTADO_CELEBRADA)
-        ->orderByDesc('fecha')
-        ->first();
-
-    return view('public.club', [
-        'club' => $club,
-        'temporada' => $temporada,
-        'ranking' => $temporada ? Scoring::rankingTemporada($temporada) : collect(),
-        'proximas' => $proximas,
-        'ultimaManga' => $ultimaManga,
-        'clasifUltima' => $ultimaManga ? Scoring::clasificacionManga($ultimaManga) : collect(),
-    ]);
-})->name('club.publico');
+Route::get('/c/{club:slug}', [ClubPublicoController::class, 'club'])->name('club.publico');
+Route::get('/c/{club:slug}/manga/{manga}', [ClubPublicoController::class, 'manga'])->name('club.manga');
+Route::post('/c/{club:slug}/manga/{manga}/asistire', [ClubPublicoController::class, 'asistire'])
+    ->middleware('throttle:30,1')
+    ->name('club.manga.asistire');
+Route::get('/c/{club:slug}/{seccion}', [ClubPublicoController::class, 'seccion'])->name('club.seccion');
 
 // ---------- Enlaces de acceso (un solo uso, por WhatsApp) ----------
 

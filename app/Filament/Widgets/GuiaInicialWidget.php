@@ -62,9 +62,9 @@ class GuiaInicialWidget extends Widget
             [
                 'hecho' => $club !== null && $club->socios()->exists(),
                 'titulo' => 'Da de alta a tus socios',
-                'texto' => 'Solo necesitas su nombre. Después podrás mandarles por WhatsApp su enlace para ver los rankings.',
+                'texto' => 'Pega la lista de nombres tal cual la tengas (del WhatsApp o del papel), uno por línea, con «Añadir varios». Solo hace falta el nombre; el enlace para ver los rankings se lo mandas después por WhatsApp.',
                 'boton' => 'Añadir socios',
-                'url' => SocioResource::getUrl('create'),
+                'url' => SocioResource::getUrl(),
             ],
             [
                 'hecho' => $temporada !== null && $temporada->mangas()->exists(),

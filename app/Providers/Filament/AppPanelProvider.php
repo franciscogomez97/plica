@@ -2,7 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\App\Pages\ClasificacionManga;
 use App\Filament\App\Pages\Inicio;
+use App\Filament\App\Pages\RankingSeccion;
+use App\Filament\Auth\Login;
+use App\Support\Marca;
+use Filament\Auth\Pages\EditProfile;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -10,51 +15,59 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Livewire\Livewire;
 
 class AppPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $atras = function (): string {
+            $pagina = Livewire::current();
+            $interior = $pagina instanceof RankingSeccion
+                || $pagina instanceof ClasificacionManga
+                || $pagina instanceof EditProfile;
+
+            return $interior
+                ? view('filament.partials.boton-atras', ['url' => Inicio::getUrl()])->render()
+                : '';
+        };
+
         return $panel
             ->id('app')
             ->path('app')
-            ->login(\App\Filament\Auth\Login::class)
+            ->login(Login::class)
             ->profile()
             ->brandName('Plica')
-            ->favicon('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23059669%22/><ellipse cx=%2242%22 cy=%2252%22 rx=%2225%22 ry=%2215%22 fill=%22white%22/><path d=%22M63 52l21-15v30z%22 fill=%22white%22/><circle cx=%2229%22 cy=%2248%22 r=%223.5%22 fill=%22%23059669%22/></svg>')
+            // Con sesión, la marca es el club: su logo y su nombre.
+            ->brandLogo(fn () => auth()->user()?->club?->marca() ?? Marca::plica())
+            ->brandLogoHeight('2.25rem')
+            ->favicon(asset(Marca::FAVICON))
             ->colors([
                 'primary' => Color::Emerald,
             ])
             // El panel del socio es una sola pantalla: sin menú lateral,
             // contenido estrecho y navegación sin recargas — sensación de app.
             ->navigation(false)
-            ->maxContentWidth(\Filament\Support\Enums\Width::TwoExtraLarge)
+            ->maxContentWidth(Width::TwoExtraLarge)
             ->spa()
-            // El navegador del móvil tiñe su barra del verde de Plica.
+            // El navegador del móvil tiñe su barra del verde de Plica, y la app se
+            // puede «añadir a pantalla de inicio» como una app de verdad.
             ->renderHook(
-                \Filament\View\PanelsRenderHook::HEAD_END,
-                fn (): string => '<meta name="theme-color" content="#059669">',
+                PanelsRenderHook::HEAD_END,
+                fn (): string => Marca::iconos(),
             )
-            // Flecha «Atrás» en el perfil (única página interior del socio).
-            // Los scopes de Filament casan por clase exacta: se decide con is_a.
-            ->renderHook(
-                \Filament\View\PanelsRenderHook::PAGE_START,
-                function (array $scopes): string {
-                    foreach ($scopes as $scope) {
-                        if (is_a($scope, \Filament\Auth\Pages\EditProfile::class, true)) {
-                            return view('filament.partials.boton-atras', ['fallback' => url('/app')])->render();
-                        }
-                    }
-
-                    return '';
-                },
-            )
+            // Flecha «Atrás» en las páginas interiores del socio (ranking de una
+            // sección, clasificación de una manga, perfil): siempre al Inicio.
+            ->renderHook(PanelsRenderHook::PAGE_START, $atras)
+            ->renderHook(PanelsRenderHook::SIMPLE_PAGE_START, $atras)
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\Filament\App\Pages')
             ->pages([
                 Inicio::class,

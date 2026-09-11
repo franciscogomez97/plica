@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\LoginPorRol;
+use Filament\Actions\CreateAction;
+use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +14,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Un solo login: tras entrar, cada uno va a su panel según su rol.
+        $this->app->bind(LoginResponse::class, LoginPorRol::class);
     }
 
     /**
@@ -20,8 +24,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Un solo botón de crear en todos los modales: fuera «Crear y crear otro».
-        \Filament\Actions\CreateAction::configureUsing(
-            fn (\Filament\Actions\CreateAction $action) => $action->createAnother(false),
+        CreateAction::configureUsing(
+            fn (CreateAction $action) => $action->createAnother(false),
         );
     }
 }

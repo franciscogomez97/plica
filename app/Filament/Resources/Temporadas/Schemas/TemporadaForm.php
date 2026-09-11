@@ -14,7 +14,9 @@ class TemporadaForm
             ->components([
                 TextInput::make('nombre')
                     ->label('Nombre')
-                    ->placeholder('Temporada 2026')
+                    ->placeholder('Temporada '.now()->year)
+                    // Viniendo del aviso de cambio de temporada (?nombre=…) ya viene puesto.
+                    ->default(fn (): ?string => request()->query('nombre') ?: null)
                     ->required(),
                 Toggle::make('activa')
                     ->label('Temporada activa')

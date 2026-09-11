@@ -3,22 +3,34 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Plica — gestión de clubes de pesca')</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%23059669%22/><ellipse cx=%2242%22 cy=%2252%22 rx=%2225%22 ry=%2215%22 fill=%22white%22/><path d=%22M63 52l21-15v30z%22 fill=%22white%22/><circle cx=%2229%22 cy=%2248%22 r=%223.5%22 fill=%22%23059669%22/></svg>">
-    <meta name="theme-color" content="#059669">
+    <title>@yield('title', 'Plica — la app de tu club de pesca')</title>
+    {{-- Vista previa del enlace en WhatsApp: cada página pública pone su título y su podio. --}}
+    @hasSection('meta')
+        @yield('meta')
+    @else
+        <meta property="og:title" content="@yield('title', 'Plica — la app de tu club de pesca')">
+        <meta property="og:description" content="Mangas, pesajes, clasificaciones y rankings de tu club de pesca, sin Excel y sin líos de WhatsApp.">
+        <meta property="og:type" content="website">
+        <meta property="og:image" content="{{ asset(\App\Support\Marca::OG) }}">
+        <meta name="twitter:card" content="summary_large_image">
+    @endif
+    {!! \App\Support\Marca::iconos() !!}
     @vite('resources/css/app.css')
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
     <header class="border-b border-slate-800">
-        <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-            <a href="{{ route('landing') }}" class="text-lg font-bold tracking-tight text-emerald-400">🎣 Plica</a>
+        <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+            <a href="{{ route('landing') }}" class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
+                <img src="{{ asset(\App\Support\Marca::LOGO) }}" alt="" class="size-9">
+                Plica
+            </a>
             <nav class="flex items-center gap-4 text-sm">
                 @auth
                     <a href="{{ auth()->user()->isAdmin() ? '/admin' : '/app' }}"
                        class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">Mi panel</a>
                 @else
-                    <a href="/app" class="py-2 text-slate-300 hover:text-white">Soy pescador</a>
-                    <a href="/admin" class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">Acceso clubes</a>
+                    {{-- Una sola puerta: socios y admins entran por el mismo login y cada uno va a su panel. --}}
+                    <a href="{{ route('filament.app.auth.login') }}" class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">Entrar</a>
                 @endauth
             </nav>
         </div>
@@ -32,8 +44,21 @@
         @endif
         @yield('content')
     </main>
-    <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-        Plica · Gestión de clubes de pesca deportiva
+    {{-- Cada clasificación compartida la ven socios de otros clubes: el pie es la captación. --}}
+    <footer class="border-t border-slate-800 py-8 text-sm text-slate-500">
+        <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-2">
+                <img src="{{ asset(\App\Support\Marca::LOGO) }}" alt="" class="size-6 opacity-80">
+                <a href="{{ route('landing') }}" class="font-semibold text-slate-400 hover:text-emerald-400">Hecho con Plica</a>
+                <span>· mangas, pesajes y rankings de tu club sin Excel</span>
+            </div>
+            <nav class="flex flex-wrap gap-x-4 gap-y-1">
+                <a href="{{ route('legal.aviso') }}" class="hover:text-emerald-400">Aviso legal</a>
+                <a href="{{ route('legal.privacidad') }}" class="hover:text-emerald-400">Privacidad</a>
+                <a href="{{ route('legal.cookies') }}" class="hover:text-emerald-400">Cookies</a>
+                <a href="{{ route('legal.condiciones') }}" class="hover:text-emerald-400">Condiciones</a>
+            </nav>
+        </div>
     </footer>
 </body>
 </html>

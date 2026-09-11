@@ -6,6 +6,7 @@ use App\Filament\Resources\Mangas\Pages\ClasificacionManga;
 use App\Filament\Resources\Mangas\Pages\CreateManga;
 use App\Filament\Resources\Mangas\Pages\EditManga;
 use App\Filament\Resources\Mangas\Pages\ListMangas;
+use App\Filament\Resources\Mangas\Pages\PesajeManga;
 use App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager;
 use App\Filament\Resources\Mangas\Schemas\MangaForm;
 use App\Filament\Resources\Mangas\Tables\MangasTable;
@@ -77,6 +78,7 @@ class MangaResource extends Resource
             'index' => ListMangas::route('/'),
             'create' => CreateManga::route('/create'),
             'edit' => EditManga::route('/{record}/edit'),
+            'pesaje' => PesajeManga::route('/{record}/pesaje'),
             'clasificacion' => ClasificacionManga::route('/{record}/clasificacion'),
         ];
     }

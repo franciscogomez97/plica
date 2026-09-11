@@ -20,10 +20,10 @@
                 </div>
                 <x-filament::button
                     tag="a"
-                    href="{{ \App\Filament\Resources\Mangas\MangaResource::getUrl('edit', ['record' => $manga]) }}"
+                    href="{{ \App\Filament\Resources\Mangas\MangaResource::getUrl('pesaje', ['record' => $manga]) }}"
                     size="sm"
                 >
-                    Gestionar
+                    Pesaje
                 </x-filament::button>
             </div>
         @endforeach

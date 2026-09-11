@@ -83,10 +83,19 @@ class IntegridadDatosTest extends TestCase
             'fecha' => today()->addDays(7),
         ]);
 
-        Livewire::test(ListSeccions::class)
+        $componente = Livewire::test(ListSeccions::class)
             ->assertActionHidden(TestAction::make('delete')->table($conHistorial))
             ->assertActionHidden(TestAction::make('delete')->table($conManga))
-            ->assertActionVisible(TestAction::make('delete')->table($sinHistorial));
+            ->assertActionVisible(TestAction::make('delete')->table($sinHistorial))
+            // La papelera no desaparece sin más: en las protegidas explica por qué.
+            ->assertActionVisible(TestAction::make('protegida')->table($conHistorial))
+            ->assertActionVisible(TestAction::make('protegida')->table($conManga))
+            ->assertActionHidden(TestAction::make('protegida')->table($sinHistorial))
+            ->mountAction(TestAction::make('protegida')->table($conHistorial));
+
+        $accion = $componente->instance()->getMountedAction();
+        $this->assertStringContainsString('no se puede borrar', (string) $accion->getModalHeading());
+        $this->assertStringContainsString('el historial se conserva', (string) $accion->getModalDescription());
     }
 
     public function test_borrar_una_manga_vacia_si_esta_permitido(): void
@@ -94,6 +103,7 @@ class IntegridadDatosTest extends TestCase
         $temporada = Temporada::firstOrFail();
         $manga = Manga::create([
             'temporada_id' => $temporada->id,
+            'seccion_id' => Seccion::firstOrFail()->id,
             'nombre' => 'Manga errónea',
             'fecha' => today()->addDays(30),
         ]);

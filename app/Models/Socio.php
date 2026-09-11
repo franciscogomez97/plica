@@ -31,6 +31,11 @@ class Socio extends Model
         return $this->hasMany(Participacion::class);
     }
 
+    public function confirmacions(): HasMany
+    {
+        return $this->hasMany(Confirmacion::class);
+    }
+
     /**
      * Link de acceso para enviar por WhatsApp. Un solo uso:
      * sin cuenta → crea la cuenta; con cuenta → restablece la contraseña.

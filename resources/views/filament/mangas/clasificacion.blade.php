@@ -8,8 +8,18 @@
 
     @if ($grupos->isEmpty())
         <x-filament::section>
-            <p style="opacity:.7">Aún no hay participaciones en esta manga. Añádelas en la pestaña «Participaciones y pesajes».</p>
+            <p style="opacity:.7">Aún no hay participaciones en esta manga. Apúntalas en el pesaje.</p>
         </x-filament::section>
+    @else
+        {{-- Compartir: enlace público de la manga (cualquiera con el enlace lo ve). --}}
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:.75rem">
+            @include('partials.compartir', [
+                'titulo' => $manga->nombre.' · '.auth()->user()->club->nombre,
+                'texto' => \App\Services\Compartir::textoManga($manga, $grupos),
+                'url' => $manga->urlPublica(),
+            ])
+            <a href="{{ $manga->urlPublica() }}" target="_blank" rel="noopener" style="font-size:.85rem; opacity:.7; text-decoration:underline">Ver la página pública</a>
+        </div>
     @endif
 
     @foreach ($grupos as $grupo)

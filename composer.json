@@ -46,6 +46,11 @@
             "Composer\\Config::disableProcessTimeout",
             "@php artisan dev"
         ],
+        "deploy": [
+            "@php artisan migrate --force --no-interaction",
+            "@php artisan optimize",
+            "@php artisan filament:optimize"
+        ],
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"

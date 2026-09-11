@@ -2,11 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Mangas\Pages\EditManga;
+use App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager;
 use App\Models\Manga;
+use App\Models\Seccion;
 use App\Models\Socio;
+use App\Models\Temporada;
 use App\Models\User;
+use App\Services\Scoring;
 use Database\Seeders\DemoSeeder;
+use Filament\Actions\Testing\TestAction;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SmokeTest extends TestCase
@@ -52,8 +61,13 @@ class SmokeTest extends TestCase
             ->get('/admin')
             ->assertOk()
             ->assertSee('¿Qué quieres hacer?')
+            // Un botón por cada sección del menú, que en el móvil no se ve.
             ->assertSee('Nueva manga')
-            ->assertSee('Consultar ranking');
+            ->assertSee('Mangas y pesajes')
+            ->assertSee('Socios')
+            ->assertSee('Ranking')
+            ->assertSee('Secciones')
+            ->assertSee('Temporadas');
     }
 
     public function test_el_admin_tiene_pagina_de_ranking_de_temporada(): void
@@ -81,12 +95,21 @@ class SmokeTest extends TestCase
 
     public function test_clasificacion_de_manga_calcula_puestos(): void
     {
-        $manga = Manga::where('estado', Manga::ESTADO_CELEBRADA)->orderBy('fecha')->firstOrFail();
+        // Cada sección tiene sus mangas: la 1ª de Orilla (por peso) y la 1ª de Pato (por medida).
+        $orilla = Manga::whereHas('seccion', fn ($q) => $q->where('nombre', 'Orilla'))->where('estado', Manga::ESTADO_CELEBRADA)->orderBy('fecha')->firstOrFail();
+        $pato = Manga::whereHas('seccion', fn ($q) => $q->where('nombre', 'Pato — Lucio'))->where('estado', Manga::ESTADO_CELEBRADA)->orderBy('fecha')->firstOrFail();
+
         $this->actingAs($this->admin())
-            ->get("/admin/mangas/{$manga->id}/clasificacion")
+            ->get("/admin/mangas/{$orilla->id}/clasificacion")
             ->assertOk()
             ->assertSee('1º')
             ->assertSee('Mario López') // 1º de Orilla por peso (4,350 kg)
+            ->assertSee('4,350 kg')
+            ->assertDontSee('Andrés Molina');
+
+        $this->actingAs($this->admin())
+            ->get("/admin/mangas/{$pato->id}/clasificacion")
+            ->assertOk()
             ->assertSee('Pato — Lucio')
             ->assertSee('Andrés Molina') // 1º de Pato por medida (120,5 cm)
             ->assertSee('120,5 cm');
@@ -107,6 +130,7 @@ class SmokeTest extends TestCase
         $this->actingAs($admin)->get("/admin/mangas/{$manga->id}/edit")->assertOk()->assertSee('Atrás');
         $this->actingAs($admin)->get('/admin/seccions/create')->assertOk()->assertSee('Atrás');
         $this->actingAs($admin)->get("/admin/mangas/{$manga->id}/clasificacion")->assertOk()->assertSee('Atrás');
+        $this->actingAs($admin)->get("/admin/mangas/{$manga->id}/pesaje")->assertOk()->assertSee('Atrás');
 
         // Inicio y listados: sin ella (ahí ya está el menú).
         $this->actingAs($admin)->get('/admin')->assertOk()->assertDontSee('Atrás');
@@ -171,7 +195,7 @@ class SmokeTest extends TestCase
 
         $socio->refresh();
         $this->assertNull($socio->invite_token);
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('clavenueva99', $socio->user->fresh()->password));
+        $this->assertTrue(Hash::check('clavenueva99', $socio->user->fresh()->password));
     }
 
     public function test_manga_pendiente_avisa_al_admin(): void
@@ -185,7 +209,8 @@ class SmokeTest extends TestCase
 
         // Una manga de ayer sin cerrar dispara el aviso en el dashboard.
         Manga::create([
-            'temporada_id' => \App\Models\Temporada::firstOrFail()->id,
+            'temporada_id' => Temporada::firstOrFail()->id,
+            'seccion_id' => Seccion::firstOrFail()->id,
             'nombre' => 'Manga de ayer',
             'fecha' => today()->subDay(),
             'estado' => Manga::ESTADO_PROGRAMADA,
@@ -201,15 +226,15 @@ class SmokeTest extends TestCase
 
         $programada = Manga::where('estado', Manga::ESTADO_PROGRAMADA)->firstOrFail();
         $socios = Socio::orderBy('id')->limit(3)->get();
-        $seccion = \App\Models\Seccion::where('nombre', 'Orilla')->firstOrFail();
 
-        // Marcar dos asistentes crea sus participaciones.
-        $resultado = $programada->sincronizarAsistencia([$socios[0]->id, $socios[1]->id], $seccion->id);
+        // Marcar dos asistentes crea sus participaciones, en la sección de la manga.
+        $resultado = $programada->sincronizarAsistencia([$socios[0]->id, $socios[1]->id]);
         $this->assertSame(2, $resultado['creadas']);
         $this->assertSame(2, $programada->participacions()->count());
+        $this->assertSame([$programada->seccion_id, $programada->seccion_id], $programada->participacions()->pluck('seccion_id')->all());
 
         // Desmarcar a uno sin capturas lo elimina.
-        $resultado = $programada->sincronizarAsistencia([$socios[0]->id], $seccion->id);
+        $resultado = $programada->sincronizarAsistencia([$socios[0]->id]);
         $this->assertSame(1, $resultado['eliminadas']);
         $this->assertSame(1, $programada->participacions()->count());
 
@@ -223,11 +248,11 @@ class SmokeTest extends TestCase
 
     public function test_ranking_por_puestos_y_descartes_configurado_en_seccion(): void
     {
-        $temporada = \App\Models\Temporada::firstOrFail();
-        $orillaSeccion = \App\Models\Seccion::where('nombre', 'Orilla')->firstOrFail();
-        $orillaSeccion->update(['sistema_puntuacion' => \App\Models\Seccion::SISTEMA_PUESTOS]);
+        $temporada = Temporada::firstOrFail();
+        $orillaSeccion = Seccion::where('nombre', 'Orilla')->firstOrFail();
+        $orillaSeccion->update(['sistema_puntuacion' => Seccion::SISTEMA_PUESTOS]);
 
-        $orilla = \App\Services\Scoring::rankingTemporada($temporada)
+        $orilla = Scoring::rankingTemporada($temporada)
             ->firstWhere('nombre', 'Orilla');
 
         // Sergio (2º+1º = 3 pts) gana a Mario (1º+3º = 4 pts).
@@ -238,13 +263,13 @@ class SmokeTest extends TestCase
         // Con 1 descarte solo cuenta la mejor manga: Mario (1º) empata a 1 con Sergio (1º),
         // desempate por peso acumulado -> Mario delante.
         $orillaSeccion->update(['descartes' => 1]);
-        $orilla = \App\Services\Scoring::rankingTemporada($temporada)
+        $orilla = Scoring::rankingTemporada($temporada)
             ->firstWhere('nombre', 'Orilla');
         $this->assertSame(1, $orilla->filas[0]->puntos);
         $this->assertSame('Mario López', $orilla->filas[0]->socio->nombre);
 
         // Y el resto de secciones no se ven afectadas: Pato sigue en acumulado por medida.
-        $pato = \App\Services\Scoring::rankingTemporada($temporada)
+        $pato = Scoring::rankingTemporada($temporada)
             ->firstWhere('nombre', 'Pato — Lucio');
         $this->assertSame('Dani Cuesta', $pato->filas[0]->socio->nombre);
         $this->assertSame(1780, $pato->filas[0]->puntos);
@@ -252,11 +277,11 @@ class SmokeTest extends TestCase
 
     public function test_puntos_de_participacion_por_seccion(): void
     {
-        $temporada = \App\Models\Temporada::firstOrFail();
-        \App\Models\Seccion::where('nombre', 'Orilla')->firstOrFail()
+        $temporada = Temporada::firstOrFail();
+        Seccion::where('nombre', 'Orilla')->firstOrFail()
             ->update(['puntos_participacion' => 500]);
 
-        $ranking = \App\Services\Scoring::rankingTemporada($temporada);
+        $ranking = Scoring::rankingTemporada($temporada);
 
         // Orilla: Mario 6450 g + 2 mangas x 500 pts = 7450.
         $orilla = $ranking->firstWhere('nombre', 'Orilla');
@@ -269,8 +294,8 @@ class SmokeTest extends TestCase
 
     public function test_una_manga_de_seccion_apunta_la_asistencia_a_su_seccion(): void
     {
-        $temporada = \App\Models\Temporada::firstOrFail();
-        $seccion = \App\Models\Seccion::where('club_id', $temporada->club_id)->firstOrFail();
+        $temporada = Temporada::firstOrFail();
+        $seccion = Seccion::where('club_id', $temporada->club_id)->firstOrFail();
         $manga = Manga::create([
             'temporada_id' => $temporada->id,
             'seccion_id' => $seccion->id,
@@ -288,35 +313,14 @@ class SmokeTest extends TestCase
         );
     }
 
-    public function test_el_desplegable_de_seccion_solo_aparece_en_jornadas_de_club(): void
-    {
-        $this->actingAs($this->admin());
-        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
-
-        $temporada = \App\Models\Temporada::firstOrFail();
-        $seccion = \App\Models\Seccion::where('club_id', $temporada->club_id)->firstOrFail();
-        $base = ['temporada_id' => $temporada->id, 'fecha' => today()];
-        $deSeccion = Manga::create([...$base, 'nombre' => 'De sección', 'seccion_id' => $seccion->id]);
-        $jornada = Manga::create([...$base, 'nombre' => 'Jornada de club']);
-
-        $montar = fn (Manga $manga) => \Livewire\Livewire::test(\App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager::class, [
-            'ownerRecord' => $manga,
-            'pageClass' => \App\Filament\Resources\Mangas\Pages\EditManga::class,
-        ])->mountAction(\Filament\Actions\Testing\TestAction::make('asistencia')->table());
-
-        // Manga de sección: nada que elegir. Jornada de club: sí.
-        $montar($deSeccion)->assertSchemaComponentHidden('seccion_id');
-        $montar($jornada)->assertSchemaComponentVisible('seccion_id');
-    }
-
     public function test_el_formulario_de_participacion_se_adapta_a_la_seccion_de_la_manga(): void
     {
         $this->actingAs($this->admin());
-        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
 
-        $temporada = \App\Models\Temporada::firstOrFail();
-        $medida = \App\Models\Seccion::where('club_id', $temporada->club_id)
-            ->where('criterio', \App\Models\Seccion::CRITERIO_MEDIDA)->firstOrFail();
+        $temporada = Temporada::firstOrFail();
+        $medida = Seccion::where('club_id', $temporada->club_id)
+            ->where('criterio', Seccion::CRITERIO_MEDIDA)->firstOrFail();
         $manga = Manga::create([
             'temporada_id' => $temporada->id,
             'seccion_id' => $medida->id,
@@ -324,13 +328,12 @@ class SmokeTest extends TestCase
             'fecha' => today(),
         ]);
 
-        $componente = \Livewire\Livewire::test(\App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager::class, [
+        $componente = Livewire::test(ParticipacionsRelationManager::class, [
             'ownerRecord' => $manga,
-            'pageClass' => \App\Filament\Resources\Mangas\Pages\EditManga::class,
-        ])->mountAction(\Filament\Actions\Testing\TestAction::make('create')->table());
+            'pageClass' => EditManga::class,
+        ])->mountAction(TestAction::make('create')->table());
 
-        // Sin campo de sección, y capturas en modo medida: cm sí, peso/piezas no.
-        $componente->assertSchemaComponentHidden('seccion_id');
+        // Capturas en modo medida: cm sí, peso/piezas no.
         $schemaMontado = $componente->instance()->{$componente->instance()->getMountedActionSchemaName()};
         $claves = array_keys($schemaMontado->getFlatComponents(withHidden: false));
         $this->assertTrue(collect($claves)->contains(fn ($c) => str_ends_with($c, 'medida_mm')), 'Falta el campo de medida');
@@ -339,11 +342,11 @@ class SmokeTest extends TestCase
 
         // Al crear, la participación cae en la sección de la manga sin elegir nada.
         $socio = Socio::where('club_id', $temporada->club_id)->firstOrFail();
-        \Livewire\Livewire::test(\App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager::class, [
+        Livewire::test(ParticipacionsRelationManager::class, [
             'ownerRecord' => $manga,
-            'pageClass' => \App\Filament\Resources\Mangas\Pages\EditManga::class,
+            'pageClass' => EditManga::class,
         ])->callAction(
-            \Filament\Actions\Testing\TestAction::make('create')->table(),
+            TestAction::make('create')->table(),
             ['socio_id' => $socio->id, 'plica' => true, 'capturas' => []],
         )->assertHasNoActionErrors();
 
@@ -355,13 +358,13 @@ class SmokeTest extends TestCase
         // Los relation managers cargan lazy: un GET a la página NO renderiza
         // esta tabla. Este test la monta como componente Livewire real.
         $this->actingAs($this->admin());
-        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
 
         $manga = Manga::where('estado', Manga::ESTADO_CELEBRADA)->firstOrFail();
 
-        \Livewire\Livewire::test(\App\Filament\Resources\Mangas\RelationManagers\ParticipacionsRelationManager::class, [
+        Livewire::test(ParticipacionsRelationManager::class, [
             'ownerRecord' => $manga,
-            'pageClass' => \App\Filament\Resources\Mangas\Pages\EditManga::class,
+            'pageClass' => EditManga::class,
         ])
             ->assertSuccessful()
             ->assertSee('Marcar asistencia')

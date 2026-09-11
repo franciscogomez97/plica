@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Club;
-use App\Models\Temporada;
+use App\Models\Manga;
+use App\Models\Socio;
 use App\Models\User;
+use App\Services\Scoring;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -54,8 +56,10 @@ class OnboardingTest extends TestCase
             ->map(fn (string $n) => $club->socios()->create(['nombre' => $n]));
 
         // Manga de hace un mes: nace "por gestionar" automáticamente.
-        $manga = \App\Models\Manga::create([
+        $seccion = $club->seccions()->firstOrCreate(['nombre' => 'Orilla']);
+        $manga = Manga::create([
             'temporada_id' => $temporada->id,
+            'seccion_id' => $seccion->id,
             'nombre' => '1ª Manga',
             'fecha' => today()->subMonth(),
         ]);
@@ -69,11 +73,11 @@ class OnboardingTest extends TestCase
                 $p->capturas()->create(['piezas' => 2, 'peso_gramos' => $pesos[$p->socio->nombre]]);
             }
         }
-        $manga->update(['estado' => \App\Models\Manga::ESTADO_CELEBRADA]);
+        $manga->update(['estado' => Manga::ESTADO_CELEBRADA]);
 
-        // El ranking sale solo, ordenado y sin ranking general.
-        $ranking = \App\Services\Scoring::rankingTemporada($temporada);
-        $filas = $ranking->firstWhere('nombre', 'Sin sección')->filas;
+        // El ranking sale solo, ordenado, por la sección de la manga.
+        $ranking = Scoring::rankingTemporada($temporada);
+        $filas = $ranking->firstWhere('nombre', 'Orilla')->filas;
         $this->assertSame('Juan', $filas[0]->socio->nombre);
         $this->assertSame(4800, $filas[0]->puntos);
         $this->assertFalse($manga->fresh()->pendienteDeGestion());
@@ -99,7 +103,7 @@ class OnboardingTest extends TestCase
     {
         $this->seed(DemoSeeder::class);
 
-        $socio = \App\Models\Socio::whereNotNull('user_id')->firstOrFail();
+        $socio = Socio::whereNotNull('user_id')->firstOrFail();
         $this->assertFalse($socio->user->isAdmin());
 
         // La acción de la tabla ejecuta exactamente esto:

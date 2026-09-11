@@ -51,9 +51,9 @@ class GuiaInicialTest extends TestCase
         // El admin trabaja: cambia contraseña, crea sección, socios y manga.
         $admin->update(['password' => 'micontrasenya1']);
         $club = $admin->club;
-        $club->seccions()->create(['nombre' => 'Bass orilla']);
+        $seccion = $club->seccions()->create(['nombre' => 'Bass orilla']);
         $club->socios()->create(['nombre' => 'Paco']);
-        Manga::create(['temporada_id' => $club->temporadaActiva()->id, 'nombre' => '1ª', 'fecha' => today()]);
+        Manga::create(['temporada_id' => $club->temporadaActiva()->id, 'seccion_id' => $seccion->id, 'nombre' => '1ª', 'fecha' => today()]);
 
         $pasos = Livewire::test(GuiaInicialWidget::class)->instance()->getPasos();
         $this->assertSame([], array_filter($pasos, fn ($p) => ! $p['hecho']), 'Todos los pasos deberían estar hechos');

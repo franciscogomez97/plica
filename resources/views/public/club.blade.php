@@ -2,9 +2,24 @@
 
 @section('title', $club->nombre.' — Plica')
 
+@section('meta')
+    <meta property="og:title" content="{{ $club->nombre }}">
+    <meta property="og:description" content="Rankings, clasificaciones y próximas mangas de {{ $club->nombre }}.">
+    <meta property="og:url" content="{{ route('club.publico', $club) }}">
+    <meta property="og:type" content="website">
+    @if ($club->logoUrl())
+        <meta property="og:image" content="{{ $club->logoUrl() }}">
+    @endif
+@endsection
+
 @section('content')
     <section class="pb-8">
-        <h1 class="text-3xl font-extrabold tracking-tight">{{ $club->nombre }}</h1>
+        <div class="flex items-center gap-4">
+            @if ($club->logoUrl())
+                <img src="{{ $club->logoUrl() }}" alt="" class="size-16 flex-none rounded-2xl bg-white/5 object-contain p-1">
+            @endif
+            <h1 class="text-3xl font-extrabold tracking-tight">{{ $club->nombre }}</h1>
+        </div>
         <p class="mt-1 text-base text-slate-400">
             {{ $club->localidad }}
             @if ($club->email_contacto) · <a class="text-emerald-400 hover:underline" href="mailto:{{ $club->email_contacto }}">{{ $club->email_contacto }}</a> @endif
@@ -20,7 +35,7 @@
             <h2 class="mb-3 text-lg font-bold text-emerald-400">📅 Próximas mangas</h2>
             <div class="divide-y divide-slate-800 rounded-2xl border border-slate-800 bg-slate-900 px-4">
                 @foreach ($proximas as $manga)
-                    <div class="flex min-h-14 items-center gap-3 py-3">
+                    <a href="{{ $manga->urlPublica() }}" class="flex min-h-14 items-center gap-3 py-3 hover:text-emerald-300">
                         <div class="min-w-0 flex-1">
                             <div class="truncate text-base font-semibold">{{ $manga->nombre }}{{ $manga->seccion ? ' · '.$manga->seccion->nombre : '' }}</div>
                             <div class="text-sm text-slate-500">{{ $manga->lugar ?? 'Lugar por confirmar' }}</div>
@@ -29,62 +44,43 @@
                             {{ $manga->fecha->format('d/m') }}
                             <div class="text-xs font-medium text-slate-500">{{ $manga->fecha->format('Y') }}</div>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
             </div>
         </section>
     @endif
 
+    {{-- Un resumen por sección (podio y pieza mayor); el ranking completo, a un toque. --}}
     @foreach ($ranking as $grupo)
+        @php $seccion = $grupo->seccionId ? $secciones->get($grupo->seccionId) : null; @endphp
         <section class="pb-8">
-            <h2 class="mb-3 text-lg font-bold text-emerald-400">🏆 Ranking {{ $temporada->nombre }} — {{ $grupo->nombre }}</h2>
-            <div class="divide-y divide-slate-800 rounded-2xl border border-slate-800 bg-slate-900 px-4">
-                @foreach ($grupo->filas as $fila)
-                    <div class="flex min-h-14 items-center gap-3 py-3">
-                        <div @class([
-                            'flex size-10 flex-none items-center justify-center rounded-full text-base font-bold',
-                            'bg-emerald-500/20 text-emerald-400' => $fila->puesto <= 3,
-                            'bg-slate-800 text-slate-300' => $fila->puesto > 3,
-                        ])>{{ $fila->puesto }}º</div>
-                        <div class="min-w-0 flex-1">
-                            <div class="truncate text-base font-semibold">{{ $fila->socio->nombre }}</div>
-                            <div class="text-sm text-slate-500">{{ $fila->mangas }} {{ $fila->mangas === 1 ? 'manga' : 'mangas' }}</div>
-                        </div>
-                        <div class="text-right text-base font-bold tabular-nums">
-                            @if ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0)
-                                {{ \App\Services\Scoring::formatPuntos($fila->puntos) }} pts
-                                <div class="text-xs font-medium text-slate-500">{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</div>
-                            @else
-                                {{ \App\Services\Scoring::valorRanking($grupo->criterio, $fila->puntos) }}
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+            <h2 class="mb-1 text-lg font-bold text-emerald-400">🏆 Ranking {{ $grupo->nombre }} <span class="ml-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-400">por {{ mb_strtolower(\App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio) }}</span></h2>
+            <p class="mb-3 text-sm text-slate-500">{{ $temporada->nombre }} · {{ $grupo->numMangas === 1 ? '1 manga celebrada' : $grupo->numMangas.' mangas celebradas' }} · {{ $grupo->reglas }}</p>
+            @include('public.partials.lista', ['grupo' => $grupo, 'modo' => 'temporada', 'limite' => 3])
+            @if ($seccion)
+                <div class="mt-3 flex justify-end">
+                    <a href="{{ $seccion->urlPublica() }}" class="inline-flex min-h-10 items-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-emerald-500 hover:text-emerald-300">Ver ranking completo y manga a manga →</a>
+                </div>
+            @endif
         </section>
     @endforeach
 
-    @foreach ($clasifUltima as $grupo)
+    @if ($clasifUltima->isNotEmpty())
         <section class="pb-8">
-            <h2 class="mb-3 text-lg font-bold text-emerald-400">🎣 {{ $ultimaManga->nombre }} ({{ $ultimaManga->fecha->format('d/m/Y') }}) — {{ $grupo->nombre }}</h2>
-            <div class="divide-y divide-slate-800 rounded-2xl border border-slate-800 bg-slate-900 px-4">
-                @foreach ($grupo->filas as $fila)
-                    <div class="flex min-h-14 items-center gap-3 py-3">
-                        <div @class([
-                            'flex size-10 flex-none items-center justify-center rounded-full text-base font-bold',
-                            'bg-emerald-500/20 text-emerald-400' => $fila->puesto <= 3,
-                            'bg-slate-800 text-slate-300' => $fila->puesto > 3,
-                        ])>{{ $fila->puesto }}º</div>
-                        <div class="min-w-0 flex-1">
-                            <div class="truncate text-base font-semibold">{{ $fila->socio->nombre }}</div>
-                            <div class="text-sm text-slate-500">{{ \App\Services\Scoring::valorSecundario($grupo->criterio, $fila) }}</div>
-                        </div>
-                        <div class="text-right text-base font-bold tabular-nums">{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</div>
-                    </div>
-                @endforeach
+            <h2 class="mb-1 text-lg font-bold text-emerald-400">🎣 Última manga · {{ $ultimaManga->nombre }}</h2>
+            <p class="mb-3 text-sm text-slate-500">{{ $ultimaManga->fecha->format('d/m/Y') }}{{ $ultimaManga->lugar ? ' · '.$ultimaManga->lugar : '' }}</p>
+            @foreach ($clasifUltima as $grupo)
+                @if ($clasifUltima->count() > 1)
+                    <div class="mb-2 mt-4 text-sm font-bold text-slate-300">{{ $grupo->nombre }}</div>
+                @endif
+                @include('public.partials.lista', ['grupo' => $grupo, 'modo' => 'manga', 'limite' => 3])
+            @endforeach
+            <div class="mt-3 flex justify-end">
+                <a href="{{ $ultimaManga->urlPublica() }}" class="inline-flex min-h-10 items-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-emerald-500 hover:text-emerald-300">Ver la clasificación completa →</a>
             </div>
         </section>
-    @endforeach
+    @endif
+
     <section class="pb-8">
         <div class="rounded-2xl border border-emerald-900/60 bg-emerald-950/40 p-5 text-center">
             <p class="text-base text-slate-300">¿Eres socio de {{ $club->nombre }}?</p>

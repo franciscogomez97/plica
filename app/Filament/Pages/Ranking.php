@@ -36,13 +36,15 @@ class Ranking extends Page
 
     public function getTemporada(): ?Temporada
     {
-        return auth()->user()->club?->temporadaActiva();
+        return once(fn () => auth()->user()->club?->temporadaActiva());
     }
 
     public function getGrupos(): Collection
     {
-        $temporada = $this->getTemporada();
+        return once(function () {
+            $temporada = $this->getTemporada();
 
-        return $temporada ? Scoring::rankingTemporada($temporada) : collect();
+            return $temporada ? Scoring::rankingTemporada($temporada) : collect();
+        });
     }
 }

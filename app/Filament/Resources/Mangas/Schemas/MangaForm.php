@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Mangas\Schemas;
 
 use App\Models\Manga;
+use App\Models\Seccion;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
@@ -33,8 +34,17 @@ class MangaForm
                         titleAttribute: 'nombre',
                         modifyQueryUsing: fn (Builder $query) => $query->where('club_id', auth()->user()->club_id),
                     )
-                    ->placeholder('Todo el club')
-                    ->nullable(),
+                    ->placeholder('Elige la sección')
+                    ->helperText('Toda manga es de una sección: los apuntados compiten en ella.')
+                    // Viniendo de «crear sección» (?seccion=ID) la sección ya viene puesta.
+                    ->default(function (): ?int {
+                        $id = (int) request()->query('seccion');
+
+                        return $id > 0
+                            ? Seccion::query()->where('club_id', auth()->user()->club_id)->whereKey($id)->value('id')
+                            : null;
+                    })
+                    ->required(),
                 TextInput::make('nombre')
                     ->label('Nombre')
                     ->placeholder('1ª Manga')
@@ -45,6 +55,13 @@ class MangaForm
                 TextInput::make('lugar')
                     ->label('Lugar')
                     ->placeholder('Embalse, río, tramo…'),
+                TextInput::make('ubicacion_url')
+                    ->label('Ubicación (enlace a Google Maps)')
+                    ->placeholder('https://maps.app.goo.gl/…')
+                    ->helperText('Pega el enlace del punto de encuentro. Saldrá en la convocatoria y en la página de la manga.')
+                    ->url()
+                    ->maxLength(500)
+                    ->nullable(),
                 Radio::make('estado')
                     ->label('Estado')
                     ->options([

@@ -1,0 +1,100 @@
+@extends('layouts.public')
+
+@section('title', $manga->nombre.' · '.$club->nombre)
+
+@section('meta')
+    <meta property="og:title" content="{{ $manga->nombre }} · {{ $club->nombre }}">
+    <meta property="og:description" content="{{ $grupos->map(fn ($g) => $g->nombre.': '.\App\Services\Compartir::resumen($g))->implode(' — ') ?: 'Clasificación de la manga.' }}">
+    <meta property="og:url" content="{{ $url }}">
+    <meta property="og:type" content="website">
+    @if ($club->logoUrl())
+        <meta property="og:image" content="{{ $club->logoUrl() }}">
+    @endif
+    <meta name="twitter:card" content="summary">
+@endsection
+
+@section('content')
+    <section class="pb-6">
+        <div class="flex items-center gap-2">
+            @if ($club->logoUrl())
+                <img src="{{ $club->logoUrl() }}" alt="" class="size-7 flex-none rounded-lg object-contain">
+            @endif
+            @if ($club->perfil_publico)
+                <a href="{{ route('club.publico', $club) }}" class="text-sm text-slate-400 hover:text-emerald-400">← {{ $club->nombre }}</a>
+            @else
+                <span class="text-sm text-slate-400">{{ $club->nombre }}</span>
+            @endif
+        </div>
+        <h1 class="mt-2 text-3xl font-extrabold tracking-tight">🎣 {{ $manga->nombre }}</h1>
+        <p class="mt-1 text-base text-slate-400">
+            {{ $manga->fecha->format('d/m/Y') }}{{ $manga->lugar ? ' · '.$manga->lugar : '' }}{{ $manga->seccion ? ' · '.$manga->seccion->nombre : '' }}
+            @if ($manga->estado !== \App\Models\Manga::ESTADO_CELEBRADA && $grupos->isNotEmpty())
+                · <span class="text-amber-400">clasificación provisional</span>
+            @endif
+        </p>
+        @if ($grupos->isNotEmpty())
+            <div class="mt-4">
+                @include('partials.compartir', ['titulo' => $manga->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url])
+            </div>
+        @endif
+    </section>
+
+    @if ($manga->estado === \App\Models\Manga::ESTADO_PROGRAMADA)
+        {{-- Convocatoria: los socios dicen si irán. Es intención: la asistencia real la pasa el admin. --}}
+        <section class="pb-8">
+            <div class="rounded-2xl border border-emerald-900/60 bg-emerald-950/40 p-5">
+                <h2 class="text-lg font-bold text-emerald-400">📅 {{ ucfirst($manga->fecha->locale('es')->isoFormat('dddd D [de] MMMM')) }}</h2>
+                <p class="mt-1 text-base text-slate-300">
+                    {{ $manga->lugar ?? 'Lugar por confirmar' }}
+                    @if ($manga->ubicacion_url)
+                        · <a href="{{ $manga->ubicacion_url }}" target="_blank" rel="noopener" class="font-semibold text-emerald-400 hover:underline">📍 Cómo llegar</a>
+                    @endif
+                </p>
+
+                @if (session('asistencia'))
+                    <p class="mt-3 rounded-lg bg-emerald-600/20 px-3 py-2 text-sm font-semibold text-emerald-300">{{ session('asistencia') }}</p>
+                @endif
+
+                <p class="mt-4 text-sm text-slate-400">
+                    <strong class="text-slate-200">{{ $confirmados->count() === 1 ? '1 confirmado' : $confirmados->count().' confirmados' }}</strong>{{ $confirmados->isNotEmpty() ? ': '.$confirmados->implode(', ') : '. Sé el primero.' }}
+                </p>
+
+                <div class="mt-4">
+                    @if ($socio)
+                        <form method="post" action="{{ route('club.manga.asistire', ['club' => $club->slug, 'manga' => $manga->id]) }}">
+                            @csrf
+                            <button type="submit" @class([
+                                'inline-flex min-h-11 items-center gap-2 rounded-xl px-5 py-2.5 text-base font-bold',
+                                'bg-emerald-600 text-white hover:bg-emerald-500' => $voy,
+                                'border border-emerald-500 text-emerald-400 hover:bg-emerald-500/10' => ! $voy,
+                            ])>{{ $voy ? '✓ Asistiré · toca para cancelar' : 'Asistiré' }}</button>
+                        </form>
+                    @elseif (auth()->check())
+                        <p class="text-sm text-slate-500">Solo los socios del club pueden confirmar asistencia.</p>
+                    @else
+                        <a href="/app" class="inline-flex min-h-11 items-center rounded-xl bg-emerald-600 px-5 py-2.5 text-base font-bold text-white hover:bg-emerald-500">¿Vas a ir? Entra y confirma</a>
+                        <p class="mt-2 text-sm text-slate-500">¿Sin cuenta todavía? Pídele tu enlace de acceso al admin del club.</p>
+                    @endif
+                </div>
+            </div>
+        </section>
+    @endif
+
+    @if ($grupos->isEmpty() && $manga->estado !== \App\Models\Manga::ESTADO_PROGRAMADA)
+        <section class="pb-8">
+            <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5 text-slate-400">Todavía no hay pesajes apuntados en esta manga.</div>
+        </section>
+    @endif
+
+    @foreach ($grupos as $grupo)
+        <section class="pb-8">
+            <h2 class="mb-1 text-lg font-bold text-emerald-400">{{ $grupo->nombre }} · por {{ mb_strtolower(\App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio) }}</h2>
+            @if ($grupo->seccion)
+                <p class="mb-3 text-sm text-slate-500">
+                    <a href="{{ route('club.seccion', ['club' => $club->slug, 'seccion' => $grupo->seccion->slug]) }}" class="text-emerald-400 hover:underline">Ver el ranking de {{ $grupo->nombre }} →</a>
+                </p>
+            @endif
+            @include('public.partials.lista', ['grupo' => $grupo, 'modo' => 'manga'])
+        </section>
+    @endforeach
+@endsection

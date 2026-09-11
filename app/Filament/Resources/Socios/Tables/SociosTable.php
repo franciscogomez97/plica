@@ -21,6 +21,7 @@ class SociosTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->withCount('participacions'))
             ->columns([
                 // Una sola línea por socio; el email, donde cabe.
                 Split::make([
@@ -85,7 +86,19 @@ class SociosTable
                         ->action(fn (Socio $record) => $record->user->update(['role' => User::ROLE_SOCIO])),
                     DeleteAction::make()
                         // Un socio con historial no se borra: se da de baja.
-                        ->visible(fn (Socio $record): bool => $record->participacions()->doesntExist()),
+                        ->visible(fn (Socio $record): bool => $record->participacions_count === 0),
+                    Action::make('protegido')
+                        ->label('Borrar')
+                        ->icon('heroicon-o-trash')
+                        ->color('gray')
+                        ->visible(fn (Socio $record): bool => $record->participacions_count > 0)
+                        ->modalHeading(fn (Socio $record): string => "{$record->nombre} no se puede borrar")
+                        ->modalDescription(fn (Socio $record): string => 'Tiene '
+                            .($record->participacions_count === 1 ? '1 pesaje' : "{$record->participacions_count} pesajes")
+                            .' en el historial del club. Si ya no es socio, dale de baja: deja de aparecer en asistencias y listados, pero sus clasificaciones se conservan.')
+                        ->modalSubmitActionLabel('Dar de baja')
+                        ->modalCancelActionLabel('Cancelar')
+                        ->action(fn (Socio $record) => $record->update(['activo' => false])),
                 ]),
             ])
             ->toolbarActions([

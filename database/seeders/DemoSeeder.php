@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Hash;
 class DemoSeeder extends Seeder
 {
     /**
- * Datos de DEMO para desarrollo y tests. NUNCA en producción:
- * producción arranca vacía y los clubes se dan de alta a mano (fase piloto).
- */
+     * Datos de DEMO para desarrollo y tests. NUNCA en producción:
+     * producción arranca vacía y los clubes se dan de alta a mano (fase piloto).
+     */
     public function run(): void
     {
         $club = Club::create([
@@ -68,52 +68,61 @@ class DemoSeeder extends Seeder
         $userSocio->forceFill(['password_cambiada_at' => now(), 'guia_completada_at' => now()])->save();
         $socios[0]->update(['user_id' => $userSocio->id, 'email' => 'socio@plica.test']);
 
-        // Dos mangas celebradas + la próxima (la de verdad, en dos semanas).
+        // Cada sección tiene su calendario: dos mangas celebradas y la próxima en
+        // dos semanas, por sección. Fechas relativas a hoy: los tests asumen que no
+        // hay mangas pasadas sin gestionar y la demo enseña siempre una manga futura.
         $mangasDef = [
-            ['nombre' => '1ª Manga', 'fecha' => '2026-06-14', 'lugar' => 'Embalse de San Juan', 'estado' => Manga::ESTADO_CELEBRADA],
-            ['nombre' => '2ª Manga', 'fecha' => '2026-07-12', 'lugar' => 'Pantano de Buendía', 'estado' => Manga::ESTADO_CELEBRADA],
-            ['nombre' => '3ª Manga', 'fecha' => '2026-09-03', 'lugar' => 'Embalse de Entrepeñas', 'estado' => Manga::ESTADO_PROGRAMADA],
+            ['nombre' => '1ª Manga', 'fecha' => today()->subWeeks(12), 'lugar' => 'Embalse de San Juan', 'estado' => Manga::ESTADO_CELEBRADA],
+            ['nombre' => '2ª Manga', 'fecha' => today()->subWeeks(8), 'lugar' => 'Pantano de Buendía', 'estado' => Manga::ESTADO_CELEBRADA],
+            ['nombre' => '3ª Manga', 'fecha' => today()->addWeeks(2), 'lugar' => 'Embalse de Entrepeñas', 'estado' => Manga::ESTADO_PROGRAMADA],
         ];
 
-        // [índice de socio => [piezas, gramos, milímetros]] — datos de ejemplo deterministas.
-        // Los socios de la sección "Pato — Lucio" (índices 2, 5 y 8) puntúan por medida.
+        // [índice de socio => [piezas, gramos, milímetros, pieza mayor en gramos]] — datos de ejemplo deterministas.
+        // El socio de índice i compite en la sección i % 3 (Orilla, Embarcación, Pato — Lucio; esta última por medida).
         $resultados = [
-            0 => [[3, 4350, null], [2, 2100, null]],
-            1 => [[1, 980, null], [4, 5230, null]],
-            2 => [[2, 0, 1205], [0, 0, null]],
-            3 => [[2, 3400, null], [3, 2980, null]],
+            0 => [[3, 4350, null, 2100], [2, 2100, null, 1300]],
+            1 => [[1, 980, null], [4, 5230, null, 2200]],
+            2 => [[1, 0, 1205], [0, 0, null]],
+            3 => [[2, 3400, null, 1900], [3, 2980, null, 1500]],
             4 => [[0, 0, null], [1, 1150, null]],
             5 => [[1, 0, 710], [1, 0, 450]],
             6 => [[1, 720, null], [0, 0, null]],
-            7 => [[2, 2540, null], [5, 7300, null]],
-            8 => [[2, 0, 930], [1, 0, 850]],
-            9 => [[0, 0, null], [2, 2650, null]],
+            7 => [[2, 2540, null, 1600], [5, 7300, null, 2400]],
+            8 => [[1, 0, 930], [1, 0, 850]],
+            9 => [[0, 0, null], [2, 2650, null, 1700]],
         ];
 
         foreach ($mangasDef as $i => $def) {
-            $manga = Manga::create(['temporada_id' => $temporada->id, ...$def]);
+            foreach ($secciones as $s => $seccion) {
+                $manga = Manga::create(['temporada_id' => $temporada->id, 'seccion_id' => $seccion->id, ...$def]);
 
-            if ($def['estado'] !== Manga::ESTADO_CELEBRADA) {
-                continue;
-            }
+                if ($def['estado'] !== Manga::ESTADO_CELEBRADA) {
+                    continue;
+                }
 
-            foreach ($resultados as $socioIdx => $porManga) {
-                [$piezas, $gramos, $milimetros] = $porManga[$i];
+                foreach ($resultados as $socioIdx => $porManga) {
+                    if ($socioIdx % 3 !== $s) {
+                        continue;
+                    }
 
-                $participacion = Participacion::create([
-                    'manga_id' => $manga->id,
-                    'socio_id' => $socios[$socioIdx]->id,
-                    'seccion_id' => $secciones[$socioIdx % 3]->id,
-                    'plica' => true,
-                ]);
+                    [$piezas, $gramos, $milimetros, $mayor] = array_pad($porManga[$i], 4, null);
 
-                if ($gramos > 0 || $milimetros !== null) {
-                    Captura::create([
-                        'participacion_id' => $participacion->id,
-                        'piezas' => $piezas,
-                        'peso_gramos' => $gramos,
-                        'medida_mm' => $milimetros,
+                    $participacion = Participacion::create([
+                        'manga_id' => $manga->id,
+                        'socio_id' => $socios[$socioIdx]->id,
+                        'seccion_id' => $seccion->id,
+                        'plica' => true,
+                        'pieza_mayor_gramos' => $mayor,
                     ]);
+
+                    if ($gramos > 0 || $milimetros !== null) {
+                        Captura::create([
+                            'participacion_id' => $participacion->id,
+                            'piezas' => $piezas,
+                            'peso_gramos' => $gramos,
+                            'medida_mm' => $milimetros,
+                        ]);
+                    }
                 }
             }
         }

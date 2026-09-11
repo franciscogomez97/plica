@@ -8,7 +8,9 @@ use App\Models\Socio;
 use App\Models\Temporada;
 use App\Services\Scoring;
 use Filament\Pages\Dashboard;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 
 class Inicio extends Dashboard
 {
@@ -16,9 +18,22 @@ class Inicio extends Dashboard
 
     protected static ?string $title = 'Mi club';
 
-    public function getHeading(): string
+    public function getHeading(): string|Htmlable
     {
-        return $this->getClub()?->nombre ?? 'Mi club';
+        $club = $this->getClub();
+
+        if ($club === null) {
+            return 'Mi club';
+        }
+
+        $logo = $club->logoUrl();
+
+        return new HtmlString(
+            '<span style="display:inline-flex; align-items:center; gap:.75rem">'
+            .($logo ? '<img src="'.e($logo).'" alt="" style="height:3rem; width:3rem; object-fit:contain; border-radius:.75rem">' : '')
+            .e($club->nombre)
+            .'</span>'
+        );
     }
 
     public function getSubheading(): ?string
@@ -43,7 +58,7 @@ class Inicio extends Dashboard
 
     public function getTemporada(): ?Temporada
     {
-        return $this->getClub()?->temporadaActiva();
+        return once(fn () => $this->getClub()?->temporadaActiva());
     }
 
     /** @return Collection<int, Manga> */
@@ -51,31 +66,57 @@ class Inicio extends Dashboard
     {
         return $this->getTemporada()
             ?->mangas()
+            ->with('seccion')
+            ->withCount('confirmacions')
             ->where('estado', Manga::ESTADO_PROGRAMADA)
             ->orderBy('fecha')
             ->get() ?? collect();
     }
 
+    /**
+     * «Asistiré»: el socio marca (o quita) que irá a una manga. Es solo para
+     * que el admin sepa con quién contar; la asistencia real la pasa el admin.
+     */
+    public function confirmar(int $mangaId): void
+    {
+        $socio = $this->getSocio();
+        $manga = $this->getTemporada()
+            ?->mangas()
+            ->where('estado', Manga::ESTADO_PROGRAMADA)
+            ->find($mangaId);
+
+        if ($socio === null || ! $socio->activo || $manga === null) {
+            return;
+        }
+
+        $manga->alternarConfirmacion($socio);
+    }
+
     public function getRanking(): Collection
     {
-        $temporada = $this->getTemporada();
+        return once(function () {
+            $temporada = $this->getTemporada();
 
-        return $temporada ? Scoring::rankingTemporada($temporada) : collect();
+            return $temporada ? Scoring::rankingTemporada($temporada) : collect();
+        });
     }
 
     public function getUltimaManga(): ?Manga
     {
-        return $this->getTemporada()
+        return once(fn () => $this->getTemporada()
             ?->mangas()
             ->where('estado', Manga::ESTADO_CELEBRADA)
             ->orderByDesc('fecha')
-            ->first();
+            ->orderByDesc('id')
+            ->first());
     }
 
     public function getClasificacionUltimaManga(): Collection
     {
-        $manga = $this->getUltimaManga();
+        return once(function () {
+            $manga = $this->getUltimaManga();
 
-        return $manga ? Scoring::clasificacionManga($manga) : collect();
+            return $manga ? Scoring::clasificacionManga($manga) : collect();
+        });
     }
 }

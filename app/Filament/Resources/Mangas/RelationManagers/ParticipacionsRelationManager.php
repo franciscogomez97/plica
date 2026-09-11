@@ -2,20 +2,19 @@
 
 namespace App\Filament\Resources\Mangas\RelationManagers;
 
+use App\Filament\Resources\Mangas\Actions\AsistenciaAction;
+use App\Models\Manga;
 use App\Models\Seccion;
 use App\Models\Socio;
 use App\Services\Scoring;
-use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -33,19 +32,16 @@ class ParticipacionsRelationManager extends RelationManager
 
     protected static ?string $modelLabel = 'participación';
 
-    /** Criterio que manda en el formulario: el de la sección de la manga o el de la elegida. */
-    private function criterio(?int $seccionId): string
+    /** Criterio que manda en el formulario: el de la sección de la manga. */
+    private function criterio(): string
     {
-        $seccionId = $this->getOwnerRecord()->seccion_id ?? $seccionId;
-
-        return Seccion::find($seccionId)?->criterio ?? Seccion::CRITERIO_PESO;
+        return $this->getOwnerRecord()->seccion?->criterio ?? Seccion::CRITERIO_PESO;
     }
 
     public function form(Schema $schema): Schema
     {
-        // Los campos de dentro del repeater ven la sección dos niveles arriba.
-        $criterioFila = fn (Get $get): string => $this->criterio((int) $get('../../seccion_id') ?: null);
-        $criterioForm = fn (Get $get): string => $this->criterio((int) $get('seccion_id') ?: null);
+        $criterioFila = fn (Get $get): string => $this->criterio();
+        $criterioForm = fn (Get $get): string => $this->criterio();
 
         return $schema
             ->components([
@@ -61,21 +57,17 @@ class ParticipacionsRelationManager extends RelationManager
                         && $this->getOwnerRecord()->participacions()->where('socio_id', $value)->exists())
                     ->searchable()
                     ->required(),
-                Select::make('seccion_id')
-                    ->label('Sección')
-                    ->options(fn (): array => Seccion::query()
-                        ->where('club_id', auth()->user()->club_id)
-                        ->orderBy('nombre')
-                        ->pluck('nombre', 'id')
-                        ->all())
-                    ->default(fn (): ?int => $this->getOwnerRecord()->seccion_id)
-                    ->live()
-                    // En una manga de sección no hay nada que elegir.
-                    ->visible(fn (): bool => $this->getOwnerRecord()->seccion_id === null)
-                    ->nullable(),
                 Toggle::make('plica')
                     ->label('Entregó plica')
                     ->default(true),
+                TextInput::make('pieza_mayor_gramos')
+                    ->label('Pieza mayor')
+                    ->suffix('g')
+                    ->numeric()
+                    ->minValue(0)
+                    ->helperText('El pez más grande del pesaje. Si apuntas pez a pez, se calcula solo.')
+                    ->visible(fn (Get $get): bool => $criterioForm($get) !== Seccion::CRITERIO_MEDIDA)
+                    ->nullable(),
                 Repeater::make('capturas')
                     ->relationship()
                     ->label(fn (Get $get): string => $criterioForm($get) === Seccion::CRITERIO_MEDIDA
@@ -184,64 +176,12 @@ class ParticipacionsRelationManager extends RelationManager
             // Tocar la fila = editar el pesaje.
             ->recordAction('edit')
             ->headerActions([
-                Action::make('asistencia')
-                    ->label('Marcar asistencia')
-                    ->icon('heroicon-o-clipboard-document-check')
-                    ->modalHeading('¿Quién ha participado en esta manga?')
-                    ->modalDescription('Marca a los que han venido. Los desmarcados se quitan, salvo que ya tengan capturas.')
-                    ->modalSubmitActionLabel('Guardar asistencia')
-                    ->schema([
-                        CheckboxList::make('socios')
-                            ->label('Socios')
-                            ->options(fn (): array => Socio::query()
-                                ->where('club_id', auth()->user()->club_id)
-                                ->where('activo', true)
-                                ->orderBy('nombre')
-                                ->pluck('nombre', 'id')
-                                ->all())
-                            ->default(fn (): array => $this->getOwnerRecord()
-                                ->participacions()
-                                ->pluck('socio_id')
-                                ->map(fn ($id) => (string) $id)
-                                ->all())
-                            ->columns(['default' => 1, 'sm' => 2])
-                            ->bulkToggleable(),
-                        Select::make('seccion_id')
-                            ->label('Sección para los recién marcados')
-                            ->helperText('Solo para los recién marcados; luego se puede cambiar.')
-                            ->options(fn (): array => Seccion::query()
-                                ->where('club_id', auth()->user()->club_id)
-                                ->orderBy('nombre')
-                                ->pluck('nombre', 'id')
-                                ->all())
-                            // En una manga de sección no hay nada que elegir.
-                            ->visible(fn (): bool => $this->getOwnerRecord()->seccion_id === null)
-                            ->nullable(),
-                    ])
-                    ->action(function (array $data): void {
-                        $resultado = $this->getOwnerRecord()->sincronizarAsistencia(
-                            $data['socios'] ?? [],
-                            filled($data['seccion_id'] ?? null) ? (int) $data['seccion_id'] : null,
-                        );
-
-                        $notificacion = Notification::make()
-                            ->title('Asistencia guardada')
-                            ->body("{$resultado['creadas']} añadidos · {$resultado['eliminadas']} quitados")
-                            ->success();
-
-                        if ($resultado['bloqueadas'] !== []) {
-                            $notificacion
-                                ->warning()
-                                ->body('No se quitaron (tienen capturas): '.implode(', ', $resultado['bloqueadas']));
-                        }
-
-                        $notificacion->send();
-                    }),
+                AsistenciaAction::make(fn (): Manga => $this->getOwnerRecord()),
                 CreateAction::make()
                     ->label('Añadir participación')
-                    // La sección de la manga manda, esté o no el campo en pantalla.
+                    // Toda participación compite en la sección de su manga.
                     ->mutateDataUsing(function (array $data): array {
-                        $data['seccion_id'] = $this->getOwnerRecord()->seccion_id ?? ($data['seccion_id'] ?? null);
+                        $data['seccion_id'] = $this->getOwnerRecord()->seccion_id;
 
                         return $data;
                     }),

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Mangas\Tables;
 
 use App\Filament\Resources\Mangas\MangaResource;
 use App\Models\Manga;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
@@ -16,7 +17,7 @@ class MangasTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with('seccion'))
+            ->modifyQueryUsing(fn ($query) => $query->with('seccion')->withCount(['participacions', 'confirmacions']))
             ->columns([
                 // Una sola línea por manga; el detalle aparece según cabe.
                 Split::make([
@@ -37,8 +38,10 @@ class MangasTable
                         ->grow(false)
                         ->visibleFrom('lg'),
                     TextColumn::make('participacions_count')
-                        ->counts('participacions')
-                        ->formatStateUsing(fn (int $state): string => $state === 1 ? '1 participante' : "{$state} participantes")
+                        // Antes de pasar lista, lo útil es cuántos han dicho que irán.
+                        ->state(fn (Manga $record): string => $record->participacions_count === 0 && $record->confirmacions_count > 0
+                            ? ($record->confirmacions_count === 1 ? '1 confirmado' : "{$record->confirmacions_count} confirmados")
+                            : ($record->participacions_count === 1 ? '1 participante' : "{$record->participacions_count} participantes"))
                         ->color('gray')
                         ->grow(false)
                         ->visibleFrom('lg'),
@@ -59,17 +62,29 @@ class MangasTable
                 ]),
             ])
             ->defaultSort('fecha', 'desc')
-            // Tocar la fila = gestionar la manga (y allí, «Ver clasificación»).
-            ->recordUrl(fn (Manga $record): string => MangaResource::getUrl('edit', ['record' => $record]))
+            // Tocar la fila = pesaje rápido, que es lo que se hace con una manga.
+            ->recordUrl(fn (Manga $record): string => MangaResource::getUrl('pesaje', ['record' => $record]))
             ->recordActions([
                 EditAction::make()
                     ->iconButton()
-                    ->tooltip('Gestionar'),
+                    ->tooltip('Editar datos'),
                 DeleteAction::make()
                     ->iconButton()
                     ->tooltip('Borrar')
                     // Con pesajes dentro no se borra: primero habría que vaciarla.
-                    ->visible(fn (Manga $record): bool => $record->participacions()->doesntExist()),
+                    ->visible(fn (Manga $record): bool => $record->participacions_count === 0),
+                Action::make('protegida')
+                    ->iconButton()
+                    ->icon('heroicon-o-trash')
+                    ->color('gray')
+                    ->tooltip('No se puede borrar: tiene participaciones')
+                    ->visible(fn (Manga $record): bool => $record->participacions_count > 0)
+                    ->modalHeading(fn (Manga $record): string => "«{$record->nombre}» no se puede borrar")
+                    ->modalDescription(fn (Manga $record): string => 'Tiene '
+                        .($record->participacions_count === 1 ? '1 participante' : "{$record->participacions_count} participantes")
+                        .' apuntados. Para borrarla, primero desmárcalos a todos en «Marcar asistencia» dentro del pesaje; si alguno tiene capturas, habrá que vaciarlas antes.')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Entendido'),
             ]);
     }
 }

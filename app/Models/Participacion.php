@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Participacion extends Model
 {
-    protected $fillable = ['manga_id', 'socio_id', 'seccion_id', 'plica'];
+    protected $fillable = ['manga_id', 'socio_id', 'seccion_id', 'plica', 'pieza_mayor_gramos'];
 
     protected function casts(): array
     {
@@ -33,6 +33,24 @@ class Participacion extends Model
     public function capturas(): HasMany
     {
         return $this->hasMany(Captura::class);
+    }
+
+    /**
+     * El pez más grande en gramos: lo apuntado en el pesaje o, si se apuntó
+     * pez a pez (o solo hubo uno), el mayor de las capturas.
+     */
+    public function piezaMayorGramos(): int
+    {
+        return max(
+            (int) $this->pieza_mayor_gramos,
+            (int) $this->capturas->where('piezas', 1)->max('peso_gramos'),
+        );
+    }
+
+    /** El pez más largo en milímetros (las secciones por medida van pez a pez). */
+    public function piezaMayorMm(): int
+    {
+        return (int) $this->capturas->max('medida_mm');
     }
 
     public function pesoTotal(): int
