@@ -1,6 +1,10 @@
 @extends('public.legal._layout', ['titulo' => 'Condiciones del servicio'])
 
 @section('legal')
+    @php
+        $plan = config('plica.plan');
+        $gratisHasta = \Illuminate\Support\Carbon::parse($plan['gratis_hasta'])->locale('es');
+    @endphp
     <p>Estas condiciones regulan el uso de Plica por parte de los clubes de pesca deportiva («el club») y sus miembros. Al solicitar el alta y usar el panel de administración, el club las acepta. Incluyen, como anexo, el contrato de encargo del tratamiento de datos personales que exige el artículo 28 del RGPD.</p>
 
     @include('public.legal._titular')
@@ -17,8 +21,8 @@
 
     <h2>3. Precio y pago</h2>
     <ul>
-        <li>El precio es de <strong>150 € por temporada, IVA incluido</strong>, por club, sin límite de socios ni de mangas. Los clubes que entren durante el otoño no pagan hasta el 1 de enero siguiente. Los diez primeros clubes («clubes fundadores») pagan 99 € por temporada mientras mantengan el servicio.</li>
-        <li>La temporada va del 1 de enero al 31 de diciembre. En noviembre el club recibe el resumen de su temporada y la factura de la siguiente, con vencimiento el 31 de enero. El pago se hace por transferencia bancaria.</li>
+        <li>El precio es de <strong>{{ $plan['precio'] }} € por temporada, IVA incluido</strong>, por club, sin límite de socios ni de mangas. Los clubes que entren durante el otoño de {{ $gratisHasta->year - 1 }} no pagan hasta el <strong>{{ $gratisHasta->isoFormat('D [de] MMMM [de] YYYY') }}</strong>; su primera temporada de pago es la {{ $gratisHasta->year }}. Los diez primeros clubes («clubes fundadores») pagan {{ $plan['fundadores'] }} € por temporada mientras mantengan el servicio.</li>
+        <li>La temporada va del 1 de enero al 31 de diciembre. En noviembre el club recibe el resumen de su temporada y la factura de la siguiente, con vencimiento el 31 de enero (la primera, el 31 de enero de {{ $gratisHasta->year }}). El pago se hace por transferencia bancaria.</li>
         <li>Si el 1 de marzo no se ha recibido el pago, el club pasa a <strong>solo lectura</strong>: los socios siguen viendo sus rankings, pero no se pueden crear mangas ni pesajes hasta regularizarlo. <strong>Nunca se borran datos por impago.</strong></li>
         <li>El titular puede actualizar el precio para la temporada siguiente avisando antes del 1 de noviembre. Los clubes fundadores conservan su precio.</li>
     </ul>

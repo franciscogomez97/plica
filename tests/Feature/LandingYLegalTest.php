@@ -22,7 +22,9 @@ class LandingYLegalTest extends TestCase
             ->assertSee('Así es una manga con Plica')
             ->assertSee('Pesas en tres minutos')
             ->assertSee('150 €')
-            ->assertSee('Gratis hasta el 1 de enero')
+            ->assertSee('Gratis hasta el 1 de enero de 2027')
+            ->assertSee('otoño de 2026')
+            ->assertSee('enero de 2027')
             ->assertSee('Lo que preguntan los presidentes')
             ->assertSee('Solicita acceso')
             ->assertSee('Ver un club de ejemplo') // hay club de demo con portada pública
@@ -63,7 +65,7 @@ class LandingYLegalTest extends TestCase
         $this->get('/aviso-legal')->assertOk()->assertSee('Aviso legal')->assertSee('Blinders Group SL')->assertSee('B12345678')->assertSee('LSSI-CE');
         $this->get('/privacidad')->assertOk()->assertSee('Política de privacidad')->assertSee('encargado del tratamiento')->assertSee('hola@plica.test')->assertSee('aepd.es');
         $this->get('/cookies')->assertOk()->assertSee('solo cookies técnicas')->assertSee('plica_session')->assertSee('XSRF-TOKEN');
-        $this->get('/condiciones')->assertOk()->assertSee('150 € por temporada')->assertSee('solo lectura')->assertSee('Anexo: contrato de encargo del tratamiento')->assertSee('art. 28 RGPD');
+        $this->get('/condiciones')->assertOk()->assertSee('150 € por temporada')->assertSee('1 de enero de 2027')->assertSee('otoño de 2026')->assertSee('solo lectura')->assertSee('Anexo: contrato de encargo del tratamiento')->assertSee('art. 28 RGPD');
     }
 
     public function test_sin_titular_configurado_se_ve_que_falta_rellenarlo(): void

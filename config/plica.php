@@ -11,6 +11,14 @@ return [
     // Si está, la landing enseña «Escríbenos por WhatsApp»; si no, solo el formulario.
     'whatsapp' => env('PLICA_WHATSAPP'),
 
+    // Plan comercial. Las fechas salen de aquí para que landing y condiciones
+    // digan lo mismo y no caduquen sin que nadie se dé cuenta.
+    'plan' => [
+        'precio' => 150,           // € por temporada, IVA incluido
+        'fundadores' => 99,        // € por temporada para los 10 primeros clubes
+        'gratis_hasta' => '2027-01-01', // los clubes que entren antes no pagan hasta esta fecha
+    ],
+
     // Titular del servicio para el aviso legal, la privacidad y las condiciones.
     // RELLENAR EN PRODUCCIÓN (.env). Mientras, salen los valores entre corchetes.
     'legal' => [
