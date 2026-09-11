@@ -70,11 +70,11 @@ class SeccionForm
                             ->label('Sistema')
                             ->options([
                                 Seccion::SISTEMA_ACUMULADO => 'Suma lo pescado',
-                                Seccion::SISTEMA_PUESTOS => 'Suma los puestos',
+                                Seccion::SISTEMA_PUESTOS => 'Suma los puestos (Sistema de la Federación)',
                             ])
                             ->descriptions([
                                 Seccion::SISTEMA_ACUMULADO => 'Gana quien más suma en el año (kilos, centímetros o piezas), más los puntos por asistencia si los hay.',
-                                Seccion::SISTEMA_PUESTOS => 'Cada manga da tantos puntos como tu puesto (1º = 1 punto) y gana quien menos suma. El sistema de federación.',
+                                Seccion::SISTEMA_PUESTOS => 'Cada manga da tantos puntos como tu puesto (1º = 1 punto) y gana quien menos suma.',
                             ])
                             ->default(Seccion::SISTEMA_ACUMULADO)
                             ->live()
