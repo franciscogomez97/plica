@@ -52,6 +52,8 @@ class BassExtremaduraSeeder extends Seeder
             'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS,
             'puntos_participacion' => 0,
             'puntos_no_asistencia' => count(self::SOCIOS) + 1,
+            'bolo' => Seccion::BOLO_MEDIA, // ((C + 1) + N) / 2, la fórmula que pasó su directivo
+            'puntos_bolo' => 0,
             'descartes' => 0,
             'descartes_ausencias' => true, // si algún día descartan, faltar cuenta como la peor manga
             'desempate' => Seccion::DESEMPATE_PROMEDIO,

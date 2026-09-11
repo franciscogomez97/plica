@@ -74,7 +74,7 @@ class ClubPruebaSeeder extends Seeder
             'pato' => Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => 'pato-lucio'], ['nombre' => 'Pato — Lucio', 'criterio' => Seccion::CRITERIO_MEDIDA, 'sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO, 'puntos_participacion' => 0, 'puntos_no_asistencia' => 0, 'descartes' => 0, 'descartes_ausencias' => false, 'desempate' => Seccion::DESEMPATE_PIEZAS]),
         ];
         // La matriz de «suma lo pescado»: una sección por combinación de reglas, para cerrar el sistema.
-        $matriz = $this->matrizAcumulado($club);
+        $matriz = $this->matrizAcumulado($club)->merge($this->matrizFederacion($club));
         Seccion::where('club_id', $club->id)->whereNotIn('id', collect($secciones)->pluck('id')->merge($matriz->pluck('id')))->delete();
 
         $socios = collect(self::SOCIOS)->map(fn (string $nombre, int $i) => Socio::updateOrCreate(['club_id' => $club->id, 'nombre' => $nombre], [
@@ -256,6 +256,118 @@ class ClubPruebaSeeder extends Seeder
         return "matriz-{$criterio}-{$regla}";
     }
 
+    // ------------------------------------------------------------------
+    //  Matriz del sistema de la federación (suma los puestos): diez reglas por
+    //  criterio, 30 secciones. Datos con dos bolos en una manga (para que la
+    //  media, el primer libre y el último den números distintos), empates a
+    //  valor con distinta pieza mayor y piezas, y ausencias de una y dos mangas.
+    //  Resultados esperados en MatrizFederacionTest, calculados aparte del motor.
+    // ------------------------------------------------------------------
+
+    /**
+     * [desempate, puntos por ausencia (0 = automático), bolo, puntos del bolo, descartes, también no pescadas].
+     * Desempate: A = pieza mayor, B = piezas (peso en la de piezas), M = menos piezas (peso en la de piezas),
+     * C = comparten, P = promedio.
+     */
+    public const FED_REGLAS = [
+        1 => ['P', 0, Seccion::BOLO_MEDIA, 0, 0, true],
+        2 => ['P', 7, Seccion::BOLO_MEDIA, 0, 1, true],
+        3 => ['A', 7, Seccion::BOLO_PRIMER_LIBRE, 0, 0, true],
+        4 => ['B', 0, Seccion::BOLO_ULTIMO, 0, 1, false],
+        5 => ['M', 7, Seccion::BOLO_FIJO, 30, 0, true],
+        6 => ['C', 0, Seccion::BOLO_AUSENCIA, 0, 1, true],
+        7 => ['A', 0, Seccion::BOLO_MEDIA, 0, 1, true],
+        8 => ['P', 7, Seccion::BOLO_FIJO, 30, 1, false],
+        9 => ['B', 7, Seccion::BOLO_PRIMER_LIBRE, 0, 1, true],
+        10 => ['C', 7, Seccion::BOLO_ULTIMO, 0, 0, true],
+    ];
+
+    /** Mismo formato que MATRIZ_DATOS. En cada criterio: dos bolos en la 1ª manga, tres en la 3ª. */
+    public const FED_DATOS = [
+        Seccion::CRITERIO_PESO => [
+            ['A' => [2, 3000, 2000], 'B' => [3, 3000, 1500], 'C' => [1, 1000, 1000], 'D' => [0, 0, 0], 'E' => [0, 0, 0]],
+            ['A' => [1, 2000, 2000], 'B' => [2, 2500, 1300], 'D' => [1, 1500, 1500], 'E' => [2, 1500, 800], 'F' => [1, 4000, 4000]],
+            ['B' => [0, 0, 0], 'C' => [2, 2200, 1200], 'D' => [0, 0, 0], 'F' => [0, 0, 0]],
+        ],
+        Seccion::CRITERIO_PIEZAS => [
+            ['A' => [3, 3400, 1500], 'B' => [3, 2400, 2000], 'C' => [1, 1000, 1000], 'D' => [0, 0, 0], 'E' => [0, 0, 0]],
+            ['A' => [2, 2000, 1200], 'B' => [1, 2500, 2500], 'D' => [2, 1400, 900], 'E' => [2, 1400, 1000], 'F' => [4, 3000, 1200]],
+            ['B' => [0, 0, 0], 'C' => [3, 2200, 1200], 'D' => [0, 0, 0], 'F' => [0, 0, 0]],
+        ],
+        Seccion::CRITERIO_MEDIDA => [
+            ['A' => [400, 400, 400], 'B' => [700, 500], 'C' => [500], 'D' => [], 'E' => []],
+            ['A' => [800], 'B' => [650, 650], 'D' => [900], 'E' => [450, 450], 'F' => [1000, 500]],
+            ['B' => [], 'C' => [700, 600], 'D' => [], 'F' => []],
+        ],
+    ];
+
+    public static function fedSlug(string $criterio, int $regla): string
+    {
+        return "federacion-{$criterio}-{$regla}";
+    }
+
+    public static function fedNombre(string $criterio, int $regla): string
+    {
+        [$desempate, $ausencia, $bolo, $puntosBolo, $descartes, $ausencias] = self::FED_REGLAS[$regla];
+        $criterioTexto = match ($criterio) {
+            Seccion::CRITERIO_MEDIDA => 'Medida',
+            Seccion::CRITERIO_PIEZAS => 'Piezas',
+            default => 'Peso',
+        };
+        $desempateTexto = match ($desempate) {
+            'A' => 'pieza mayor',
+            'B' => $criterio === Seccion::CRITERIO_PIEZAS ? 'más peso' : 'más piezas',
+            'M' => $criterio === Seccion::CRITERIO_PIEZAS ? 'más peso' : 'menos piezas',
+            'C' => 'comparten',
+            default => 'promedio',
+        };
+        $boloTexto = match ($bolo) {
+            Seccion::BOLO_PRIMER_LIBRE => 'bolo primer libre',
+            Seccion::BOLO_ULTIMO => 'bolo último',
+            Seccion::BOLO_FIJO => "bolo {$puntosBolo}",
+            Seccion::BOLO_AUSENCIA => 'bolo = ausencia',
+            default => 'bolo media',
+        };
+        $descartesTexto = $descartes === 0 ? 'sin descartes' : ($ausencias ? '1 descarte, también no pescadas' : '1 descarte, solo pescadas');
+
+        return "Fed {$criterioTexto} · {$desempateTexto} · ausencia ".($ausencia > 0 ? $ausencia : 'auto')." · {$boloTexto} · {$descartesTexto}";
+    }
+
+    public static function fedDesempate(string $criterio, string $letra): string
+    {
+        return match ($letra) {
+            'C' => Seccion::DESEMPATE_COMPARTIDO,
+            'P' => Seccion::DESEMPATE_PROMEDIO,
+            default => self::matrizDesempate($criterio, $letra),
+        };
+    }
+
+    /** @return Collection<int, Seccion> */
+    private function matrizFederacion(Club $club): Collection
+    {
+        $secciones = collect();
+
+        foreach (array_keys(self::FED_DATOS) as $criterio) {
+            foreach (self::FED_REGLAS as $regla => [$desempate, $ausencia, $bolo, $puntosBolo, $descartes, $ausencias]) {
+                $secciones->push(Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => self::fedSlug($criterio, $regla)], [
+                    'nombre' => self::fedNombre($criterio, $regla),
+                    'criterio' => $criterio,
+                    'numero_socios' => 6,
+                    'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS,
+                    'puntos_participacion' => 0,
+                    'puntos_no_asistencia' => $ausencia,
+                    'bolo' => $bolo,
+                    'puntos_bolo' => $puntosBolo,
+                    'descartes' => $descartes,
+                    'descartes_ausencias' => $ausencias,
+                    'desempate' => self::fedDesempate($criterio, $desempate),
+                ]));
+            }
+        }
+
+        return $secciones;
+    }
+
     public static function matrizNombre(string $criterio, int $regla): string
     {
         [$asistencia, $desempate, $descartes, $ausencias, $ausencia] = self::MATRIZ_REGLAS[$regla];
@@ -315,8 +427,9 @@ class ClubPruebaSeeder extends Seeder
 
         foreach ($secciones as $seccion) {
             $criterio = $seccion->criterio;
+            $datos = str_starts_with($seccion->slug, 'federacion-') ? self::FED_DATOS[$criterio] : self::MATRIZ_DATOS[$criterio];
 
-            foreach (self::MATRIZ_DATOS[$criterio] as $i => $resultados) {
+            foreach ($datos as $i => $resultados) {
                 $manga = Manga::create([
                     'temporada_id' => $temporada->id,
                     'seccion_id' => $seccion->id,

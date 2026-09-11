@@ -87,6 +87,8 @@ class Scoring
                 $puntosNoAsistencia = $grupo->seccion?->puntos_no_asistencia ?? 0;
                 $descartes = $grupo->seccion?->descartes ?? 0;
                 $descartesAusencias = (bool) ($grupo->seccion?->descartes_ausencias ?? false);
+                $bolo = $grupo->seccion?->bolo ?? Seccion::BOLO_MEDIA;
+                $puntosBolo = (int) ($grupo->seccion?->puntos_bolo ?? 0);
                 $desempate = static::desempateDe($grupo->seccion, $grupo->criterio);
                 $puestosEmpate = $desempate; // por puestos: 'promedio' reparte; cualquier otro comparte
 
@@ -99,7 +101,7 @@ class Scoring
                 $grupo->numMangas = $grupo->participaciones->pluck('manga_id')->unique()->count();
                 $grupo->reglas = $grupo->seccion?->resumenReglas() ?? Seccion::resumenReglasDe($grupo->criterio);
                 $grupo->filas = $sistema === Seccion::SISTEMA_PUESTOS
-                    ? static::rankingPorPuestos($grupo->participaciones, $grupo->criterio, $descartes, $desempate, $puestosEmpate, $puntosNoAsistencia, $descartesAusencias)
+                    ? static::rankingPorPuestos($grupo->participaciones, $grupo->criterio, $descartes, $desempate, $puestosEmpate, $puntosNoAsistencia, $descartesAusencias, $bolo, $puntosBolo)
                     : static::rankingAcumulado($grupo->participaciones, $grupo->criterio, $puntosParticipacion, $descartes, $desempate, $puntosNoAsistencia, $descartesAusencias);
                 $grupo->piezaMayor = static::piezaMayorDe($grupo->participaciones, $grupo->criterio);
                 unset($grupo->participaciones, $grupo->seccion);
@@ -131,6 +133,8 @@ class Scoring
         $sistema = $seccion->sistema_puntuacion ?? Seccion::SISTEMA_ACUMULADO;
         $descartes = (int) $seccion->descartes;
         $descartesAusencias = (bool) $seccion->descartes_ausencias;
+        $bolo = $seccion->bolo ?? Seccion::BOLO_MEDIA;
+        $puntosBolo = (int) $seccion->puntos_bolo;
         $puntosParticipacion = (int) $seccion->puntos_participacion;
         $puntosNoAsistencia = (int) $seccion->puntos_no_asistencia;
         $desempate = static::desempateDe($seccion, $criterio);
@@ -146,7 +150,7 @@ class Scoring
         $mayores = [];
         foreach ($participaciones->groupBy('manga_id') as $mangaId => $deManga) {
             $clasif = static::ordenarYNumerar($deManga->map(fn (Participacion $p) => static::fila($p)), $criterio, $desempate);
-            $porPuesto = static::puntosPorPuesto($clasif, $puestosEmpate);
+            $porPuesto = static::puntosPorPuesto($clasif, $puestosEmpate, $bolo, $puntosBolo, $puntosNoAsistencia);
             foreach ($clasif as $fila) {
                 $puestos[$mangaId][$fila->socio->id] = $fila->puesto;
                 $puntosManga[$mangaId][$fila->socio->id] = $porPuesto[$fila->socio->id];
@@ -157,7 +161,7 @@ class Scoring
 
         // El orden y los puntos son EXACTAMENTE los del ranking de temporada.
         $ranking = $sistema === Seccion::SISTEMA_PUESTOS
-            ? static::rankingPorPuestos($participaciones, $criterio, $descartes, $desempate, $puestosEmpate, $puntosNoAsistencia, $descartesAusencias)
+            ? static::rankingPorPuestos($participaciones, $criterio, $descartes, $desempate, $puestosEmpate, $puntosNoAsistencia, $descartesAusencias, $bolo, $puntosBolo)
             : static::rankingAcumulado($participaciones, $criterio, $puntosParticipacion, $descartes, $desempate, $puntosNoAsistencia, $descartesAusencias);
 
         $mangaIds = $mangas->pluck('id')->all();
@@ -199,6 +203,7 @@ class Scoring
             'puntosParticipacion' => $puntosParticipacion,
             'puntosNoAsistencia' => $puntosNoAsistencia,
             'puestosEmpate' => $puestosEmpate,
+            'bolo' => $bolo,
             'ausentePorManga' => $ausentes, // por puestos: lo que cuesta no ir a cada manga
             'reglas' => $seccion->resumenReglas(),
             'mangas' => $mangas,
@@ -242,15 +247,16 @@ class Scoring
         return static::numerar($filas->sort(fn ($a, $b) => $clave($b) <=> $clave($a))->values(), $clave);
     }
 
-    private static function rankingPorPuestos(Collection $participaciones, string $criterio, int $descartes, string $desempate, string $empate = Seccion::DESEMPATE_COMPARTIDO, int $puntosNoAsistencia = 0, bool $descartesAusencias = true): Collection
+    private static function rankingPorPuestos(Collection $participaciones, string $criterio, int $descartes, string $desempate, string $empate = Seccion::DESEMPATE_COMPARTIDO, int $puntosNoAsistencia = 0, bool $descartesAusencias = true, string $bolo = Seccion::BOLO_MEDIA, int $puntosBolo = 0): Collection
     {
         // Puntos de cada socio en cada manga de esta sección (su puesto, o el promedio
-        // si empata y así lo quiere la sección) y lo que cuesta no ir a cada una.
+        // si empata y así lo quiere la sección; el bolo, según la sección) y lo que
+        // cuesta no ir a cada una.
         $puntosManga = [];
         $ausentes = [];
         foreach ($participaciones->groupBy('manga_id') as $mangaId => $deManga) {
             $clasif = static::ordenarYNumerar($deManga->map(fn (Participacion $p) => static::fila($p)), $criterio, $desempate);
-            $puntosManga[$mangaId] = static::puntosPorPuesto($clasif, $empate);
+            $puntosManga[$mangaId] = static::puntosPorPuesto($clasif, $empate, $bolo, $puntosBolo, $puntosNoAsistencia);
             $ausentes[$mangaId] = static::puntosDeAusente($clasif, $puntosNoAsistencia);
         }
         $mangaIds = array_keys($puntosManga);
@@ -417,16 +423,32 @@ class Scoring
      *
      * @return array<int, int|float> socio_id => puntos
      */
-    public static function puntosPorPuesto(Collection $clasif, string $empate): array
+    public static function puntosPorPuesto(Collection $clasif, string $empate, string $bolo = Seccion::BOLO_MEDIA, int $puntosBolo = 0, int $puntosNoAsistencia = 0): array
     {
         $porPuesto = $clasif->groupBy('puesto');
 
+        // El bolo: fue y no pescó nada. C pescaron, N fueron.
+        $esBolo = fn (object $f): bool => $f->piezas === 0 && $f->peso === 0 && $f->medida === 0;
+        $n = $clasif->count();
+        $c = $clasif->reject($esBolo)->count();
+        $valorBolo = match ($bolo) {
+            Seccion::BOLO_PRIMER_LIBRE => $c + 1,
+            Seccion::BOLO_ULTIMO => $n,
+            Seccion::BOLO_FIJO => $puntosBolo,
+            Seccion::BOLO_AUSENCIA => static::puntosDeAusente($clasif, $puntosNoAsistencia),
+            default => (($c + 1) + $n) / 2, // media de los puestos que quedan: ((C + 1) + N) / 2
+        };
+
         $puntos = [];
         foreach ($clasif as $fila) {
-            $tamano = $porPuesto->get($fila->puesto)->count();
-            $valor = $empate === Seccion::DESEMPATE_PROMEDIO && $tamano > 1
-                ? $fila->puesto + ($tamano - 1) / 2
-                : $fila->puesto;
+            if ($esBolo($fila)) {
+                $valor = $valorBolo;
+            } else {
+                $tamano = $porPuesto->get($fila->puesto)->count();
+                $valor = $empate === Seccion::DESEMPATE_PROMEDIO && $tamano > 1
+                    ? $fila->puesto + ($tamano - 1) / 2
+                    : $fila->puesto;
+            }
             $puntos[$fila->socio->id] = $valor == (int) $valor ? (int) $valor : $valor;
         }
 

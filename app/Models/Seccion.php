@@ -48,9 +48,31 @@ class Seccion extends Model
 
     public const DESEMPATE_PROMEDIO = 'promedio';
 
+    /**
+     * Por puestos: qué se lleva quien va y no pesca (el «bolo»). C = los que
+     * pescaron en la manga, N = los que fueron.
+     */
+    public const BOLO_MEDIA = 'media';           // ((C + 1) + N) / 2: la media de los puestos que quedan (federación)
+
+    public const BOLO_PRIMER_LIBRE = 'primer_libre'; // C + 1
+
+    public const BOLO_ULTIMO = 'ultimo';         // N
+
+    public const BOLO_FIJO = 'fijo';             // puntos_bolo
+
+    public const BOLO_AUSENCIA = 'ausencia';     // lo mismo que no ir
+
+    public const BOLOS = [
+        self::BOLO_MEDIA => 'La media de los puestos que quedan (federación)',
+        self::BOLO_PRIMER_LIBRE => 'El primer puesto libre, todos igual',
+        self::BOLO_ULTIMO => 'El último puesto, todos igual',
+        self::BOLO_FIJO => 'Un número fijo de puntos',
+        self::BOLO_AUSENCIA => 'Lo mismo que una ausencia',
+    ];
+
     protected $fillable = [
         'club_id', 'nombre', 'slug', 'criterio', 'numero_socios',
-        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'descartes', 'descartes_ausencias', 'desempate',
+        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'bolo', 'puntos_bolo', 'descartes', 'descartes_ausencias', 'desempate',
     ];
 
     /**
@@ -135,6 +157,7 @@ class Seccion extends Model
             'numero_socios' => 'integer',
             'puntos_participacion' => 'integer',
             'puntos_no_asistencia' => 'integer',
+            'puntos_bolo' => 'integer',
             'descartes' => 'integer',
             'descartes_ausencias' => 'boolean',
         ];
@@ -166,6 +189,8 @@ class Seccion extends Model
             $this->desempate ?? static::desempatePorDefecto($this->criterio ?? self::CRITERIO_PESO),
             (int) $this->puntos_no_asistencia,
             (bool) $this->descartes_ausencias,
+            $this->bolo ?? self::BOLO_MEDIA,
+            (int) $this->puntos_bolo,
         );
     }
 
@@ -178,6 +203,8 @@ class Seccion extends Model
         ?string $desempate = null,
         int $puntosNoAsistencia = 0,
         bool $descartesAusencias = false,
+        string $bolo = self::BOLO_MEDIA,
+        int $puntosBolo = 0,
     ): string {
         $desempate ??= static::desempatePorDefecto($criterio);
         $frases = [
@@ -196,6 +223,13 @@ class Seccion extends Model
         ];
 
         if ($sistema === self::SISTEMA_PUESTOS) {
+            $frases[] = 'Ir y no pescar (bolo) '.match ($bolo) {
+                self::BOLO_PRIMER_LIBRE => 'vale el primer puesto libre, el mismo para todos los bolos.',
+                self::BOLO_ULTIMO => 'vale el último puesto de esa manga, el mismo para todos los bolos.',
+                self::BOLO_FIJO => "vale {$puntosBolo} puntos.",
+                self::BOLO_AUSENCIA => 'cuesta lo mismo que no ir.',
+                default => 'vale la media de los puestos que quedan tras los que pescaron.',
+            };
             $frases[] = $puntosNoAsistencia > 0
                 ? "No ir a una manga cuesta {$puntosNoAsistencia} puntos."
                 : 'No ir a una manga cuesta el último puesto de esa manga más uno.';

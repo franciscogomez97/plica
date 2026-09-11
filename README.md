@@ -170,6 +170,19 @@ relativas al día en que se ejecuta.
   manga a manga enseña en cada celda los puntos de esa manga y en las de
   «no fue» lo que costó. `BassExtremaduraSeeder` carga su Orilla (47 socios,
   sin pesajes) y `PorPuestosTest` comprueba su hoja al decimal.
+- **Cierre del sistema de la federación** (11 de septiembre de 2026): nuevo
+  ajuste por sección «quien va y no pesca (el bolo) se lleva…»
+  (`seccions.bolo`, `puntos_bolo`): la media de los puestos que quedan
+  (((C + 1) + N) / 2, la fórmula oficial y la de Bass Extremadura), el primer
+  puesto libre (C + 1), el último (N), un número fijo, o lo mismo que una
+  ausencia. Los bolos siguen ocupando los últimos puestos de la manga; solo
+  cambian sus puntos. El Club de Pruebas lleva una **matriz de 30 secciones**
+  de federación (peso, medida y piezas × diez combinaciones de desempate,
+  ausencia automática o fija, las cinco opciones de bolo y los tres modos de
+  descarte) con datos con dos y tres bolos por manga; `MatrizFederacionTest`
+  fija sus resultados, calculados aparte con una implementación independiente
+  (`oraculo_federacion.py`, fuera del repo), y comprueba que el cuadro
+  coincide con el ranking.
 - **Cierre de «suma lo pescado»** (11 de septiembre de 2026): `puntos_no_asistencia`
   vuelve al formulario como **«Puntos por ausencia»** en los dos sistemas (en
   suma lo pescado admite negativos: castigo por cada manga a la que no se va;

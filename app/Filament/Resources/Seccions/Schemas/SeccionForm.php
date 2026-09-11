@@ -114,6 +114,32 @@ class SeccionForm
                             ->default(0)
                             ->live(onBlur: true),
 
+                        // Por puestos: el bolo (ir y no pescar). C = los que pescaron, N = los que fueron.
+                        Radio::make('bolo')
+                            ->label('Quien va y no pesca (el «bolo») se lleva…')
+                            ->options(Seccion::BOLOS)
+                            ->descriptions([
+                                Seccion::BOLO_MEDIA => 'La fórmula oficial: ((pescaron + 1) + fueron) / 2. Si pescaron 21 y fueron 29, cada bolo se lleva (22 + 29) / 2 = 25,5.',
+                                Seccion::BOLO_PRIMER_LIBRE => 'El puesto siguiente al último que pescó. Si pescaron 21, cada bolo se lleva 22. Hacer bolo casi no se nota.',
+                                Seccion::BOLO_ULTIMO => 'Tantos puntos como gente fue. Si fueron 29, cada bolo se lleva 29. Hacer bolo cuesta como quedar el último.',
+                                Seccion::BOLO_FIJO => 'Siempre los mismos puntos, pase lo que pase en la manga. Pon el número debajo.',
+                                Seccion::BOLO_AUSENCIA => 'Ir sin pescar cuesta lo mismo que no ir: los puntos por ausencia de aquí abajo.',
+                            ])
+                            ->default(Seccion::BOLO_MEDIA)
+                            ->visible($esPuestos)
+                            ->live()
+                            ->required(),
+                        TextInput::make('puntos_bolo')
+                            ->label('Puntos del bolo')
+                            ->helperText('Los que se lleva cada bolo, siempre. Lo normal es que sea menos que la ausencia, para que ir sin pescar sea mejor que no ir.')
+                            ->numeric()
+                            ->integer()
+                            ->minValue(0)
+                            ->default(0)
+                            ->visible(fn (Get $get): bool => $esPuestos($get) && $get('bolo') === Seccion::BOLO_FIJO)
+                            ->required(fn (Get $get): bool => $esPuestos($get) && $get('bolo') === Seccion::BOLO_FIJO)
+                            ->live(onBlur: true),
+
                         TextInput::make('descartes')
                             ->label('Descartes')
                             ->helperText('Peores mangas de cada socio que no cuentan al final del año. 0 = cuentan todas.')
@@ -161,6 +187,8 @@ class SeccionForm
                                 $get('desempate') ?: null,
                                 (int) ($get('puntos_no_asistencia') ?: 0),
                                 (bool) $get('descartes_ausencias'),
+                                (string) ($get('bolo') ?: Seccion::BOLO_MEDIA),
+                                (int) ($get('puntos_bolo') ?: 0),
                             )),
                     ]),
             ]);

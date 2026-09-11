@@ -93,7 +93,7 @@ class PorPuestosTest extends TestCase
         $this->assertSame(Seccion::DESEMPATE_PROMEDIO, $this->orilla->desempate);
         $this->assertSame(48, $this->orilla->puntos_no_asistencia);
         $this->assertSame(
-            'Cada manga la gana quien más peso saca. El ranking suma los puestos de cada manga: gana quien menos suma. No ir a una manga cuesta 48 puntos. Si empatan en una manga, se reparten el promedio de sus puestos; si empatan en el ranking, comparten puesto.',
+            'Cada manga la gana quien más peso saca. El ranking suma los puestos de cada manga: gana quien menos suma. Ir y no pescar (bolo) vale la media de los puestos que quedan tras los que pescaron. No ir a una manga cuesta 48 puntos. Si empatan en una manga, se reparten el promedio de sus puestos; si empatan en el ranking, comparten puesto.',
             $this->orilla->resumenReglas(),
         );
 
@@ -148,8 +148,8 @@ class PorPuestosTest extends TestCase
         $this->orilla->update(['puntos_no_asistencia' => 0]);
         $this->assertEquals(1 + 4, $this->puntos()['Fernando Díaz']);
 
-        // Con empates compartidos, Óscar y Pedro se llevan 18 (no 18,5) y los de cero, 22.
-        $this->orilla->update(['puntos_no_asistencia' => 48, 'desempate' => Seccion::DESEMPATE_COMPARTIDO]);
+        // Con empates compartidos y bolo «primer puesto libre», Óscar y Pedro se llevan 18 (no 18,5) y los de cero, 22.
+        $this->orilla->update(['puntos_no_asistencia' => 48, 'desempate' => Seccion::DESEMPATE_COMPARTIDO, 'bolo' => Seccion::BOLO_PRIMER_LIBRE]);
         $puntos = $this->puntos();
         $this->assertEquals(18 + 3, $puntos['Pedro Yuste']);
         $this->assertEquals(22 + 48, $puntos['Eduardo Vega']);
