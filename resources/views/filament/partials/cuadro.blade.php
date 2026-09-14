@@ -120,7 +120,7 @@
                                         {{-- Federación: lo que manda son los puntos de la manga (arriba); lo pescado, debajo en pequeño. --}}
                                         <span class="v pts">{{ \App\Services\Scoring::formatPuntos($c->puntos) }}<span class="u"> pts</span></span>
                                         <span class="m">
-                                            <span class="peso">{{ $c->valor > 0 ? $numero.($uni !== '' ? ' '.$uni : '') : 'bolo' }}</span>
+                                            <span class="peso">{{ $c->valor > 0 ? $numero.($uni !== '' ? ' '.$uni : '') : '0 '.$unidad }}</span>
                                             @if ($c->mayorDeLaManga)
                                                 <span class="pez" title="Pieza mayor de la manga: {{ $c->mayor }}">🐟</span>
                                             @endif
