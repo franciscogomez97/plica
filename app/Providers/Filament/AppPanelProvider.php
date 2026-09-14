@@ -46,6 +46,7 @@ class AppPanelProvider extends PanelProvider
             ->path('app')
             ->login(Login::class)
             ->profile(Perfil::class) // nombre, email, contraseña, y además foto y licencia federativa
+            ->darkMode(false) // siempre en claro: el oscuro del sistema no convence y confunde entre pantallas
             ->brandName('Plica')
             // Con sesión, la marca es el club: su logo y su nombre.
             ->brandLogo(fn () => auth()->user()?->club?->marca() ?? Marca::plica())

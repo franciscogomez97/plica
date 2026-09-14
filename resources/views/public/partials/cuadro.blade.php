@@ -17,28 +17,28 @@
 
 <style>
     .pc { border-collapse: separate; border-spacing: 0; min-width: 100%; font-variant-numeric: tabular-nums; }
-    .pc th, .pc td { padding: .6rem .7rem; text-align: right; white-space: nowrap; border-bottom: 1px solid rgb(30 41 59); vertical-align: middle; }
-    .pc thead th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: rgb(148 163 184); font-weight: 700; vertical-align: bottom; }
+    .pc th, .pc td { padding: .6rem .7rem; text-align: right; white-space: nowrap; border-bottom: 1px solid rgb(226 232 240); vertical-align: middle; }
+    .pc thead th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: rgb(100 116 139); font-weight: 700; vertical-align: bottom; }
     .pc thead th small { display: block; font-size: .72rem; font-weight: 500; text-transform: none; letter-spacing: 0; }
-    .pc th:first-child, .pc td:first-child { text-align: left; position: sticky; left: 0; z-index: 2; background: rgb(15 23 42); box-shadow: 6px 0 8px -6px rgba(0,0,0,.6); }
-    .pc th.total, .pc td.total { position: sticky; right: 0; z-index: 2; background: rgb(15 23 42); box-shadow: -6px 0 8px -6px rgba(0,0,0,.6); font-weight: 800; }
+    .pc th:first-child, .pc td:first-child { text-align: left; position: sticky; left: 0; z-index: 2; background: #fff; box-shadow: 6px 0 8px -6px rgba(0,0,0,.6); }
+    .pc th.total, .pc td.total { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -6px 0 8px -6px rgba(0,0,0,.6); font-weight: 800; }
     .pc tbody tr:last-child td { border-bottom: 0; }
     .pc .pos { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 800; background: rgb(51 65 85); }
     .pc .pos.p1 { background: #fbbf24; color: #451a03; }
     .pc .pos.p2 { background: #d4d4d8; color: #27272a; }
     .pc .pos.p3 { background: #d97706; color: #fff; }
     .pc .celda { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
-    .pc .celda .m { font-size: .7rem; color: rgb(148 163 184); }
-    .pc .celda .pm { display: inline-flex; min-width: 1.3rem; height: 1.1rem; padding: 0 .3rem; border-radius: 999px; align-items: center; justify-content: center; font-weight: 700; background: rgb(51 65 85); color: rgb(226 232 240); }
+    .pc .celda .m { font-size: .7rem; color: rgb(100 116 139); }
+    .pc .celda .pm { display: inline-flex; min-width: 1.3rem; height: 1.1rem; padding: 0 .3rem; border-radius: 999px; align-items: center; justify-content: center; font-weight: 700; background: rgb(226 232 240); color: rgb(30 41 59); }
 .pc .celda.gana .pm { background: #fbbf24; color: #451a03; }
 /* Federación: los puntos de la manga arriba (en oro si ganó la manga) y lo pescado debajo. */
 .pc .celda .v.pts { font-size: 1.05rem; }
 .pc .celda.gana .v.pts { background: #fbbf24; color: #451a03; border-radius: 999px; padding: 0 .5rem; }
-.pc .celda .m .peso { color: rgb(203 213 225); }
-.pc .celda.mayor .v { color: rgb(52 211 153); }
+.pc .celda .m .peso { color: rgb(71 85 105); }
+.pc .celda.mayor .v { color: rgb(5 150 105); }
 .pc .celda .pez { font-size: .8rem; line-height: 1; }
     .pc .celda.descartada .v { text-decoration: line-through; opacity: .45; }
-    .pc td.ausente { color: rgb(71 85 105); }
+    .pc td.ausente { color: rgb(148 163 184); }
     .pc td.ausente.descartada { text-decoration: line-through; }
     .pc .n.corto { display: none; }
     @media (max-width: 640px) {
@@ -53,9 +53,9 @@
 </style>
 
 @if ($cuadro->piezaMayor && ! ($sinPiezaMayor ?? false))
-    <div class="mb-3 rounded-xl bg-amber-400/10 px-4 py-2.5 text-sm text-amber-200">🐟 Pieza mayor de la temporada: <strong>{{ $cuadro->piezaMayor->socio->nombre }}</strong> · {{ $cuadro->piezaMayor->texto }} ({{ $cuadro->piezaMayor->manga->nombre }})</div>
+    <div class="mb-3 rounded-xl bg-amber-50 px-4 py-2.5 text-sm text-amber-800">🐟 Pieza mayor de la temporada: <strong>{{ $cuadro->piezaMayor->socio->nombre }}</strong> · {{ $cuadro->piezaMayor->texto }} ({{ $cuadro->piezaMayor->manga->nombre }})</div>
 @endif
-<div class="rounded-2xl border border-slate-800 bg-slate-900">
+<div class="rounded-2xl border border-slate-200 bg-white">
     <div class="overflow-x-auto">
         <table class="pc">
             <thead>
@@ -63,7 +63,7 @@
                     <th>Pescador</th>
                     @foreach ($cuadro->mangas as $manga)
                         <th>
-                            <a href="{{ route('club.manga', ['club' => $club->slug, 'manga' => $manga->id]) }}" class="hover:text-emerald-400">{{ $manga->nombre }}</a>
+                            <a href="{{ route('club.manga', ['club' => $club->slug, 'manga' => $manga->id]) }}" class="hover:text-emerald-700">{{ $manga->nombre }}</a>
                             <small>{{ $manga->fecha->format('d/m') }}</small>
                         </th>
                     @endforeach
@@ -80,7 +80,7 @@
                         <td>
                             <span class="inline-flex max-w-full items-center gap-2 font-semibold">
                                 <span @class(['pos', 'p'.$fila->puesto => $fila->puesto <= 3])>{{ $fila->puesto }}</span>
-                                <span class="n largo truncate">{{ $fila->socio->nombre }}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-700 px-1 text-[10px] font-bold uppercase text-slate-300">Baja</span>@endif</span>
+                                <span class="n largo truncate">{{ $fila->socio->nombre }}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-200 px-1 text-[10px] font-bold uppercase text-slate-700">Baja</span>@endif</span>
                                 <span class="n corto truncate" title="{{ $fila->socio->nombre }}">{{ $abreviar($fila->socio->nombre) }}</span>
                             </span>
                         </td>
@@ -151,7 +151,7 @@
     </div>
     <div class="flex flex-wrap gap-x-4 gap-y-1 px-4 py-3 text-xs text-slate-500">
 <span><span class="mr-1 inline-block size-3 rounded-full bg-amber-400 align-middle"></span>1º: ganador de la manga</span>
-<span>🐟 <span class="font-bold text-emerald-400">verde</span>: pieza mayor de la manga</span>
+<span>🐟 <span class="font-bold text-emerald-600">verde</span>: pieza mayor de la manga</span>
         @if ((int) $cuadro->seccion->descartes > 0)
             <span><s>Tachado</s>: manga descartada</span>
         @endif

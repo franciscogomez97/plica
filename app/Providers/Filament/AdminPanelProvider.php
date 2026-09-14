@@ -53,6 +53,7 @@ class AdminPanelProvider extends PanelProvider
             // Sin login propio: /admin/login manda al login único de /app/login.
             ->login(LoginRedirigido::class)
             ->profile()
+            ->darkMode(false) // siempre en claro: el oscuro del sistema no convence y confunde entre pantallas
             ->brandName('Plica · Panel del club')
             // Con sesión, la marca es el club: su logo y su nombre.
             ->brandLogo(fn () => auth()->user()?->club?->marca() ?? Marca::plica())

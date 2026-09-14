@@ -221,6 +221,13 @@ relativas al día en que se ejecuta.
   `MatrizAcumuladoTest` fija sus resultados, calculados aparte del motor con
   una implementación independiente, y comprueba que el cuadro coincide con
   el ranking.
+- **Todo en claro** (14 de septiembre de 2026): la web pública (landing,
+  páginas del club, sección y manga, acceso, legales y errores) deja el tema
+  oscuro y pasa a fondo claro (`slate-50`, tarjetas blancas, verde
+  `emerald-600`); los paneles de admin y socio van siempre en claro
+  (`->darkMode(false)`), aunque el móvil esté en modo oscuro. Motivo: el
+  oscuro no convencía y hacía que la misma clasificación pareciera otra
+  cosa según por dónde se entrara.
 - **Foto y licencia federativa del socio** (`socios.foto`, `socios.licencia`,
   14 de septiembre de 2026): la ficha del socio (admin) y el perfil del socio
   (`/app/profile`, página `App/Auth/Perfil`, que extiende la de Filament)
