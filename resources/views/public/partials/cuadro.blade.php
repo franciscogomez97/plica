@@ -29,7 +29,8 @@
     .pc thead th.total { background: rgb(248 250 252); }
     .pc tbody tr:last-child td { border-bottom: 0; }
     .pc .quien { font-weight: 600; color: rgb(15 23 42); }
-    .pc .pos { flex: none; width: 1.5rem; height: 1.5rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; color: rgb(71 85 105); }
+    .pc .pos { flex: none; width: 1.35rem; height: 1.35rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; color: rgb(71 85 105); }
+    .pc td:first-child { padding-left: .5rem; padding-right: .5rem; }
     .pc tr.corte td { padding: .35rem .7rem; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: rgb(100 116 139); background: rgb(248 250 252); text-align: left; position: static; box-shadow: none; }
     .pc .pos.p1 { background: #fbbf24; color: #451a03; }
     .pc .pos.p2 { background: #d4d4d8; color: #27272a; }
@@ -51,10 +52,9 @@
     @media (max-width: 640px) {
         .pc { font-size: .9rem; }
         .pc th, .pc td { padding: .45rem .4rem; }
-        .pc th:first-child, .pc td:first-child { max-width: 8rem; padding-left: 1rem; }
-        .pc th.total, .pc td.total { padding-right: 1rem; }
-        .pc .n.largo { display: none; }
-        .pc .n.corto { display: inline; }
+        .pc th:first-child, .pc td:first-child { max-width: 11.5rem; padding-left: .6rem; padding-right: .4rem; }
+        .pc td:first-child .n { font-size: .85rem; }
+        .pc th.total, .pc td.total { padding-left: .5rem; padding-right: .6rem; }
         .pc .u, .pc .extra, .pc .piezas { display: none; }
     }
 </style>
@@ -96,7 +96,7 @@
                     @endif
 <tr>
                         <td>
-                            <span class="inline-flex max-w-full items-center gap-2 font-semibold">
+                            <span class="inline-flex max-w-full items-center gap-1.5 font-semibold">
                                 <span @class(['pos', 'p'.$fila->puesto => $fila->puesto <= 3])>{{ $fila->puesto }}</span>
                                 <span class="n largo truncate">{{ $fila->socio->nombre }}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-200 px-1 text-[10px] font-bold uppercase text-slate-700">Baja</span>@endif</span>
                                 <span class="n corto truncate" title="{{ $fila->socio->nombre }}">{{ $abreviar($fila->socio->nombre) }}</span>

@@ -103,8 +103,6 @@
                     @if ((int) $cuadro->seccion->descartes > 0)
                         <span><s>tachado</s>: manga descartada</span>
                     @endif
-                    <span>—: no participó{{ ($cuadro->puntosNoAsistencia ?? 0) !== 0 ? ' ('.($cuadro->puntosNoAsistencia > 0 ? '+' : '').$cuadro->puntosNoAsistencia.' pts)' : '' }}</span>
-                    <span>valores en {{ $unidad }}</span>
                 </div>
             </div>
             @include('public.partials.cuadro', ['cuadro' => $cuadro, 'club' => $club, 'sinPiezaMayor' => true])
