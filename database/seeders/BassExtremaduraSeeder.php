@@ -59,6 +59,25 @@ class BassExtremaduraSeeder extends Seeder
             'desempate' => Seccion::DESEMPATE_PROMEDIO,
         ]);
 
+        // Pato y Embarcación, con las mismas normas que Orilla y vacías (sin socios ni
+        // mangas): el club las rellena. Solo se crean si no están, para no pisar lo
+        // que el club ajuste (cuántos socios son, y con ello los puntos por ausencia).
+        foreach (['pato' => 'Pato', 'embarcacion' => 'Embarcación'] as $slug => $nombre) {
+            Seccion::firstOrCreate(['club_id' => $club->id, 'slug' => $slug], [
+                'nombre' => $nombre,
+                'criterio' => Seccion::CRITERIO_PESO,
+                'numero_socios' => null,
+                'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS,
+                'puntos_participacion' => 0,
+                'puntos_no_asistencia' => count(self::SOCIOS) + 1,
+                'bolo' => Seccion::BOLO_MEDIA,
+                'puntos_bolo' => 0,
+                'descartes' => 0,
+                'descartes_ausencias' => true,
+                'desempate' => Seccion::DESEMPATE_PROMEDIO,
+            ]);
+        }
+
         $orilla = Seccion::where('club_id', $club->id)->where('slug', 'orilla')->firstOrFail();
 
         foreach (self::SOCIOS as $nombre) {

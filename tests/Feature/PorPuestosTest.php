@@ -62,7 +62,7 @@ class PorPuestosTest extends TestCase
         parent::setUp();
         $this->seed(BassExtremaduraSeeder::class);
         $this->club = Club::where('slug', 'bass-extremadura')->firstOrFail();
-        $this->orilla = Seccion::where('club_id', $this->club->id)->firstOrFail();
+        $this->orilla = Seccion::where('club_id', $this->club->id)->where('slug', 'orilla')->firstOrFail();
         $this->temporada = Temporada::where('club_id', $this->club->id)->firstOrFail();
     }
 
@@ -100,7 +100,7 @@ class PorPuestosTest extends TestCase
         // Se puede volver a ejecutar sin duplicar.
         $this->seed(BassExtremaduraSeeder::class);
         $this->assertSame(47, $this->club->socios()->count());
-        $this->assertSame(1, Seccion::where('club_id', $this->club->id)->count());
+        $this->assertSame(3, Seccion::where('club_id', $this->club->id)->count()); // Orilla, Pato y Embarcación
     }
 
     public function test_una_manga_puntua_como_la_hoja_del_club(): void

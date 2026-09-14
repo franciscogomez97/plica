@@ -66,6 +66,26 @@ class BassExtremaduraTemporadaTest extends TestCase
         $this->assertSame(2975, $grupo->piezaMayor->valor);
     }
 
+    public function test_pato_y_embarcacion_tienen_las_normas_de_orilla_y_estan_vacias(): void
+    {
+        $club = Club::where('slug', 'bass-extremadura')->firstOrFail();
+        $this->assertSame(['Embarcación', 'Orilla', 'Pato'], $club->seccions()->orderBy('nombre')->pluck('nombre')->all());
+
+        $orilla = $club->seccions()->where('slug', 'orilla')->firstOrFail();
+        $normas = ['criterio', 'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'bolo', 'puntos_bolo', 'descartes', 'descartes_ausencias', 'desempate'];
+
+        foreach (['pato', 'embarcacion'] as $slug) {
+            $seccion = $club->seccions()->where('slug', $slug)->firstOrFail();
+            $this->assertSame($orilla->only($normas), $seccion->only($normas), $slug);
+            $this->assertNull($seccion->numero_socios); // no se sabe cuántos son: no se inventa
+            $this->assertSame(0, $seccion->socios()->count());
+            $this->assertSame(0, $seccion->mangas()->count());
+        }
+
+        // Y el ranking de la temporada no se cae con secciones sin mangas.
+        $this->assertNotNull(Scoring::rankingTemporada($club->temporadaActiva())->firstWhere('nombre', 'Orilla'));
+    }
+
     public function test_cada_manga_puntua_como_su_hoja(): void
     {
         $club = Club::where('slug', 'bass-extremadura')->firstOrFail();
