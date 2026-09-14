@@ -1,8 +1,10 @@
 #!/bin/bash
-# Copia nocturna de Plica en el VPS: volcado de Postgres + archivos subidos (logos y fotos
-# de socios, todo storage/app/public). Guarda 14 días en el servidor y deja una réplica
-# idéntica en el Google Drive de plica.contacto@gmail.com (rclone, remoto «gdrive», carpeta
-# Backups-Plica; permiso drive.file: rclone solo ve lo que sube).
+# Copia nocturna de Plica en el VPS: volcado de Postgres, archivos subidos (logos y fotos
+# de socios, todo storage/app/public) y la configuración para reconstruir el servidor
+# (.env, sitio de Nginx, rclone.conf, contraseña de Postgres y crontab; solo root la lee).
+# Guarda 14 días en el servidor y deja una réplica idéntica en el Google Drive de
+# plica.contacto@gmail.com (rclone, remoto «gdrive», carpeta Backups-Plica; permiso
+# drive.file: rclone solo ve lo que sube). Si algo falla, avisa por correo (plica:avisar).
 # Las copias son de root, legibles por el grupo postgres: así se restaura directamente con
 #   sudo -u postgres pg_restore -d plica --clean /var/backups/plica/plica-FECHA.dump
 # Instalar: cp deploy/plica-backup /usr/local/bin/ && chmod 700 /usr/local/bin/plica-backup
@@ -10,12 +12,24 @@
 set -euo pipefail
 DEST=/var/backups/plica
 DIA=$(date +%Y%m%d-%H%M)
+APP=/var/www/plica
+avisar() { (cd "$APP" && sudo -u www-data php artisan plica:avisar "$1" "$2" >/dev/null 2>&1) || true; }
+trap 'echo "$(date "+%F %T") ERROR en la línea $LINENO"; avisar "Copia de seguridad FALLIDA" "El script plica-backup ha fallado en la línea $LINENO el $(date "+%F %T"). Mira /var/log/plica-backup.log en el VPS."' ERR
 umask 027
 mkdir -p "$DEST" && chgrp postgres "$DEST" && chmod 750 "$DEST"
 sudo -u postgres pg_dump -Fc plica > "$DEST/plica-$DIA.dump"
-tar -czf "$DEST/archivos-$DIA.tar.gz" -C /var/www/plica/storage/app/public . 2>/dev/null || true
+tar -czf "$DEST/archivos-$DIA.tar.gz" -C "$APP/storage/app/public" . 2>/dev/null || true
 chgrp postgres "$DEST"/* && chmod 640 "$DEST"/*
+# Kit para reconstruir el servidor si el VPS muere. Con secretos: solo root.
+CONF=$(mktemp -d)
+cp "$APP/.env" "$CONF/env"
+cp /etc/nginx/sites-available/plica "$CONF/nginx-plica.conf"
+cp /root/.config/rclone/rclone.conf "$CONF/rclone.conf"
+cp /root/.plica_db_pass "$CONF/plica_db_pass"
+crontab -l > "$CONF/crontab-root" 2>/dev/null || true
+tar -czf "$DEST/config-$DIA.tar.gz" -C "$CONF" . && chmod 600 "$DEST/config-$DIA.tar.gz"
+rm -rf "$CONF"
 find "$DEST" -type f -mtime +14 -delete
 # Réplica en Drive: misma rotación de 14 días (sync borra allí lo que ya no está aquí).
-if rclone sync "$DEST" gdrive:Backups-Plica --quiet; then NUBE=drive; else NUBE="drive:ERROR"; fi
+if rclone sync "$DEST" gdrive:Backups-Plica --quiet; then NUBE=drive; else NUBE="drive:ERROR"; avisar "Copia de seguridad sin réplica en Drive" "La copia de hoy ($DIA) se hizo en el VPS pero rclone no pudo subirla a Drive. Seguramente el token de Google ha caducado: repetir «rclone authorize drive» (ver README, Producción)."; fi
 echo "$(date '+%F %T') ok $DEST/plica-$DIA.dump $NUBE"

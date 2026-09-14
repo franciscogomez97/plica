@@ -4,3 +4,4 @@ Disallow: /acceso/
 Disallow: /admin/
 Disallow: /app/
 Disallow: /livewire/
+Disallow: /salud

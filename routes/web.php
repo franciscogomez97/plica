@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\AntiSpam;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -57,6 +58,21 @@ Route::get('/whatsapp', function () {
 
     return redirect()->away('https://wa.me/'.config('plica.whatsapp').'?text='.rawurlencode('Hola, soy de un club de pesca y quiero probar Plica.'));
 })->name('whatsapp');
+
+// Chequeo de disponibilidad para el monitor externo (UptimeRobot o similar): 200 si la
+// aplicación y la base de datos responden, 503 si no. Sin caché y fuera de los buscadores.
+Route::get('/salud', function () {
+    try {
+        DB::select('select 1');
+        $bd = 'ok';
+    } catch (Throwable) {
+        $bd = 'error';
+    }
+
+    return response()
+        ->json(['ok' => $bd === 'ok', 'bd' => $bd, 'hora' => now()->toIso8601String()], $bd === 'ok' ? 200 : 503)
+        ->header('Cache-Control', 'no-store');
+})->name('salud');
 
 // ---------- Páginas públicas del club ----------
 // La portada respeta «perfil público»; sección y manga son públicas SIEMPRE

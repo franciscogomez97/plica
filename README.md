@@ -104,6 +104,15 @@ y comprueba que la web responde. Con OPcache activado el panel responde en
 decenas de milisegundos; sin las cachés, Filament descubre recursos y
 componentes en cada petición y se nota.
 
+**Disponibilidad y correo:** `/salud` responde 200 con JSON si la aplicación
+y la base de datos van, y 503 si no; es lo que vigila el monitor externo
+(UptimeRobot, gratis, cada 5 minutos, avisa a plica.contacto@gmail.com).
+`php artisan plica:avisar "Asunto" "Texto"` manda un correo al email de
+notificaciones con el mailer configurado: sirve para probar el SMTP (Gmail
+con contraseña de aplicación: `MAIL_MAILER=smtp`, `MAIL_HOST=smtp.gmail.com`,
+`MAIL_PORT=587`, usuario y contraseña de aplicación, y `php artisan
+config:cache` después de tocar el `.env`).
+
 **En el servidor, fuera del repo:** el `.env` de producción (clave de
 Postgres en `/root/.plica_db_pass`), el sitio de Nginx en
 `/etc/nginx/sites-available/plica` (raíz `public/`, subidas hasta 12 MB) y
@@ -116,7 +125,12 @@ Google Drive de `plica.contacto@gmail.com` (carpeta «Backups-Plica») con
 autorizado una vez con `rclone authorize "drive"` desde el Mac y con permiso
 `drive.file` (rclone solo ve lo que él sube). Si el token dejara de
 renovarse, repetir esa autorización y volver a escribir el `token` del
-remoto. Restaurar (comprobado el 14 de septiembre de 2026 restaurando la
+remoto. La copia lleva también un `config-FECHA.tar.gz` (solo root) con el
+`.env`, el sitio de Nginx, `rclone.conf`, la contraseña de Postgres y el
+crontab: con él y el volcado se reconstruye el servidor desde cero. Si el
+script falla o Drive no responde, avisa por correo (`php artisan
+plica:avisar`, al email de notificaciones). Restaurar (comprobado el 14 de
+septiembre de 2026 restaurando la
 copia de esa noche en una base temporal, con los mismos recuentos que la
 base en vivo): `sudo -u postgres pg_restore -d plica --clean
 /var/backups/plica/plica-FECHA.dump`.
