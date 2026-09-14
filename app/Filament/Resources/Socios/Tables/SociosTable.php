@@ -30,18 +30,21 @@ class SociosTable
                 // En pantalla ancha, una línea por socio; en el móvil se apila (nombre,
                 // teléfono, insignias) y así el botón «Acceso» no se sale por la derecha.
                 Split::make([
+                    // Foto y nombre siempre juntos, también en el móvil (donde el resto se apila).
                     // La foto solo se enseña aquí, de momento: ni en rankings ni en la web pública.
-                    ImageColumn::make('foto')
-                        ->label('')
-                        ->disk(FotoSocio::DISCO)
-                        ->visibility('public')
-                        ->circular()
-                        ->imageSize(40)
-                        ->defaultImageUrl(asset('img/socio.svg'))
-                        ->grow(false),
-                    TextColumn::make('nombre')
-                        ->weight(FontWeight::SemiBold)
-                        ->searchable(),
+                    Split::make([
+                        ImageColumn::make('foto')
+                            ->label('')
+                            ->disk(FotoSocio::DISCO)
+                            ->visibility('public')
+                            ->circular()
+                            ->imageSize(40)
+                            ->defaultImageUrl(asset('img/socio.svg'))
+                            ->grow(false),
+                        TextColumn::make('nombre')
+                            ->weight(FontWeight::SemiBold)
+                            ->searchable(),
+                    ]),
                     TextColumn::make('licencia')
                         ->formatStateUsing(fn (string $state): string => "Lic. {$state}")
                         ->color('gray')
