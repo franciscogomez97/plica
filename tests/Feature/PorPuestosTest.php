@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\App\Pages\RankingSeccion;
 use App\Filament\Resources\Seccions\Pages\EditSeccion;
 use App\Models\Captura;
 use App\Models\Club;
@@ -15,6 +16,7 @@ use App\Services\Scoring;
 use Database\Seeders\BassExtremaduraSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -171,7 +173,19 @@ class PorPuestosTest extends TestCase
         $this->get('/c/bass-extremadura/orilla')->assertOk()
             ->assertSee('18,5')
             ->assertSee('25,5')
-            ->assertSee('No ir a una manga cuesta 48 puntos');
+            ->assertSee('No ir a una manga cuesta 48 puntos')
+            // Federación: en cada celda mandan los puntos de la manga (Ángel, 2º con 3.250 g: «2 pts»), y el peso va debajo.
+            ->assertSeeInOrder(['Angel Vazquez', 'class="v pts font-semibold">2<span class="u"> pts</span>', 'class="peso">3,250 kg'], false)
+            // Quien fue y no pescó: sus puntos de bolo y «bolo» donde iría el peso.
+            ->assertSeeInOrder(['Eduardo Vega', 'class="v pts font-semibold">25,5<span class="u"> pts</span>', 'class="peso">bolo'], false);
+
+        // Y el cuadro del panel del socio, igual.
+        $this->actingAs(User::create(['name' => 'Socio de prueba', 'email' => 'socio@be.test', 'password' => Hash::make('secreta1234'), 'club_id' => $this->club->id, 'role' => User::ROLE_SOCIO]));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
+        Livewire::test(RankingSeccion::class, ['seccion' => $this->orilla->id])
+            ->assertSeeHtml('class="v pts">2<span class="u"> pts</span>')
+            ->assertSeeHtml('class="peso">3,250 kg')
+            ->assertSeeHtml('class="peso">bolo');
     }
 
     public function test_el_formulario_de_la_seccion_configura_el_sistema_por_puestos(): void

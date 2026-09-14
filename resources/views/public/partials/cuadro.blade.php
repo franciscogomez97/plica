@@ -31,6 +31,10 @@
     .pc .celda .m { font-size: .7rem; color: rgb(148 163 184); }
     .pc .celda .pm { display: inline-flex; min-width: 1.3rem; height: 1.1rem; padding: 0 .3rem; border-radius: 999px; align-items: center; justify-content: center; font-weight: 700; background: rgb(51 65 85); color: rgb(226 232 240); }
 .pc .celda.gana .pm { background: #fbbf24; color: #451a03; }
+/* Federación: los puntos de la manga arriba (en oro si ganó la manga) y lo pescado debajo. */
+.pc .celda .v.pts { font-size: 1.05rem; }
+.pc .celda.gana .v.pts { background: #fbbf24; color: #451a03; border-radius: 999px; padding: 0 .5rem; }
+.pc .celda .m .peso { color: rgb(203 213 225); }
 .pc .celda.mayor .v { color: rgb(52 211 153); }
 .pc .celda .pez { font-size: .8rem; line-height: 1; }
     .pc .celda.descartada .v { text-decoration: line-through; opacity: .45; }
@@ -93,20 +97,37 @@
                             @else
                                 @php [$numero, $uni] = $partir($c->texto); @endphp
                                 <td>
-<div @class(['celda', 'gana' => $c->puesto === 1, 'mayor' => $c->mayorDeLaManga, 'descartada' => $c->descartada]) title="{{ $c->texto }} · {{ $c->puesto }}º{{ $c->mayorDeLaManga ? ' · pieza mayor de la manga ('.$c->mayor.')' : '' }}">
-    <span class="v font-semibold">{{ $numero }}@if ($uni !== '')<span class="u"> {{ $uni }}</span>@endif</span>
-    <span class="m">
-        <span class="pm">{{ $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS && $c->puntos !== null ? \App\Services\Scoring::formatPuntos($c->puntos) : $c->puesto.'º' }}</span>
-        @if ($c->mayorDeLaManga)
-            <span class="pez" title="Pieza mayor de la manga: {{ $c->mayor }}">🐟</span>
-        @endif
-                                            @if ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS && $c->piezas > 0)
-                                                <span class="extra">{{ $c->piezas }} {{ $c->piezas === 1 ? 'pieza' : 'piezas' }}</span>
-                                            @endif
-                                            @if ($c->descartada)
-                                                <span class="extra">· descarte</span>
-                                            @endif
-                                        </span>
+<div @class(['celda', 'gana' => $c->puesto === 1, 'mayor' => $c->mayorDeLaManga, 'descartada' => $c->descartada]) title="{{ $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS && $c->puntos !== null ? \App\Services\Scoring::formatPuntos($c->puntos).' pts · ' : '' }}{{ $c->texto }} · {{ $c->puesto }}º{{ $c->mayorDeLaManga ? ' · pieza mayor de la manga ('.$c->mayor.')' : '' }}">
+                                        @if ($cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS && $c->puntos !== null)
+                                            {{-- Federación: los puntos de la manga arriba; lo pescado, debajo en pequeño. --}}
+                                            <span class="v pts font-semibold">{{ \App\Services\Scoring::formatPuntos($c->puntos) }}<span class="u"> pts</span></span>
+                                            <span class="m">
+                                                <span class="peso">{{ $c->valor > 0 ? $numero.($uni !== '' ? ' '.$uni : '') : 'bolo' }}</span>
+                                                @if ($c->mayorDeLaManga)
+                                                    <span class="pez" title="Pieza mayor de la manga: {{ $c->mayor }}">🐟</span>
+                                                @endif
+                                                @if ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS && $c->piezas > 0)
+                                                    <span class="extra">{{ $c->piezas }} {{ $c->piezas === 1 ? 'pieza' : 'piezas' }}</span>
+                                                @endif
+                                                @if ($c->descartada)
+                                                    <span class="extra">· descarte</span>
+                                                @endif
+                                            </span>
+                                        @else
+                                            <span class="v font-semibold">{{ $numero }}@if ($uni !== '')<span class="u"> {{ $uni }}</span>@endif</span>
+                                            <span class="m">
+                                                <span class="pm">{{ $c->puesto }}º</span>
+                                                @if ($c->mayorDeLaManga)
+                                                    <span class="pez" title="Pieza mayor de la manga: {{ $c->mayor }}">🐟</span>
+                                                @endif
+                                                @if ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS && $c->piezas > 0)
+                                                    <span class="extra">{{ $c->piezas }} {{ $c->piezas === 1 ? 'pieza' : 'piezas' }}</span>
+                                                @endif
+                                                @if ($c->descartada)
+                                                    <span class="extra">· descarte</span>
+                                                @endif
+                                            </span>
+                                        @endif
                                     </div>
                                 </td>
                             @endif
