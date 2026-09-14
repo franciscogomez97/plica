@@ -36,6 +36,9 @@ class SeccionForm
         };
 
         return $schema
+            // Una sola columna: los bloques van en orden (la sección, el ranking, los socios, cómo puntúa) y a
+            // dos columnas el bloque corto dejaba un hueco enorme debajo, junto al bloque largo del ranking.
+            ->columns(1)
             ->components([
                 Section::make('La sección')
                     ->schema([
