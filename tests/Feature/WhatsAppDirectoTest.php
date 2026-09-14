@@ -33,7 +33,7 @@ class WhatsAppDirectoTest extends TestCase
         foreach (['/c/cd-pesca-piloto/orilla', '/c/cd-pesca-piloto/manga/'.$manga->id] as $url) {
             $this->get($url)->assertOk()
                 ->assertSee('href="https://wa.me/?text=', escape: false)
-                ->assertSee('Compartir por WhatsApp')
+                ->assertSee('Compartir') // en la sección, el botón compacto; en la manga, el largo
                 ->assertDontSee('navigator.share');
         }
     }

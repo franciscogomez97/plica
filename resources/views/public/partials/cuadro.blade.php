@@ -17,12 +17,14 @@
 
 <style>
     .pc { border-collapse: separate; border-spacing: 0; min-width: 100%; font-variant-numeric: tabular-nums; font-size: .9rem; }
-    .pc th, .pc td { padding: .55rem .7rem; text-align: right; white-space: nowrap; border-bottom: 1px solid rgb(241 245 249); vertical-align: middle; }
+    .pc th, .pc td { padding: .5rem .6rem; text-align: right; white-space: nowrap; border-bottom: 1px solid rgb(241 245 249); vertical-align: middle; }
+    /* Pescador, total, piezas y mayor, al ancho justo de su contenido: el aire sobrante se lo llevan las mangas. */
+    .pc th:first-child, .pc td:first-child, .pc th.total, .pc td.total, .pc th.piezas, .pc td.piezas { width: 1%; }
     .pc thead th { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: rgb(100 116 139); font-weight: 700; vertical-align: bottom; background: rgb(248 250 252); border-bottom: 1px solid rgb(226 232 240); }
     .pc thead th small { display: block; font-size: .7rem; font-weight: 500; text-transform: none; letter-spacing: 0; }
     .pc th:first-child, .pc td:first-child { text-align: left; position: sticky; left: 0; z-index: 2; background: #fff; box-shadow: 6px 0 8px -6px rgba(0,0,0,.12); }
     .pc thead th:first-child { background: rgb(248 250 252); }
-    .pc th.total, .pc td.total { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -6px 0 8px -6px rgba(0,0,0,.12); font-weight: 800; }
+    .pc th.total, .pc td.total { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -6px 0 8px -6px rgba(0,0,0,.12); font-weight: 800; padding-left: .9rem; }
     .pc thead th.total { background: rgb(248 250 252); }
     .pc tbody tr:last-child td { border-bottom: 0; }
     .pc .quien { font-weight: 600; color: rgb(15 23 42); }

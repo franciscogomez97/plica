@@ -58,7 +58,8 @@ class CompartirPublicoTest extends TestCase
             ->assertSee('Mario López')
             ->assertSee('Clasificación general')
             ->assertSee('Líder')
-            ->assertSee('Compartir por WhatsApp')
+            ->assertSee('Compartir') // botón compacto junto al título
+            ->assertSee('https://wa.me/?text=', escape: false)
             ->assertSee('Hecho con Plica')
             ->assertSee('property="og:title" content="Ranking Orilla · CD Pesca Piloto"', escape: false)
             ->assertSee('1º Mario López · 2º Sergio del Río · 3º Alberto Rey');

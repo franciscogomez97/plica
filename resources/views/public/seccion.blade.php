@@ -26,17 +26,15 @@
                 <span class="text-sm text-slate-500">{{ $club->nombre }}</span>
             @endif
         </div>
-        <div class="mt-2 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-            <div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Ranking {{ $seccion->nombre }}</h1>
-                <p class="mt-1 text-sm text-slate-500">
-                    {{ $temporada?->nombre ?? 'Sin temporada activa' }}@if ($cuadro && $cuadro->mangas->isNotEmpty()) · {{ $cuadro->mangas->count() === 1 ? '1 manga celebrada' : $cuadro->mangas->count().' mangas celebradas' }}@endif
-                </p>
-            </div>
+        <div class="mt-2 flex items-center justify-between gap-4">
+            <h1 class="min-w-0 text-2xl font-extrabold tracking-tight text-slate-900">Ranking {{ $seccion->nombre }}</h1>
             @if ($texto)
-                @include('partials.compartir', ['titulo' => 'Ranking '.$seccion->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url])
+                @include('partials.compartir', ['titulo' => 'Ranking '.$seccion->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url, 'compacto' => true])
             @endif
         </div>
+        <p class="mt-1 text-sm text-slate-500">
+            {{ $temporada?->nombre ?? 'Sin temporada activa' }}@if ($cuadro && $cuadro->mangas->isNotEmpty()) · {{ $cuadro->mangas->count() === 1 ? '1 manga celebrada' : $cuadro->mangas->count().' mangas celebradas' }}@endif
+        </p>
         <details class="mt-3 text-sm text-slate-500">
             <summary class="cursor-pointer select-none font-medium text-slate-700 hover:text-emerald-700">Cómo puntúa esta sección</summary>
             <p class="mt-1 max-w-3xl">{{ $seccion->resumenReglas() }}</p>
