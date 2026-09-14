@@ -16,14 +16,18 @@
 @endphp
 
 <style>
-    .pc { border-collapse: separate; border-spacing: 0; min-width: 100%; font-variant-numeric: tabular-nums; }
-    .pc th, .pc td { padding: .6rem .7rem; text-align: right; white-space: nowrap; border-bottom: 1px solid rgb(226 232 240); vertical-align: middle; }
-    .pc thead th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: rgb(100 116 139); font-weight: 700; vertical-align: bottom; }
-    .pc thead th small { display: block; font-size: .72rem; font-weight: 500; text-transform: none; letter-spacing: 0; }
-    .pc th:first-child, .pc td:first-child { text-align: left; position: sticky; left: 0; z-index: 2; background: #fff; box-shadow: 6px 0 8px -6px rgba(0,0,0,.6); }
-    .pc th.total, .pc td.total { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -6px 0 8px -6px rgba(0,0,0,.6); font-weight: 800; }
+    .pc { border-collapse: separate; border-spacing: 0; min-width: 100%; font-variant-numeric: tabular-nums; font-size: .9rem; }
+    .pc th, .pc td { padding: .55rem .7rem; text-align: right; white-space: nowrap; border-bottom: 1px solid rgb(241 245 249); vertical-align: middle; }
+    .pc thead th { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: rgb(100 116 139); font-weight: 700; vertical-align: bottom; background: rgb(248 250 252); border-bottom: 1px solid rgb(226 232 240); }
+    .pc thead th small { display: block; font-size: .7rem; font-weight: 500; text-transform: none; letter-spacing: 0; }
+    .pc th:first-child, .pc td:first-child { text-align: left; position: sticky; left: 0; z-index: 2; background: #fff; box-shadow: 6px 0 8px -6px rgba(0,0,0,.12); }
+    .pc thead th:first-child { background: rgb(248 250 252); }
+    .pc th.total, .pc td.total { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -6px 0 8px -6px rgba(0,0,0,.12); font-weight: 800; }
+    .pc thead th.total { background: rgb(248 250 252); }
     .pc tbody tr:last-child td { border-bottom: 0; }
-    .pc .pos { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 800; background: rgb(226 232 240); color: rgb(30 41 59); }
+    .pc .quien { font-weight: 600; color: rgb(15 23 42); }
+    .pc .pos { flex: none; width: 1.5rem; height: 1.5rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; color: rgb(71 85 105); }
+    .pc tr.corte td { padding: .35rem .7rem; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: rgb(100 116 139); background: rgb(248 250 252); text-align: left; position: static; box-shadow: none; }
     .pc .pos.p1 { background: #fbbf24; color: #451a03; }
     .pc .pos.p2 { background: #d4d4d8; color: #27272a; }
     .pc .pos.p3 { background: #d97706; color: #fff; }
@@ -55,7 +59,7 @@
 @if ($cuadro->piezaMayor && ! ($sinPiezaMayor ?? false))
     <div class="mb-3 rounded-xl bg-amber-50 px-4 py-2.5 text-sm text-amber-800">🐟 Pieza mayor de la temporada: <strong>{{ $cuadro->piezaMayor->socio->nombre }}</strong> · {{ $cuadro->piezaMayor->texto }} ({{ $cuadro->piezaMayor->manga->nombre }})</div>
 @endif
-<div class="rounded-2xl border border-slate-200 bg-white">
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
     <div class="overflow-x-auto">
         <table class="pc">
             <thead>
@@ -75,7 +79,18 @@
                 </tr>
             </thead>
             <tbody>
+                @php
+                    // Franja de corte: a partir de aquí, los socios de la sección que no han pescado ninguna manga.
+                    $primeroSinMangas = null;
+                    foreach ($cuadro->filas->values() as $i => $f) {
+                        if ($f->mangas === 0) { $primeroSinMangas ??= $i; } else { $primeroSinMangas = null; }
+                    }
+                    $columnas = 2 + $cuadro->mangas->count() + ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS ? 1 : 0) + 1;
+                @endphp
                 @foreach ($cuadro->filas as $fila)
+                    @if ($loop->index === $primeroSinMangas && $loop->index > 0)
+                        <tr class="corte"><td colspan="{{ $columnas }}">Sin ninguna manga esta temporada</td></tr>
+                    @endif
 <tr>
                         <td>
                             <span class="inline-flex max-w-full items-center gap-2 font-semibold">

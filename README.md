@@ -221,6 +221,16 @@ relativas al día en que se ejecuta.
   `MatrizAcumuladoTest` fija sus resultados, calculados aparte del motor con
   una implementación independiente, y comprueba que el cuadro coincide con
   el ranking.
+- **Página pública de sección, limpia** (14 de septiembre de 2026, a
+  imagen del leaderboard de Bassmaster): cabecera sobria (título, temporada
+  y mangas celebradas; las reglas plegadas en «Cómo puntúa esta sección»),
+  dos tarjetas arriba (líder y pieza mayor de la temporada), y el cuadro
+  manga a manga como clasificación general única (antes había una lista y
+  luego el cuadro con lo mismo). Tabla sobria: cabecera gris con
+  mayúsculas pequeñas, nombres normales, números tabulares, líneas finas;
+  una franja «Sin ninguna manga esta temporada» separa a los socios de la
+  sección que no han pescado. La lista pública (última manga, club, manga)
+  pierde las barras y los nombres grandes: puesto, pescador y dato.
 - **Todo en claro** (14 de septiembre de 2026): la web pública (landing,
   páginas del club, sección y manga, acceso, legales y errores) deja el tema
   oscuro y pasa a fondo claro (`slate-50`, tarjetas blancas, verde

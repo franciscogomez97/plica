@@ -39,6 +39,7 @@ class PasadaGeneralTest extends TestCase
         $this->seed(DemoSeeder::class);
 
         $html = $this->get('/c/cd-pesca-piloto/orilla')->assertOk()->getContent();
-        $this->assertSame(1, substr_count($html, 'Pieza mayor de la temporada:'));
+        // Solo en la tarjeta de cabecera; ni la lista ni el cuadro la repiten.
+        $this->assertSame(1, substr_count($html, 'Pieza mayor de la temporada'));
     }
 }
