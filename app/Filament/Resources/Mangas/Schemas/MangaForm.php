@@ -100,9 +100,7 @@ class MangaForm
                             ->columnSpanFull(),
                     ])
                     ->columns(2)
-                    ->collapsible()
-                    // Al editar una manga sin quedada, plegada; al crear, abierta para que se vea la opción.
-                    ->collapsed(fn (?Manga $record): bool => $record !== null && blank($record->quedada_lugar) && blank($record->quedada_hora)),
+                    ->collapsible(), // siempre desplegada: se puede plegar, pero que se vea la opción
                 Radio::make('estado')
                     ->label('Estado')
                     ->options([
