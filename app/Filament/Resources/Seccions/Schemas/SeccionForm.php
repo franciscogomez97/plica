@@ -33,6 +33,10 @@ class SeccionForm
             if (! array_key_exists((string) $get('desempate'), $opciones)) {
                 $set('desempate', Seccion::desempatePorDefecto((string) ($get('criterio') ?: Seccion::CRITERIO_PESO)));
             }
+
+            if (! array_key_exists((string) $get('desempate_general'), Seccion::desempatesGeneralPara((string) ($get('criterio') ?: Seccion::CRITERIO_PESO)))) {
+                $set('desempate_general', Seccion::DESEMPATE_COMPARTIDO);
+            }
         };
 
         return $schema
@@ -167,15 +171,28 @@ class SeccionForm
                         // Una sola regla para los empates, en las mangas y en el ranking: o
                         // decide algo (pieza mayor, piezas) o no decide nada y comparten.
                         Radio::make('desempate')
-                            ->label('Si empatan, ¿quién gana?')
+                            // Sumando puestos, esta regla es la de cada manga; el año tiene la suya, debajo.
+                            ->label(fn (Get $get): string => $esPuestos($get) ? 'Si empatan en una manga, ¿quién gana?' : 'Si empatan, ¿quién gana?')
                             ->options(fn (Get $get): array => Seccion::desempatesPara(
                                 (string) ($get('criterio') ?: Seccion::CRITERIO_PESO),
                                 (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
                             ))
                             ->default(Seccion::DESEMPATE_PIEZAS)
-                            ->helperText('Vale para cada manga y para el ranking. Si desempata algo y siguen igual, comparten puesto (1º, 1º, 3º).')
+                            ->helperText(fn (Get $get): string => $esPuestos($get)
+                                ? 'Decide el puesto de cada manga, y con él los puntos. Si desempata algo y siguen igual, comparten puesto (1º, 1º, 3º).'
+                                : 'Vale para cada manga y para el ranking. Si desempata algo y siguen igual, comparten puesto (1º, 1º, 3º).')
                             ->live()
                             ->required(),
+                        // El empate en el ranking del año, sumando puestos: los reglamentos lo resuelven aparte
+                        // (más gramos o mejor manga en Castilla-La Mancha; pieza mayor o menos capturas en la FEPyC).
+                        Radio::make('desempate_general')
+                            ->label('Si empatan en el ranking de la temporada, ¿quién gana?')
+                            ->options(fn (Get $get): array => Seccion::desempatesGeneralPara((string) ($get('criterio') ?: Seccion::CRITERIO_PESO)))
+                            ->default(Seccion::DESEMPATE_COMPARTIDO)
+                            ->helperText('A igual suma de puntos en el año. Si desempata algo y siguen igual, comparten puesto.')
+                            ->visible($esPuestos)
+                            ->live()
+                            ->required($esPuestos),
                     ]),
 
                 Section::make('Socios de la sección')
@@ -210,6 +227,7 @@ class SeccionForm
                                 (bool) $get('descartes_ausencias'),
                                 (string) ($get('bolo') ?: Seccion::BOLO_MEDIA),
                                 (int) ($get('puntos_bolo') ?: 0),
+                                (string) ($get('desempate_general') ?: Seccion::DESEMPATE_COMPARTIDO),
                             )),
                     ]),
             ]);

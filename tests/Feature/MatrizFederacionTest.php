@@ -11,7 +11,8 @@ use Tests\TestCase;
 /**
  * Cierre del sistema de la federación (suma los puestos): la matriz del Club
  * de Pruebas (30 secciones: peso, medida y piezas × diez combinaciones de
- * desempate, ausencia, bolo y descartes) contra resultados calculados aparte
+ * desempate, ausencia, bolo, descartes y, desde el 14 de septiembre de 2026,
+ * desempate de la general) contra resultados calculados aparte
  * del motor, a mano y con una implementación independiente
  * (scratchpad/oraculo_federacion.py, 11 de septiembre de 2026). Cada lista:
  * [socio, puesto, puntos, mangas]. Los puntos pueden llevar decimales.
@@ -27,8 +28,8 @@ class MatrizFederacionTest extends TestCase
         'federacion-peso-1' => [
             ['Paco Jiménez', 1, 6.5, 3],
             ['Mario López', 2, 9.5, 2],
-            ['Andrés Molina', 3, 10, 2],
             ['Iván Perea', 3, 10, 2],
+            ['Andrés Molina', 4, 10, 2],
             ['Sergio del Río', 5, 12, 3],
             ['Rubén Castaño', 6, 14, 2],
             ['Toni Salgado', 7, 17, 0],
@@ -44,20 +45,20 @@ class MatrizFederacionTest extends TestCase
         ],
         'federacion-peso-3' => [
             ['Paco Jiménez', 1, 6, 3],
+            ['Sergio del Río', 2, 10, 3],
             ['Iván Perea', 2, 10, 2],
-            ['Sergio del Río', 3, 10, 3],
             ['Mario López', 4, 11, 2],
-            ['Andrés Molina', 5, 11, 2],
+            ['Andrés Molina', 4, 11, 2],
             ['Rubén Castaño', 6, 16, 2],
             ['Toni Salgado', 7, 21, 0],
         ],
         'federacion-peso-4' => [
             ['Paco Jiménez', 1, 3, 3],
-            ['Mario López', 2, 7, 2],
-            ['Andrés Molina', 2, 7, 2],
-            ['Iván Perea', 4, 7, 2],
-            ['Rubén Castaño', 5, 9, 2],
-            ['Sergio del Río', 6, 9, 3],
+            ['Iván Perea', 2, 7, 2],
+            ['Mario López', 3, 7, 2],
+            ['Andrés Molina', 4, 7, 2],
+            ['Sergio del Río', 5, 9, 3],
+            ['Rubén Castaño', 6, 9, 2],
             ['Toni Salgado', 7, 17, 0],
         ],
         'federacion-peso-5' => [
@@ -74,15 +75,15 @@ class MatrizFederacionTest extends TestCase
             ['Mario López', 2, 4, 2],
             ['Andrés Molina', 2, 4, 2],
             ['Iván Perea', 4, 6, 2],
-            ['Sergio del Río', 5, 9, 3],
             ['Rubén Castaño', 5, 9, 2],
+            ['Sergio del Río', 6, 9, 3],
             ['Toni Salgado', 7, 11, 0],
         ],
         'federacion-peso-7' => [
+            ['Mario López', 1, 4, 2],
+            ['Andrés Molina', 1, 4, 2],
             ['Iván Perea', 1, 4, 2],
-            ['Mario López', 2, 4, 2],
-            ['Paco Jiménez', 3, 4, 3],
-            ['Andrés Molina', 4, 4, 2],
+            ['Paco Jiménez', 4, 4, 3],
             ['Sergio del Río', 5, 7, 3],
             ['Rubén Castaño', 6, 9.5, 2],
             ['Toni Salgado', 7, 11, 0],
@@ -108,7 +109,7 @@ class MatrizFederacionTest extends TestCase
         'federacion-peso-10' => [
             ['Paco Jiménez', 1, 7, 3],
             ['Mario López', 2, 11, 2],
-            ['Andrés Molina', 2, 11, 2],
+            ['Andrés Molina', 3, 11, 2],
             ['Iván Perea', 4, 12, 2],
             ['Sergio del Río', 5, 13, 3],
             ['Rubén Castaño', 6, 16, 2],
@@ -116,9 +117,9 @@ class MatrizFederacionTest extends TestCase
         ],
         'federacion-piezas-1' => [
             ['Mario López', 1, 9.5, 2],
-            ['Paco Jiménez', 1, 9.5, 3],
+            ['Paco Jiménez', 2, 9.5, 3],
             ['Andrés Molina', 3, 10, 2],
-            ['Iván Perea', 3, 10, 2],
+            ['Iván Perea', 4, 10, 2],
             ['Sergio del Río', 5, 10.5, 3],
             ['Rubén Castaño', 6, 12.5, 2],
             ['Toni Salgado', 7, 17, 0],
@@ -134,18 +135,18 @@ class MatrizFederacionTest extends TestCase
         ],
         'federacion-piezas-3' => [
             ['Paco Jiménez', 1, 8, 3],
+            ['Sergio del Río', 2, 10, 3],
             ['Iván Perea', 2, 10, 2],
-            ['Sergio del Río', 3, 10, 3],
             ['Mario López', 4, 11, 2],
-            ['Andrés Molina', 5, 11, 2],
+            ['Andrés Molina', 4, 11, 2],
             ['Rubén Castaño', 6, 14, 2],
             ['Toni Salgado', 7, 21, 0],
         ],
         'federacion-piezas-4' => [
-            ['Mario López', 1, 6, 2],
-            ['Paco Jiménez', 2, 6, 3],
+            ['Paco Jiménez', 1, 6, 3],
+            ['Mario López', 2, 6, 2],
             ['Andrés Molina', 3, 7, 2],
-            ['Iván Perea', 4, 7, 2],
+            ['Iván Perea', 3, 7, 2],
             ['Sergio del Río', 5, 7, 3],
             ['Rubén Castaño', 6, 8, 2],
             ['Toni Salgado', 7, 17, 0],
@@ -170,9 +171,9 @@ class MatrizFederacionTest extends TestCase
         ],
         'federacion-piezas-7' => [
             ['Paco Jiménez', 1, 4, 3],
-            ['Mario López', 2, 4, 2],
-            ['Andrés Molina', 3, 4, 2],
-            ['Iván Perea', 3, 4, 2],
+            ['Andrés Molina', 1, 4, 2],
+            ['Iván Perea', 1, 4, 2],
+            ['Mario López', 4, 4, 2],
             ['Sergio del Río', 5, 7, 3],
             ['Rubén Castaño', 6, 7.5, 2],
             ['Toni Salgado', 7, 11, 0],
@@ -196,10 +197,10 @@ class MatrizFederacionTest extends TestCase
             ['Toni Salgado', 7, 14, 0],
         ],
         'federacion-piezas-10' => [
-            ['Mario López', 1, 10, 2],
             ['Paco Jiménez', 1, 10, 3],
+            ['Mario López', 2, 10, 2],
             ['Andrés Molina', 3, 11, 2],
-            ['Sergio del Río', 3, 11, 3],
+            ['Sergio del Río', 4, 11, 3],
             ['Iván Perea', 5, 12, 2],
             ['Rubén Castaño', 6, 14, 2],
             ['Toni Salgado', 7, 21, 0],
@@ -207,7 +208,7 @@ class MatrizFederacionTest extends TestCase
         'federacion-medida-1' => [
             ['Paco Jiménez', 1, 6.5, 3],
             ['Andrés Molina', 2, 10, 2],
-            ['Iván Perea', 2, 10, 2],
+            ['Iván Perea', 3, 10, 2],
             ['Sergio del Río', 4, 11, 3],
             ['Mario López', 5, 11.5, 2],
             ['Rubén Castaño', 6, 13, 2],
@@ -218,7 +219,7 @@ class MatrizFederacionTest extends TestCase
             ['Andrés Molina', 2, 4, 2],
             ['Iván Perea', 2, 4, 2],
             ['Mario López', 4, 6.5, 2],
-            ['Sergio del Río', 4, 6.5, 3],
+            ['Sergio del Río', 5, 6.5, 3],
             ['Rubén Castaño', 6, 8, 2],
             ['Toni Salgado', 7, 14, 0],
         ],
@@ -234,10 +235,10 @@ class MatrizFederacionTest extends TestCase
         'federacion-medida-4' => [
             ['Paco Jiménez', 1, 4, 3],
             ['Mario López', 2, 6, 2],
-            ['Andrés Molina', 3, 7, 2],
-            ['Iván Perea', 4, 7, 2],
-            ['Rubén Castaño', 5, 8, 2],
-            ['Sergio del Río', 6, 8, 3],
+            ['Iván Perea', 3, 7, 2],
+            ['Andrés Molina', 4, 7, 2],
+            ['Sergio del Río', 5, 8, 3],
+            ['Rubén Castaño', 6, 8, 2],
             ['Toni Salgado', 7, 17, 0],
         ],
         'federacion-medida-5' => [
@@ -253,15 +254,15 @@ class MatrizFederacionTest extends TestCase
             ['Paco Jiménez', 1, 3, 3],
             ['Andrés Molina', 2, 4, 2],
             ['Mario López', 3, 6, 2],
-            ['Iván Perea', 3, 6, 2],
-            ['Sergio del Río', 5, 8, 3],
+            ['Iván Perea', 4, 6, 2],
             ['Rubén Castaño', 5, 8, 2],
+            ['Sergio del Río', 6, 8, 3],
             ['Toni Salgado', 7, 11, 0],
         ],
         'federacion-medida-7' => [
             ['Paco Jiménez', 1, 3, 3],
+            ['Andrés Molina', 2, 4, 2],
             ['Iván Perea', 2, 4, 2],
-            ['Andrés Molina', 3, 4, 2],
             ['Sergio del Río', 4, 6, 3],
             ['Mario López', 5, 7, 2],
             ['Rubén Castaño', 6, 8.5, 2],
@@ -288,8 +289,8 @@ class MatrizFederacionTest extends TestCase
         'federacion-medida-10' => [
             ['Paco Jiménez', 1, 7, 3],
             ['Andrés Molina', 2, 11, 2],
-            ['Sergio del Río', 3, 12, 3],
             ['Iván Perea', 3, 12, 2],
+            ['Sergio del Río', 4, 12, 3],
             ['Mario López', 5, 13, 2],
             ['Rubén Castaño', 6, 15, 2],
             ['Toni Salgado', 7, 21, 0],
@@ -332,6 +333,7 @@ class MatrizFederacionTest extends TestCase
         $this->assertCount(30, $secciones);
         $this->assertSame(['medida', 'peso', 'piezas'], $secciones->pluck('criterio')->unique()->sort()->values()->all());
         $this->assertSame(['compartido', 'menos_piezas', 'peso', 'pieza_mayor', 'piezas', 'promedio'], $secciones->pluck('desempate')->unique()->sort()->values()->all());
+        $this->assertSame(['compartido', 'medida', 'mejor_manga', 'menos_piezas', 'peso', 'pieza_mayor', 'piezas'], $secciones->pluck('desempate_general')->unique()->sort()->values()->all());
         $this->assertSame([0, 7], $secciones->pluck('puntos_no_asistencia')->unique()->sort()->values()->all());
         $this->assertSame(['ausencia', 'fijo', 'media', 'primer_libre', 'ultimo'], $secciones->pluck('bolo')->unique()->sort()->values()->all());
         $this->assertSame([0, 1], $secciones->pluck('descartes')->unique()->sort()->values()->all());

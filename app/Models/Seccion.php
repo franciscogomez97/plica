@@ -49,6 +49,11 @@ class Seccion extends Model
 
     public const DESEMPATE_PROMEDIO = 'promedio';
 
+    /** Empate en la general (solo sumando puestos): además de los de arriba, la mejor manga y los centímetros del año. */
+    public const DESEMPATE_GENERAL_MEJOR_MANGA = 'mejor_manga';
+
+    public const DESEMPATE_GENERAL_MEDIDA = 'medida';
+
     /**
      * Por puestos: qué se lleva quien va y no pesca (el «bolo»). C = los que
      * pescaron en la manga, N = los que fueron.
@@ -73,7 +78,7 @@ class Seccion extends Model
 
     protected $fillable = [
         'club_id', 'nombre', 'slug', 'criterio', 'numero_socios',
-        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'bolo', 'puntos_bolo', 'descartes', 'descartes_ausencias', 'desempate',
+        'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'bolo', 'puntos_bolo', 'descartes', 'descartes_ausencias', 'desempate', 'desempate_general',
     ];
 
     /**
@@ -98,6 +103,30 @@ class Seccion extends Model
             : $porAlgo + [self::DESEMPATE_COMPARTIDO => 'Nadie: comparten el puesto'];
     }
 
+    /**
+     * Qué decide un empate en el ranking del año, sumando puestos. En la manga
+     * el empate es cosa de puntos (promedio o comparten); en la general los
+     * reglamentos miran otra cosa. Por defecto, comparten puesto.
+     *
+     * @return array<string, string>
+     */
+    public static function desempatesGeneralPara(string $criterio): array
+    {
+        $total = match ($criterio) {
+            self::CRITERIO_MEDIDA => [self::DESEMPATE_GENERAL_MEDIDA => 'Quien más centímetros sume en el año'],
+            default => [self::DESEMPATE_PESO => 'Quien más peso haya sacado en el año'],
+        };
+
+        return [self::DESEMPATE_COMPARTIDO => 'Nadie: comparten puesto']
+            + $total
+            + [
+                self::DESEMPATE_GENERAL_MEJOR_MANGA => 'Quien tenga la mejor manga (la de menos puntos)',
+                self::DESEMPATE_PIEZA_MAYOR => 'La pieza mayor de la temporada',
+                self::DESEMPATE_MENOS_PIEZAS => 'Quien menos piezas haya sacado (FEPyC)',
+                self::DESEMPATE_PIEZAS => 'Quien más piezas haya sacado',
+            ];
+    }
+
     /** Los empates que no se desempatan por nada. */
     public static function sinDesempate(?string $desempate): bool
     {
@@ -119,6 +148,10 @@ class Seccion extends Model
         static::saving(function (Seccion $seccion): void {
             $criterio = $seccion->criterio ?? self::CRITERIO_PESO;
             $sistema = $seccion->sistema_puntuacion ?? self::SISTEMA_ACUMULADO;
+
+            if (! array_key_exists($seccion->desempate_general ?? '', static::desempatesGeneralPara($criterio))) {
+                $seccion->desempate_general = self::DESEMPATE_COMPARTIDO;
+            }
 
             if (! array_key_exists($seccion->desempate ?? '', static::desempatesPara($criterio, $sistema))) {
                 $seccion->desempate = static::desempatePorDefecto($criterio);
@@ -198,6 +231,7 @@ class Seccion extends Model
             (bool) $this->descartes_ausencias,
             $this->bolo ?? self::BOLO_MEDIA,
             (int) $this->puntos_bolo,
+            $this->desempate_general ?? self::DESEMPATE_COMPARTIDO,
         );
     }
 
@@ -212,6 +246,7 @@ class Seccion extends Model
         bool $descartesAusencias = false,
         string $bolo = self::BOLO_MEDIA,
         int $puntosBolo = 0,
+        string $desempateGeneral = self::DESEMPATE_COMPARTIDO,
     ): string {
         $desempate ??= static::desempatePorDefecto($criterio);
         $frases = [
@@ -260,15 +295,37 @@ class Seccion extends Model
                 : 'Cada ausencia resta '.abs($puntosNoAsistencia).' puntos.';
         }
 
+        $quien = fn (string $regla): string => match ($regla) {
+            self::DESEMPATE_PIEZA_MAYOR => 'la pieza mayor',
+            self::DESEMPATE_PESO => 'quien más peso sume',
+            self::DESEMPATE_MENOS_PIEZAS => 'quien menos piezas haya sacado',
+            default => 'quien más piezas saque',
+        };
+
+        if ($sistema === self::SISTEMA_PUESTOS && $desempateGeneral !== self::DESEMPATE_COMPARTIDO) {
+            // Sumando puestos, el empate de la manga y el del año son dos reglas distintas.
+            $enManga = match ($desempate) {
+                self::DESEMPATE_PROMEDIO => 'Si empatan en una manga, se reparten el promedio de sus puestos',
+                self::DESEMPATE_COMPARTIDO => 'Si empatan en una manga, comparten puesto',
+                default => 'Si empatan en una manga, gana '.$quien($desempate).' (y si siguen igual, comparten puesto)',
+            };
+            $enGeneral = match ($desempateGeneral) {
+                self::DESEMPATE_PESO => 'quien más peso haya sacado en el año',
+                self::DESEMPATE_GENERAL_MEDIDA => 'quien más centímetros sume en el año',
+                self::DESEMPATE_GENERAL_MEJOR_MANGA => 'quien tenga la mejor manga',
+                self::DESEMPATE_PIEZA_MAYOR => 'la pieza mayor de la temporada',
+                self::DESEMPATE_MENOS_PIEZAS => 'quien menos piezas haya sacado',
+                default => 'quien más piezas haya sacado',
+            };
+            $frases[] = "{$enManga}; si empatan en el ranking, gana {$enGeneral}; si siguen igual, comparten puesto.";
+
+            return implode(' ', $frases);
+        }
+
         $frases[] = match ($desempate) {
             self::DESEMPATE_PROMEDIO => 'Si empatan en una manga, se reparten el promedio de sus puestos; si empatan en el ranking, comparten puesto.',
             self::DESEMPATE_COMPARTIDO => 'Si empatan, comparten puesto.',
-            default => 'Si empatan, gana '.match ($desempate) {
-                self::DESEMPATE_PIEZA_MAYOR => 'la pieza mayor',
-                self::DESEMPATE_PESO => 'quien más peso sume',
-                self::DESEMPATE_MENOS_PIEZAS => 'quien menos piezas haya sacado',
-                default => 'quien más piezas saque',
-            }.'; si siguen igual, comparten puesto.',
+            default => 'Si empatan, gana '.$quien($desempate).'; si siguen igual, comparten puesto.',
         };
 
         return implode(' ', $frases);

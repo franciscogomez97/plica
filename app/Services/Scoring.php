@@ -102,7 +102,7 @@ class Scoring
                 $grupo->numMangas = $grupo->participaciones->pluck('manga_id')->unique()->count();
                 $grupo->reglas = $grupo->seccion?->resumenReglas() ?? Seccion::resumenReglasDe($grupo->criterio);
                 $grupo->filas = $sistema === Seccion::SISTEMA_PUESTOS
-                    ? static::rankingPorPuestos($grupo->participaciones, $grupo->criterio, $descartes, $desempate, $puestosEmpate, $puntosNoAsistencia, $descartesAusencias, $bolo, $puntosBolo, $grupo->seccion)
+                    ? static::rankingPorPuestos($grupo->participaciones, $grupo->criterio, $descartes, $desempate, $puestosEmpate, $puntosNoAsistencia, $descartesAusencias, $bolo, $puntosBolo, $grupo->seccion, $grupo->seccion?->desempate_general ?? Seccion::DESEMPATE_COMPARTIDO)
                     : static::rankingAcumulado($grupo->participaciones, $grupo->criterio, $puntosParticipacion, $descartes, $desempate, $puntosNoAsistencia, $descartesAusencias, $grupo->seccion);
                 $grupo->piezaMayor = static::piezaMayorDe($grupo->participaciones, $grupo->criterio);
                 unset($grupo->participaciones, $grupo->seccion);
@@ -162,7 +162,7 @@ class Scoring
 
         // El orden y los puntos son EXACTAMENTE los del ranking de temporada.
         $ranking = $sistema === Seccion::SISTEMA_PUESTOS
-            ? static::rankingPorPuestos($participaciones, $criterio, $descartes, $desempate, $puestosEmpate, $puntosNoAsistencia, $descartesAusencias, $bolo, $puntosBolo, $seccion)
+            ? static::rankingPorPuestos($participaciones, $criterio, $descartes, $desempate, $puestosEmpate, $puntosNoAsistencia, $descartesAusencias, $bolo, $puntosBolo, $seccion, $seccion->desempate_general ?? Seccion::DESEMPATE_COMPARTIDO)
             : static::rankingAcumulado($participaciones, $criterio, $puntosParticipacion, $descartes, $desempate, $puntosNoAsistencia, $descartesAusencias, $seccion);
 
         $mangaIds = $mangas->pluck('id')->all();
@@ -249,7 +249,7 @@ class Scoring
         return static::numerar($filas->sort(fn ($a, $b) => $clave($b) <=> $clave($a))->values(), $clave);
     }
 
-    private static function rankingPorPuestos(Collection $participaciones, string $criterio, int $descartes, string $desempate, string $empate = Seccion::DESEMPATE_COMPARTIDO, int $puntosNoAsistencia = 0, bool $descartesAusencias = true, string $bolo = Seccion::BOLO_MEDIA, int $puntosBolo = 0, ?Seccion $seccion = null): Collection
+    private static function rankingPorPuestos(Collection $participaciones, string $criterio, int $descartes, string $desempate, string $empate = Seccion::DESEMPATE_COMPARTIDO, int $puntosNoAsistencia = 0, bool $descartesAusencias = true, string $bolo = Seccion::BOLO_MEDIA, int $puntosBolo = 0, ?Seccion $seccion = null, string $desempateGeneral = Seccion::DESEMPATE_COMPARTIDO): Collection
     {
         // Puntos de cada socio en cada manga de esta sección (su puesto, o el promedio
         // si empata y así lo quiere la sección; el bolo, según la sección) y lo que
@@ -272,12 +272,17 @@ class Scoring
 
                 $total = array_sum(array_column($cuentan, 'puntos'));
 
-                return static::filaAgregada($socio, $deSocio, $total == (int) $total ? (int) $total : (float) $total);
+                $fila = static::filaAgregada($socio, $deSocio, $total == (int) $total ? (int) $total : (float) $total);
+                // Su mejor manga del año (la de menos puntos de las que pescó), para el desempate de la general.
+                $pescadas = array_filter($porManga, fn (array $m) => $m['pescada']);
+                $fila->mejorManga = $pescadas === [] ? null : min(array_column($pescadas, 'puntos'));
+
+                return $fila;
             })
             ->values();
 
-        // Menos puntos delante; empate → desempate de la sección (más es mejor); si sigue igual, mismo puesto.
-        $clave = fn (object $f): array => [-$f->puntos, static::valorDesempate($f, $criterio, $desempate)];
+        // Menos puntos delante; empate → desempate de la general (más es mejor); si sigue igual, mismo puesto.
+        $clave = fn (object $f): array => [-$f->puntos, static::valorDesempateGeneral($f, $criterio, $desempateGeneral)];
 
         return static::numerar($filas->sort(fn ($a, $b) => $clave($b) <=> $clave($a))->values(), $clave);
     }
@@ -527,6 +532,20 @@ class Scoring
             Seccion::DESEMPATE_PESO => $fila->peso,
             Seccion::DESEMPATE_MENOS_PIEZAS => -$fila->piezas, // menos piezas es mejor
             default => $fila->piezas,
+        };
+    }
+
+    /** Qué decide un empate en la general sumando puestos (más es mejor). */
+    private static function valorDesempateGeneral(object $fila, string $criterio, string $desempateGeneral): int|float
+    {
+        return match ($desempateGeneral) {
+            Seccion::DESEMPATE_PESO => $fila->peso,
+            Seccion::DESEMPATE_GENERAL_MEDIDA => $fila->medida,
+            Seccion::DESEMPATE_GENERAL_MEJOR_MANGA => $fila->mejorManga === null ? -PHP_INT_MAX : -$fila->mejorManga, // menos puntos es mejor
+            Seccion::DESEMPATE_PIEZA_MAYOR => $criterio === Seccion::CRITERIO_MEDIDA ? $fila->mayorMm : $fila->mayorGramos,
+            Seccion::DESEMPATE_MENOS_PIEZAS => -$fila->piezas,
+            Seccion::DESEMPATE_PIEZAS => $fila->piezas,
+            default => 0,
         };
     }
 

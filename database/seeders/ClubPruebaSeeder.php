@@ -278,17 +278,21 @@ class ClubPruebaSeeder extends Seeder
      * Desempate: A = pieza mayor, B = piezas (peso en la de piezas), M = menos piezas (peso en la de piezas),
      * C = comparten, P = promedio.
      */
+    /**
+     * [desempate en la manga, ausencia, bolo, puntos bolo, descartes, también no pescadas, desempate en la general].
+     * General: C comparten · W más peso (más cm en medida) · G mejor manga · A pieza mayor · M menos piezas · B más piezas.
+     */
     public const FED_REGLAS = [
-        1 => ['P', 0, Seccion::BOLO_MEDIA, 0, 0, true],
-        2 => ['P', 7, Seccion::BOLO_MEDIA, 0, 1, true],
-        3 => ['A', 7, Seccion::BOLO_PRIMER_LIBRE, 0, 0, true],
-        4 => ['B', 0, Seccion::BOLO_ULTIMO, 0, 1, false],
-        5 => ['M', 7, Seccion::BOLO_FIJO, 30, 0, true],
-        6 => ['C', 0, Seccion::BOLO_AUSENCIA, 0, 1, true],
-        7 => ['A', 0, Seccion::BOLO_MEDIA, 0, 1, true],
-        8 => ['P', 7, Seccion::BOLO_FIJO, 30, 1, false],
-        9 => ['B', 7, Seccion::BOLO_PRIMER_LIBRE, 0, 1, true],
-        10 => ['C', 7, Seccion::BOLO_ULTIMO, 0, 0, true],
+        1 => ['P', 0, Seccion::BOLO_MEDIA, 0, 0, true, 'W'],
+        2 => ['P', 7, Seccion::BOLO_MEDIA, 0, 1, true, 'G'],
+        3 => ['A', 7, Seccion::BOLO_PRIMER_LIBRE, 0, 0, true, 'C'],
+        4 => ['B', 0, Seccion::BOLO_ULTIMO, 0, 1, false, 'A'],
+        5 => ['M', 7, Seccion::BOLO_FIJO, 30, 0, true, 'M'],
+        6 => ['C', 0, Seccion::BOLO_AUSENCIA, 0, 1, true, 'B'],
+        7 => ['A', 0, Seccion::BOLO_MEDIA, 0, 1, true, 'G'],
+        8 => ['P', 7, Seccion::BOLO_FIJO, 30, 1, false, 'C'],
+        9 => ['B', 7, Seccion::BOLO_PRIMER_LIBRE, 0, 1, true, 'W'],
+        10 => ['C', 7, Seccion::BOLO_ULTIMO, 0, 0, true, 'A'],
     ];
 
     /** Mismo formato que MATRIZ_DATOS. En cada criterio: dos bolos en la 1ª manga, tres en la 3ª. */
@@ -317,7 +321,7 @@ class ClubPruebaSeeder extends Seeder
 
     public static function fedNombre(string $criterio, int $regla): string
     {
-        [$desempate, $ausencia, $bolo, $puntosBolo, $descartes, $ausencias] = self::FED_REGLAS[$regla];
+        [$desempate, $ausencia, $bolo, $puntosBolo, $descartes, $ausencias, $general] = self::FED_REGLAS[$regla];
         $criterioTexto = match ($criterio) {
             Seccion::CRITERIO_MEDIDA => 'Medida',
             Seccion::CRITERIO_PIEZAS => 'Piezas',
@@ -339,7 +343,28 @@ class ClubPruebaSeeder extends Seeder
         };
         $descartesTexto = $descartes === 0 ? 'sin descartes' : ($ausencias ? '1 descarte, también no pescadas' : '1 descarte, solo pescadas');
 
-        return "Fed {$criterioTexto} · {$desempateTexto} · ausencia ".($ausencia > 0 ? $ausencia : 'auto')." · {$boloTexto} · {$descartesTexto}";
+        $generalTexto = match ($general) {
+            'W' => $criterio === Seccion::CRITERIO_MEDIDA ? 'general más cm' : 'general más peso',
+            'G' => 'general mejor manga',
+            'A' => 'general pieza mayor',
+            'M' => 'general menos piezas',
+            'B' => 'general más piezas',
+            default => 'general comparten',
+        };
+
+        return "Fed {$criterioTexto} · {$desempateTexto} · ausencia ".($ausencia > 0 ? $ausencia : 'auto')." · {$boloTexto} · {$descartesTexto} · {$generalTexto}";
+    }
+
+    public static function fedDesempateGeneral(string $criterio, string $letra): string
+    {
+        return match ($letra) {
+            'W' => $criterio === Seccion::CRITERIO_MEDIDA ? Seccion::DESEMPATE_GENERAL_MEDIDA : Seccion::DESEMPATE_PESO,
+            'G' => Seccion::DESEMPATE_GENERAL_MEJOR_MANGA,
+            'A' => Seccion::DESEMPATE_PIEZA_MAYOR,
+            'M' => Seccion::DESEMPATE_MENOS_PIEZAS,
+            'B' => Seccion::DESEMPATE_PIEZAS,
+            default => Seccion::DESEMPATE_COMPARTIDO,
+        };
     }
 
     public static function fedDesempate(string $criterio, string $letra): string
@@ -357,7 +382,7 @@ class ClubPruebaSeeder extends Seeder
         $secciones = collect();
 
         foreach (array_keys(self::FED_DATOS) as $criterio) {
-            foreach (self::FED_REGLAS as $regla => [$desempate, $ausencia, $bolo, $puntosBolo, $descartes, $ausencias]) {
+            foreach (self::FED_REGLAS as $regla => [$desempate, $ausencia, $bolo, $puntosBolo, $descartes, $ausencias, $general]) {
                 $secciones->push(Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => self::fedSlug($criterio, $regla)], [
                     'nombre' => self::fedNombre($criterio, $regla),
                     'criterio' => $criterio,
@@ -370,6 +395,7 @@ class ClubPruebaSeeder extends Seeder
                     'descartes' => $descartes,
                     'descartes_ausencias' => $ausencias,
                     'desempate' => self::fedDesempate($criterio, $desempate),
+                    'desempate_general' => self::fedDesempateGeneral($criterio, $general),
                 ]));
             }
         }

@@ -290,6 +290,20 @@ relativas al día en que se ejecuta.
   puestos). Sin desempate, dos socios a igual peso empatan aunque uno tenga
   la pieza mayor, que es lo que hacen las federaciones. Bass Extremadura va
   en «promedio». La columna `puestos_empate` se fundió en `desempate`.
+  **Sumando puestos, el empate del año es otra regla**
+  (`seccions.desempate_general`, 14 de septiembre de 2026): «promedio» y
+  «comparten» son reglas de manga que no dicen nada de la general, y los
+  reglamentos la resuelven aparte (Castilla-La Mancha: más gramos en el año
+  y luego mejor manga; FEPyC: pieza mayor y luego menos capturas). La
+  sección responde «si empatan en el ranking de la temporada, ¿quién
+  gana?»: `compartido` (por defecto, lo de siempre), `peso` (o `medida` en
+  secciones por centímetros), `mejor_manga` (la de menos puntos de las que
+  pescó), `pieza_mayor`, `menos_piezas` o `piezas`; una sola regla y, si
+  siguen igual, comparten. Solo en el sistema de la federación: en «suma lo
+  pescado» la misma regla vale para manga y año. La matriz de la federación
+  del Club de Pruebas la cubre (séptima variable) y el oráculo
+  independiente la reproduce. Bass Extremadura sigue en «comparten» (así lo
+  enseña su hoja) hasta que el club diga otra cosa.
 - **Puntos por no ir** (`seccions.puntos_no_asistencia`, septiembre de 2026):
   en el sistema por puestos es lo que se lleva un ausente por manga (socios +
   1; a 0, el último de esa manga + 1) y se configura en el formulario. El
