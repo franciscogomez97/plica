@@ -1,15 +1,20 @@
 #!/bin/bash
-# Copia nocturna de Plica en el VPS: volcado de Postgres + logos subidos. Guarda 14 días
-# en el servidor y deja una réplica idéntica en el Google Drive de plica.contacto@gmail.com
-# (rclone, remoto «gdrive», carpeta Backups-Plica; permiso drive.file: rclone solo ve lo que sube).
+# Copia nocturna de Plica en el VPS: volcado de Postgres + archivos subidos (logos y fotos
+# de socios, todo storage/app/public). Guarda 14 días en el servidor y deja una réplica
+# idéntica en el Google Drive de plica.contacto@gmail.com (rclone, remoto «gdrive», carpeta
+# Backups-Plica; permiso drive.file: rclone solo ve lo que sube).
+# Las copias son de root, legibles por el grupo postgres: así se restaura directamente con
+#   sudo -u postgres pg_restore -d plica --clean /var/backups/plica/plica-FECHA.dump
 # Instalar: cp deploy/plica-backup /usr/local/bin/ && chmod 700 /usr/local/bin/plica-backup
 # Cron (root):  30 3 * * * /usr/local/bin/plica-backup >> /var/log/plica-backup.log 2>&1
 set -euo pipefail
 DEST=/var/backups/plica
 DIA=$(date +%Y%m%d-%H%M)
-mkdir -p "$DEST" && chmod 700 "$DEST"
+umask 027
+mkdir -p "$DEST" && chgrp postgres "$DEST" && chmod 750 "$DEST"
 sudo -u postgres pg_dump -Fc plica > "$DEST/plica-$DIA.dump"
-tar -czf "$DEST/logos-$DIA.tar.gz" -C /var/www/plica/storage/app/public . 2>/dev/null || true
+tar -czf "$DEST/archivos-$DIA.tar.gz" -C /var/www/plica/storage/app/public . 2>/dev/null || true
+chgrp postgres "$DEST"/* && chmod 640 "$DEST"/*
 find "$DEST" -type f -mtime +14 -delete
 # Réplica en Drive: misma rotación de 14 días (sync borra allí lo que ya no está aquí).
 if rclone sync "$DEST" gdrive:Backups-Plica --quiet; then NUBE=drive; else NUBE="drive:ERROR"; fi

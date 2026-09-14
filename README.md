@@ -108,14 +108,18 @@ componentes en cada petición y se nota.
 Postgres en `/root/.plica_db_pass`), el sitio de Nginx en
 `/etc/nginx/sites-available/plica` (raíz `public/`, subidas hasta 12 MB) y
 la copia nocturna: `deploy/plica-backup` copiado a `/usr/local/bin` y una
-línea de cron de root a las 3:30 (volcado de Postgres + logos, 14 días, en
-`/var/backups/plica`). El mismo script deja una réplica idéntica en el
+línea de cron de root a las 3:30 (volcado de Postgres + archivos subidos,
+logos y fotos, 14 días, en `/var/backups/plica`, de root pero legible por el
+grupo `postgres`). El mismo script deja una réplica idéntica en el
 Google Drive de `plica.contacto@gmail.com` (carpeta «Backups-Plica») con
 `rclone sync`: remoto `gdrive` en `/root/.config/rclone/rclone.conf`,
 autorizado una vez con `rclone authorize "drive"` desde el Mac y con permiso
 `drive.file` (rclone solo ve lo que él sube). Si el token dejara de
 renovarse, repetir esa autorización y volver a escribir el `token` del
-remoto. Restaurar: `pg_restore -d plica --clean plica-FECHA.dump`.
+remoto. Restaurar (comprobado el 14 de septiembre de 2026 restaurando la
+copia de esa noche en una base temporal, con los mismos recuentos que la
+base en vivo): `sudo -u postgres pg_restore -d plica --clean
+/var/backups/plica/plica-FECHA.dump`.
 
 **Correo de las solicitudes:** el formulario de la landing guarda la
 solicitud (menú «Solicitudes» del superadmin) y avisa por email a
