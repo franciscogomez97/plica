@@ -4,11 +4,14 @@ namespace App\Filament\Resources\Socios\Schemas;
 
 use App\Models\Seccion;
 use App\Models\Socio;
+use App\Services\FotoSocio;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 /**
  * La ficha de un socio pide lo justo: nombre, teléfono (para mandarle el acceso
@@ -20,6 +23,20 @@ class SocioForm
     {
         return $schema
             ->components([
+                // Su foto: la pone el admin aquí o el socio en su perfil. De momento solo sale en el listado de socios.
+                FileUpload::make('foto')
+                    ->label('Foto')
+                    ->image()
+                    ->avatar()
+                    // El recorte al cuadrado lo hace el servidor (FotoSocio): sin exigir proporción al archivo subido.
+                    ->imageAspectRatio(null)
+                    ->disk(FotoSocio::DISCO)
+                    ->directory('socios')
+                    ->visibility('public')
+                    ->maxSize(6144)
+                    ->helperText('Opcional. Se recorta al centro y se guarda pequeña. El socio también puede ponerla desde su perfil.')
+                    ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file): string => FotoSocio::guardar($file, auth()->user()->club_id))
+                    ->nullable(),
                 TextInput::make('nombre')
                     ->label('Nombre')
                     ->required()
@@ -63,6 +80,11 @@ class SocioForm
                     ->label('Email (opcional)')
                     ->email()
                     ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? mb_strtolower(trim($state)) : null)
+                    ->nullable(),
+                TextInput::make('licencia')
+                    ->label('Nº de licencia federativa (opcional)')
+                    ->maxLength(40)
+                    ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? trim($state) : null)
                     ->nullable(),
                 Toggle::make('activo')
                     ->label('Activo')

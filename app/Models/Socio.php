@@ -2,19 +2,38 @@
 
 namespace App\Models;
 
+use App\Services\FotoSocio;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Socio extends Model
 {
-    protected $fillable = ['club_id', 'nombre', 'email', 'telefono', 'user_id', 'invite_token', 'activo'];
+    protected $fillable = ['club_id', 'nombre', 'email', 'telefono', 'foto', 'licencia', 'user_id', 'invite_token', 'activo'];
 
     protected function casts(): array
     {
         return ['activo' => 'boolean'];
+    }
+
+    protected static function booted(): void
+    {
+        // La foto vieja no se queda huérfana: ni al cambiarla o quitarla, ni al borrar al socio.
+        static::updated(function (Socio $socio): void {
+            if ($socio->wasChanged('foto')) {
+                FotoSocio::borrar($socio->getOriginal('foto'));
+            }
+        });
+        static::deleting(fn (Socio $socio) => FotoSocio::borrar($socio->foto));
+    }
+
+    /** URL de su foto (WebP cuadrada en el disco «public»), o null si no tiene. */
+    public function fotoUrl(): ?string
+    {
+        return filled($this->foto) ? Storage::disk(FotoSocio::DISCO)->url($this->foto) : null;
     }
 
     public function club(): BelongsTo

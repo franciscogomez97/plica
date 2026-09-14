@@ -6,6 +6,7 @@ use App\Filament\Resources\Socios\Pages\ListSocios;
 use App\Filament\Resources\Socios\SocioResource;
 use App\Models\Socio;
 use App\Models\User;
+use App\Services\FotoSocio;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -13,6 +14,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -28,9 +30,24 @@ class SociosTable
                 // En pantalla ancha, una línea por socio; en el móvil se apila (nombre,
                 // teléfono, insignias) y así el botón «Acceso» no se sale por la derecha.
                 Split::make([
+                    // La foto solo se enseña aquí, de momento: ni en rankings ni en la web pública.
+                    ImageColumn::make('foto')
+                        ->label('')
+                        ->disk(FotoSocio::DISCO)
+                        ->visibility('public')
+                        ->circular()
+                        ->imageSize(40)
+                        ->defaultImageUrl(asset('img/socio.svg'))
+                        ->grow(false),
                     TextColumn::make('nombre')
                         ->weight(FontWeight::SemiBold)
                         ->searchable(),
+                    TextColumn::make('licencia')
+                        ->formatStateUsing(fn (string $state): string => "Lic. {$state}")
+                        ->color('gray')
+                        ->searchable()
+                        ->grow(false)
+                        ->visibleFrom('md'),
                     TextColumn::make('telefono')
                         ->placeholder('sin teléfono')
                         ->color('gray')

@@ -203,6 +203,16 @@ relativas al día en que se ejecuta.
   `MatrizAcumuladoTest` fija sus resultados, calculados aparte del motor con
   una implementación independiente, y comprueba que el cuadro coincide con
   el ranking.
+- **Foto y licencia federativa del socio** (`socios.foto`, `socios.licencia`,
+  14 de septiembre de 2026): la ficha del socio (admin) y el perfil del socio
+  (`/app/profile`, página `App/Auth/Perfil`, que extiende la de Filament)
+  llevan foto y número de licencia. La foto se recorta al centro, se reduce
+  a 400 px y se guarda en WebP en el disco «public» (`Services/FotoSocio`,
+  con la conversión compartida con el logo en `Services/Imagen`); al
+  cambiarla, quitarla o borrar al socio se borra el archivo viejo
+  (`Socio::booted`). Decisión: de momento la foto solo se ve en el listado
+  de socios del admin, ni en rankings ni en la web pública; los que no
+  tienen, una silueta (`public/img/socio.svg`).
 - **Horario y quedada de la manga** (14 de septiembre de 2026): la manga
   tiene hora de inicio y de fin (`hora_inicio`, `hora_fin`) y una quedada
   previa opcional, dónde y a qué hora se junta el club antes de ir al agua

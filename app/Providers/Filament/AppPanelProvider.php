@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\App\Auth\Perfil;
 use App\Filament\App\Pages\ClasificacionManga;
 use App\Filament\App\Pages\Inicio;
 use App\Filament\App\Pages\RankingSeccion;
@@ -44,7 +45,7 @@ class AppPanelProvider extends PanelProvider
             ->id('app')
             ->path('app')
             ->login(Login::class)
-            ->profile()
+            ->profile(Perfil::class) // nombre, email, contraseña, y además foto y licencia federativa
             ->brandName('Plica')
             // Con sesión, la marca es el club: su logo y su nombre.
             ->brandLogo(fn () => auth()->user()?->club?->marca() ?? Marca::plica())
