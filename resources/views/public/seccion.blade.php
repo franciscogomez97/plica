@@ -87,7 +87,26 @@
 
         {{-- La clasificación es el cuadro: puesto, pescador, una columna por manga y el total. --}}
         <section class="pb-8">
-            <h2 class="mb-2 text-base font-bold text-slate-900">Clasificación general</h2>
+            @php
+                $unidad = match ($cuadro->criterio) {
+                    \App\Models\Seccion::CRITERIO_MEDIDA => 'cm',
+                    \App\Models\Seccion::CRITERIO_PIEZAS => 'piezas',
+                    default => 'kg',
+                };
+            @endphp
+            <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <h2 class="text-base font-bold text-slate-900">Clasificación general</h2>
+                {{-- La leyenda del cuadro, en pequeño, junto al título. --}}
+                <div class="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
+                    <span><span class="mr-1 inline-block size-2.5 rounded-full bg-amber-400 align-middle"></span>ganador de la manga</span>
+                    <span>🐟 <span class="font-semibold text-emerald-600">verde</span>: pieza mayor de la manga</span>
+                    @if ((int) $cuadro->seccion->descartes > 0)
+                        <span><s>tachado</s>: manga descartada</span>
+                    @endif
+                    <span>—: no participó{{ ($cuadro->puntosNoAsistencia ?? 0) !== 0 ? ' ('.($cuadro->puntosNoAsistencia > 0 ? '+' : '').$cuadro->puntosNoAsistencia.' pts)' : '' }}</span>
+                    <span>valores en {{ $unidad }}</span>
+                </div>
+            </div>
             @include('public.partials.cuadro', ['cuadro' => $cuadro, 'club' => $club, 'sinPiezaMayor' => true])
         </section>
 
