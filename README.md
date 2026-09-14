@@ -466,8 +466,19 @@ Aparcado a propósito, no olvidado:
     puestos, 48 por manga; en suma lo pescado, 0 más lo que dé o quite la
     ausencia); los puntos por ausencia y los descartes se calculan sobre los
     socios de la sección; en el pesaje, primero los de la sección y plegados
-    «otros socios». Al hacerlo, añadir a los tests de Bass Extremadura los
-    cuatro de 96 y a las matrices un socio sin mangas.
+    «otros socios». Filtro por sección con pestañas arriba en Socios y en
+    Mangas («Todas · Orilla · Pato · Embarcación»), recordando la última
+    pestaña de cada admin; dar de alta desde una pestaña mete al socio en esa
+    sección; «Dar acceso» y el pesaje enseñan primero los de la sección.
+    Decisiones del 14 de septiembre de 2026: no hay altas a mitad de
+    temporada (los socios de la sección son los mismos todo el año y las
+    ausencias se cuentan desde la primera manga para todos); un socio de baja
+    sigue en la sección y en el ranking con la etiqueta «Baja», conserva su
+    historial y sigue sumando ausencias, salvo que el admin lo desmarque de
+    la sección. Sin permisos por sección de momento (las pestañas evitan el
+    error, no lo impiden); el paso siguiente sería «admin de sección». Al
+    hacerlo, añadir a los tests de Bass Extremadura los cuatro de 96 y a las
+    matrices un socio sin mangas.
 10. **Panel de Plica (superadmin), con cobros** (apuntado el 11 de septiembre
     de 2026, se hará después del lanzamiento): hoy el superadmin es un admin
     de club más que además ve «Solicitudes». Falta un tercer panel `/plica`,
