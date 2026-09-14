@@ -23,7 +23,7 @@
     .pc th:first-child, .pc td:first-child { text-align: left; position: sticky; left: 0; z-index: 2; background: #fff; box-shadow: 6px 0 8px -6px rgba(0,0,0,.6); }
     .pc th.total, .pc td.total { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -6px 0 8px -6px rgba(0,0,0,.6); font-weight: 800; }
     .pc tbody tr:last-child td { border-bottom: 0; }
-    .pc .pos { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 800; background: rgb(51 65 85); }
+    .pc .pos { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 800; background: rgb(226 232 240); color: rgb(30 41 59); }
     .pc .pos.p1 { background: #fbbf24; color: #451a03; }
     .pc .pos.p2 { background: #d4d4d8; color: #27272a; }
     .pc .pos.p3 { background: #d97706; color: #fff; }
