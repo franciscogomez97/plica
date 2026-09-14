@@ -37,12 +37,19 @@ class AsistenciaAction
             ->schema([
                 CheckboxList::make('socios')
                     ->label('Socios')
-                    ->options(fn (): array => Socio::query()
-                        ->where('club_id', auth()->user()->club_id)
-                        ->where('activo', true)
-                        ->orderBy('nombre')
-                        ->pluck('nombre', 'id')
-                        ->all())
+                    // Primero los de la sección de la manga; los demás, detrás y marcados como «otra sección».
+                    ->options(function () use ($manga): array {
+                        $deLaSeccion = $manga()->seccion->socios()->pluck('socios.id');
+                        $todos = Socio::query()
+                            ->where('club_id', auth()->user()->club_id)
+                            ->where('activo', true)
+                            ->orderBy('nombre')
+                            ->get();
+
+                        return $todos->whereIn('id', $deLaSeccion)->pluck('nombre', 'id')
+                            ->union($todos->whereNotIn('id', $deLaSeccion)->mapWithKeys(fn (Socio $s) => [$s->id => "{$s->nombre} (otra sección)"]))
+                            ->all();
+                    })
                     // Ya apuntados; y si aún no hay nadie, los que dijeron «asistiré».
                     ->default(function () use ($manga): array {
                         $apuntados = $manga()->participacions()->pluck('socio_id');

@@ -59,8 +59,12 @@ class BassExtremaduraSeeder extends Seeder
             'desempate' => Seccion::DESEMPATE_PROMEDIO,
         ]);
 
+        $orilla = Seccion::where('club_id', $club->id)->where('slug', 'orilla')->firstOrFail();
+
         foreach (self::SOCIOS as $nombre) {
-            Socio::firstOrCreate(['club_id' => $club->id, 'nombre' => $nombre]);
+            $socio = Socio::firstOrCreate(['club_id' => $club->id, 'nombre' => $nombre]);
+            // Todos son de Orilla: en su hoja salen los 47, también los que no han ido a ninguna manga (96).
+            $socio->seccions()->syncWithoutDetaching([$orilla->id]);
         }
     }
 }

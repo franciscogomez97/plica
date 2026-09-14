@@ -28,7 +28,7 @@
         <div @class(['plica-fila', 'plica-yo' => $socioId && $fila->socio->id === $socioId, 'plica-lider' => $fila->puesto === 1])>
             <div @class(['plica-pos', 'p'.$fila->puesto => $fila->puesto <= 3])>{{ $fila->puesto }}º</div>
             <div class="plica-quien">
-                <div class="plica-nombre">{{ $fila->socio->nombre }}{{ $socioId && $fila->socio->id === $socioId ? ' · tú' : '' }}</div>
+                <div class="plica-nombre">{{ $fila->socio->nombre }}{{ $socioId && $fila->socio->id === $socioId ? ' · tú' : '' }}@if ($fila->baja ?? false) <span class="plica-baja">Baja</span>@endif</div>
                 <div class="plica-detalle">
                     @if ($modo === 'temporada')
                         @php $mayorFila = \App\Services\Scoring::piezaMayorTexto($grupo->criterio, $fila); @endphp

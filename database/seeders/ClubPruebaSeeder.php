@@ -12,6 +12,7 @@ use App\Models\Temporada;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -63,6 +64,7 @@ class ClubPruebaSeeder extends Seeder
         ]);
 
         Manga::whereHas('temporada', fn ($q) => $q->where('club_id', $club->id))->get()->each->delete(); // arrastra pesajes y asistencias
+        DB::table('seccion_socio')->whereIn('seccion_id', Seccion::where('club_id', $club->id)->select('id'))->delete(); // se vuelve a aprender de los pesajes
 
         $temporada = Temporada::updateOrCreate(['club_id' => $club->id, 'nombre' => 'Temporada '.today()->year], ['activa' => true]);
         Temporada::where('club_id', $club->id)->whereKeyNot($temporada->id)->delete();
@@ -352,7 +354,7 @@ class ClubPruebaSeeder extends Seeder
                 $secciones->push(Seccion::updateOrCreate(['club_id' => $club->id, 'slug' => self::fedSlug($criterio, $regla)], [
                     'nombre' => self::fedNombre($criterio, $regla),
                     'criterio' => $criterio,
-                    'numero_socios' => 6,
+                    'numero_socios' => 7,
                     'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS,
                     'puntos_participacion' => 0,
                     'puntos_no_asistencia' => $ausencia,
@@ -421,6 +423,12 @@ class ClubPruebaSeeder extends Seeder
         return $secciones;
     }
 
+    /**
+     * Séptimo socio de cada sección de la matriz (Toni Salgado): es de la sección
+     * pero no ha ido a ninguna manga. Sale el último con sus puntos por ausencia.
+     */
+    public const MATRIZ_SIN_MANGAS = 6;
+
     private function pesarMatriz(Temporada $temporada, Collection $secciones, Collection $socios): void
     {
         $letras = ['A' => 0, 'B' => 1, 'C' => 2, 'D' => 3, 'E' => 4, 'F' => 5];
@@ -428,6 +436,8 @@ class ClubPruebaSeeder extends Seeder
         foreach ($secciones as $seccion) {
             $criterio = $seccion->criterio;
             $datos = str_starts_with($seccion->slug, 'federacion-') ? self::FED_DATOS[$criterio] : self::MATRIZ_DATOS[$criterio];
+
+            $seccion->socios()->syncWithoutDetaching([$socios[self::MATRIZ_SIN_MANGAS]->id]);
 
             foreach ($datos as $i => $resultados) {
                 $manga = Manga::create([

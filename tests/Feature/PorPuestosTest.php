@@ -108,11 +108,13 @@ class PorPuestosTest extends TestCase
         $this->manga('1ª Manga', self::HOJA, 7);
 
         $puntos = $this->puntos();
-        $this->assertCount(29, $puntos); // los 18 que no fueron aún no han pescado ninguna: no están
+        $this->assertCount(47, $puntos); // los 47 de la sección, también los 18 que no fueron (48 cada uno)
 
         foreach (self::PUNTOS as $nombre => $esperado) {
             $this->assertEquals($esperado, $puntos[$nombre], $nombre);
         }
+        $this->assertEquals(48, $puntos['Sergio Guerrero']);
+        $this->assertSame(18, count(array_filter($puntos, fn ($p) => $p == 48)));
 
         // Los empatados se ven con sus decimales.
         $this->assertSame('18,5', Scoring::formatPuntos(18.5));

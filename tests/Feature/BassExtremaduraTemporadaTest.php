@@ -20,7 +20,7 @@ class BassExtremaduraTemporadaTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** «Puntuacion final» de su hoja. Los cuatro que no fueron a ninguna (96) no salen en Plica. */
+    /** «Puntuacion final» de su hoja, los 47: también los cuatro que no han ido a ninguna (48 + 48 = 96). */
     private const GENERAL = [
         'Angel Vazquez' => 6, 'Fernando Díaz' => 9, 'Miguel García' => 13, 'Rafael Tomé' => 16, 'Adrián Fernandez' => 17,
         'Victor Moreno' => 29.5, 'Cristofer Pérez' => 30, 'Eduardo Vega' => 30.5, 'Fco. Javier Moreno' => 30.5, 'Alvaro Tarifa' => 31.5,
@@ -32,6 +32,7 @@ class BassExtremaduraTemporadaTest extends TestCase
         'Agustín Gomez Maya' => 74.5, 'Álvaro González' => 74.5, 'Blanca García' => 74.5, 'Carlos Mateos' => 74.5, 'David Gomez' => 74.5,
         'Javier Casas' => 74.5, 'Jose Benitez' => 74.5, 'Lukas Cuadrado' => 74.5, 'Miguel A. de Marcos' => 74.5, 'Miguel Marín' => 74.5,
         'Rufino Gomez Maya' => 74.5,
+        'David Basart' => 96, 'David Garrido' => 96, 'Diego Magro' => 96, 'Pablo Mediano' => 96,
     ];
 
     protected function setUp(): void
@@ -47,7 +48,7 @@ class BassExtremaduraTemporadaTest extends TestCase
         $grupo = Scoring::rankingTemporada($club->temporadaActiva())->firstWhere('nombre', 'Orilla');
 
         $puntos = $grupo->filas->mapWithKeys(fn (object $f) => [$f->socio->nombre => $f->puntos])->all();
-        $this->assertCount(43, $puntos); // 47 socios menos los 4 que no han ido a ninguna
+        $this->assertCount(47, $puntos); // los 47 socios de Orilla, hayan ido o no
         foreach (self::GENERAL as $nombre => $esperado) {
             $this->assertEquals($esperado, $puntos[$nombre] ?? null, $nombre);
         }
@@ -57,6 +58,8 @@ class BassExtremaduraTemporadaTest extends TestCase
         $this->assertSame(1, $puestos['Angel Vazquez']);
         $this->assertSame(2, $puestos['Fernando Díaz']);
         $this->assertSame($puestos['Eduardo Soria'], $puestos['Pablo Liberal']);
+        $this->assertSame(44, $puestos['David Basart']); // los cuatro de 96, últimos y empatados
+        $this->assertSame(0, $grupo->filas->first(fn (object $f) => $f->socio->nombre === 'David Basart')->mangas);
 
         // Pieza mayor de la temporada: los 2.975 g de Adrián en Orellana.
         $this->assertSame('Adrián Fernandez', $grupo->piezaMayor->socio->nombre);

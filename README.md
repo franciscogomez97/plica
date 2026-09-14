@@ -45,6 +45,14 @@ criterio de manga (peso / medida / piezas), sistema de ranking (acumulado /
 por puestos), puntos por participación y descartes. Los rankings son SIEMPRE
 por sección; no existe ranking general (decisión de producto, no un hueco).
 
+**Cada socio es de una o varias secciones** (tabla `seccion_socio`, 14 de
+septiembre de 2026): se aprende sola (quien pesa en una manga de Orilla pasa
+a ser de Orilla) y se corrige en la ficha del socio o en la sección. El
+ranking de una sección lista a todos sus socios, hayan ido o no a alguna
+manga; quien no ha ido a ninguna sale al final con sus puntos por ausencia,
+y un socio de baja sigue con la etiqueta «Baja». Socios y Mangas se filtran
+por sección con pestañas.
+
 **Toda manga es de una sección** (decisión de septiembre de 2026: el club
 siempre compite por secciones, cada sección tiene su calendario). La sección
 se elige al crear la manga y todo lo demás la hereda: la asistencia apunta a
@@ -195,6 +203,34 @@ relativas al día en que se ejecuta.
   `MatrizAcumuladoTest` fija sus resultados, calculados aparte del motor con
   una implementación independiente, y comprueba que el cuadro coincide con
   el ranking.
+- **Secciones por socio** (`seccion_socio`, 14 de septiembre de 2026): hasta
+  entonces un socio «era» de una sección solo si había pescado alguna manga
+  de ella, y quien no había ido a ninguna no salía en el ranking; en la hoja
+  de Bass Extremadura sí salen (cuatro con 96 = 48 + 48). Ahora la pertenencia
+  vive en `seccion_socio`: la aprende `Participacion::created`, la rellenó la
+  migración con los pesajes que había, y se corrige en la ficha del socio
+  («Secciones en las que compite») o en la sección («Socios de la sección»,
+  con marcar todos). `Scoring::sociosDelRanking` une a los que pescaron con
+  los socios de la sección: los sin mangas suman sus ausencias (48 por manga
+  en federación; en suma lo pescado, lo que dé o quite la ausencia) y los
+  descartes se les aplican igual (con «también las no pescadas» se descarta
+  una ausencia; con «solo las pescadas», nada). Un socio de baja sigue en la
+  sección y en el ranking con la etiqueta «Baja» (conserva historial y sigue
+  sumando ausencias, salvo que el admin lo desmarque). No hay altas a mitad
+  de temporada: los socios de la sección son los mismos todo el año y las
+  ausencias cuentan desde la primera manga para todos. Pestañas arriba de
+  Socios y de Mangas (`Filament/Concerns/PestanasDeSeccion`: «Todos ·
+  Orilla · Pato · Embarcación», solo si el club tiene dos o más secciones),
+  recordando en la sesión la última de cada admin; desde la pestaña de una
+  sección, «Nuevo socio», «Añadir varios» y «Nueva manga» ya son de ella
+  (`?seccion=ID`) y «Dar acceso» solo lista a los suyos; con una sola sección
+  en el club, todo va a ella. En el pesaje, primero los de la sección y luego
+  «Otros socios del club»; en la asistencia, los de otra sección van
+  marcados. Sin permisos por sección (las pestañas evitan el error, no lo
+  impiden): el paso siguiente sería «admin de sección». Los seeders de Bass
+  Madrid y Bass Extremadura meten a todos sus socios en Orilla (sus hojas los
+  listan a todos: 23 y 47) y las dos matrices del Club de Pruebas llevan un
+  séptimo socio sin mangas en cada sección, verificado contra los oráculos.
 - **Descartes: qué mangas se pueden descartar** (`seccions.descartes_ausencias`,
   11 de septiembre de 2026): con descartes, el club elige si «la peor manga»
   puede ser una a la que no se fue (faltar cuenta como la peor y se descarta
@@ -454,31 +490,9 @@ Aparcado a propósito, no olvidado:
 9. ~~Blindar secciones en BD~~: hecho. `mangas.seccion_id` es obligatorio y
    con `restrictOnDelete`; como toda participación cuelga de una manga de su
    sección, borrar una sección con historial lo impide la base de datos.
-11. **Secciones por socio: PENDIENTE DE HACER** (decidido el 11 de septiembre
-    de 2026 por la noche, tras cuadrar la general de Bass Extremadura): hoy
-    un socio «es» de una sección cuando pesca alguna manga de ella, y quien
-    no ha ido a ninguna no sale en el ranking. En la hoja de Bass Extremadura
-    esos socios sí salen (cuatro con 96 puntos: 48 + 48), y el club lo espera.
-    Diseño: tabla socio–sección aprendida de los pesajes (quien pesca en una
-    manga pasa a ser de la sección) y corregible en la ficha del socio y en
-    la sección (marcar en bloque); en el ranking, los socios de la sección
-    sin ninguna manga salen al final con sus puntos por ausencia (por
-    puestos, 48 por manga; en suma lo pescado, 0 más lo que dé o quite la
-    ausencia); los puntos por ausencia y los descartes se calculan sobre los
-    socios de la sección; en el pesaje, primero los de la sección y plegados
-    «otros socios». Filtro por sección con pestañas arriba en Socios y en
-    Mangas («Todas · Orilla · Pato · Embarcación»), recordando la última
-    pestaña de cada admin; dar de alta desde una pestaña mete al socio en esa
-    sección; «Dar acceso» y el pesaje enseñan primero los de la sección.
-    Decisiones del 14 de septiembre de 2026: no hay altas a mitad de
-    temporada (los socios de la sección son los mismos todo el año y las
-    ausencias se cuentan desde la primera manga para todos); un socio de baja
-    sigue en la sección y en el ranking con la etiqueta «Baja», conserva su
-    historial y sigue sumando ausencias, salvo que el admin lo desmarque de
-    la sección. Sin permisos por sección de momento (las pestañas evitan el
-    error, no lo impiden); el paso siguiente sería «admin de sección». Al
-    hacerlo, añadir a los tests de Bass Extremadura los cuatro de 96 y a las
-    matrices un socio sin mangas.
+11. ~~Secciones por socio~~: hecho el 14 de septiembre de 2026 (ver
+    decisiones). Queda para después «admin de sección» (permisos por sección:
+    hoy las pestañas evitan el error, no lo impiden).
 10. **Panel de Plica (superadmin), con cobros** (apuntado el 11 de septiembre
     de 2026, se hará después del lanzamiento): hoy el superadmin es un admin
     de club más que además ve «Solicitudes». Falta un tercer panel `/plica`,

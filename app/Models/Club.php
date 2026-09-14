@@ -78,7 +78,10 @@ class Club extends Model
      *
      * @return array{creados: array<int, string>, repetidos: array<int, string>}
      */
-    public function altaDeSocios(string $texto): array
+    /**
+     * @param  Seccion|null  $seccion  Si se da, los socios nuevos entran también en esa sección.
+     */
+    public function altaDeSocios(string $texto, ?Seccion $seccion = null): array
     {
         $vistos = $this->socios()
             ->pluck('nombre')
@@ -138,7 +141,10 @@ class Club extends Model
             }
 
             $vistos[$clave] = true;
-            $this->socios()->create(['nombre' => $nombre, 'email' => $email, 'telefono' => $telefono]);
+            $socio = $this->socios()->create(['nombre' => $nombre, 'email' => $email, 'telefono' => $telefono]);
+            if ($seccion !== null) {
+                $socio->seccions()->attach($seccion->id);
+            }
             $creados[] = $nombre;
         }
 

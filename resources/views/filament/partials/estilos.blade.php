@@ -1,5 +1,6 @@
 {{-- Estilos comunes de clasificaciones/rankings en los paneles Filament --}}
 <style>
+    .plica-baja { display: inline-block; margin-left: .35rem; padding: .05rem .4rem; border-radius: .35rem; background: rgba(128,128,128,.2); font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; vertical-align: middle; opacity: .8; }
     /* Cabeceras de sección con icono */
     .plica-h { display: inline-flex; align-items: center; gap: .5rem; }
     .plica-h svg { width: 1.25rem; height: 1.25rem; color: rgb(16, 185, 129); flex: none; }

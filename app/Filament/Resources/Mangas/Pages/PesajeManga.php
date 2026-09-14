@@ -102,19 +102,27 @@ class PesajeManga extends Page
     }
 
     /**
-     * Socios activos del club que aún no están en la manga.
+     * Socios activos del club que aún no están en la manga, en dos grupos: los de
+     * la sección de la manga primero y, aparte, los demás (por si viene un invitado).
      *
-     * @return array<int, string>
+     * @return array<string, array<int, string>> grupo => [id => nombre]
      */
     public function getSociosDisponibles(): array
     {
-        return Socio::query()
+        $manga = $this->getRecord();
+        $deLaSeccion = $manga->seccion->socios()->pluck('socios.id');
+
+        $todos = Socio::query()
             ->where('club_id', auth()->user()->club_id)
             ->where('activo', true)
-            ->whereNotIn('id', $this->getRecord()->participacions()->select('socio_id'))
+            ->whereNotIn('id', $manga->participacions()->select('socio_id'))
             ->orderBy('nombre')
-            ->pluck('nombre', 'id')
-            ->all();
+            ->get();
+
+        return array_filter([
+            "Socios de {$manga->seccion->nombre}" => $todos->whereIn('id', $deLaSeccion)->pluck('nombre', 'id')->all(),
+            'Otros socios del club' => $todos->whereNotIn('id', $deLaSeccion)->pluck('nombre', 'id')->all(),
+        ]);
     }
 
     /** Cualquier casilla que cambia guarda su fila: no hay botón de guardar. */

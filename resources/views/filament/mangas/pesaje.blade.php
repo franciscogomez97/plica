@@ -65,8 +65,12 @@
             <div class="pesaje-add">
                 <select id="pesaje-nuevo-socio" class="pesaje-select" wire:model.live="nuevoSocioId" aria-label="Añadir a un socio a la manga">
                     <option value="">Elegir socio…</option>
-                    @foreach ($disponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
+                    @foreach ($disponibles as $grupo => $socios)
+                        <optgroup label="{{ $grupo }}">
+                            @foreach ($socios as $id => $nombre)
+                                <option value="{{ $id }}">{{ $nombre }}</option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
             </div>

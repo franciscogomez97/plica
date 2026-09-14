@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -29,6 +30,15 @@ class Socio extends Model
     public function participacions(): HasMany
     {
         return $this->hasMany(Participacion::class);
+    }
+
+    /**
+     * Las secciones en las que compite. Se aprende sola al pesarle en una manga
+     * (ver Participacion::booted) y se corrige a mano en su ficha o en la sección.
+     */
+    public function seccions(): BelongsToMany
+    {
+        return $this->belongsToMany(Seccion::class, 'seccion_socio')->withTimestamps();
     }
 
     public function confirmacions(): HasMany

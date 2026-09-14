@@ -15,6 +15,16 @@ class Participacion extends Model
         return ['plica' => 'boolean'];
     }
 
+    /** Quien pesa en una manga de una sección pasa a ser socio de esa sección (si no lo era). */
+    protected static function booted(): void
+    {
+        static::created(function (Participacion $participacion): void {
+            if ($participacion->seccion_id !== null) {
+                $participacion->socio->seccions()->syncWithoutDetaching([$participacion->seccion_id]);
+            }
+        });
+    }
+
     public function manga(): BelongsTo
     {
         return $this->belongsTo(Manga::class);

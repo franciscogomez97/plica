@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Socios\Tables;
 
+use App\Filament\Resources\Socios\Pages\ListSocios;
 use App\Filament\Resources\Socios\SocioResource;
 use App\Models\Socio;
 use App\Models\User;
@@ -22,7 +23,7 @@ class SociosTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->withCount('participacions'))
+            ->modifyQueryUsing(fn ($query) => $query->with('seccions')->withCount('participacions'))
             ->columns([
                 // En pantalla ancha, una línea por socio; en el móvil se apila (nombre,
                 // teléfono, insignias) y así el botón «Acceso» no se sale por la derecha.
@@ -41,6 +42,14 @@ class SociosTable
                         ->searchable()
                         ->grow(false)
                         ->visibleFrom('md'),
+                    // En «Todos», de qué secciones es cada uno; en la pestaña de una sección sobra.
+                    TextColumn::make('seccions.nombre')
+                        ->badge()
+                        ->color('info')
+                        ->placeholder('sin sección')
+                        ->visible(fn (ListSocios $livewire): bool => $livewire->seccionActiva() === null && $livewire->getCachedTabs() !== [])
+                        ->grow(false)
+                        ->visibleFrom('sm'),
                     TextColumn::make('insignias')
                         ->badge()
                         ->state(fn (Socio $record): array => array_values(array_filter([

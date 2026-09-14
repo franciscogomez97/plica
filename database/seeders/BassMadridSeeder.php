@@ -131,7 +131,12 @@ class BassMadridSeeder extends Seeder
             'descartes' => 0,
         ]);
 
-        $socios = collect(self::SOCIOS)->map(fn (string $nombre) => Socio::firstOrCreate(['club_id' => $club->id, 'nombre' => $nombre]));
+        $socios = collect(self::SOCIOS)->map(function (string $nombre) use ($club, $orilla) {
+            $socio = Socio::firstOrCreate(['club_id' => $club->id, 'nombre' => $nombre]);
+            $socio->seccions()->syncWithoutDetaching([$orilla->id]); // la hoja lista a los 23, también los de ceros
+
+            return $socio;
+        });
 
         foreach (self::mangas() as $def) {
             // Por fecha con whereDate: la columna guarda hora y firstOrCreate no la encontraría.

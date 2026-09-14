@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Seccions\Schemas;
 
 use App\Models\Seccion;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\TextInput;
@@ -10,6 +11,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rules\Unique;
 
 /**
@@ -172,6 +174,22 @@ class SeccionForm
                             ->live()
                             ->required(),
                     ]),
+
+                Section::make('Socios de la sección')
+                    ->description('Se marcan solos al pesarles en una manga de esta sección. Márcalos aquí para que salgan en el ranking desde el principio, aunque aún no hayan ido a ninguna manga.')
+                    ->schema([
+                        CheckboxList::make('socios')
+                            ->hiddenLabel()
+                            ->relationship(
+                                name: 'socios',
+                                titleAttribute: 'nombre',
+                                modifyQueryUsing: fn (Builder $query) => $query->where('club_id', auth()->user()->club_id)->orderBy('nombre'),
+                            )
+                            ->bulkToggleable()
+                            ->searchable()
+                            ->columns(['default' => 1, 'sm' => 2, 'lg' => 3]),
+                    ])
+                    ->collapsible(),
 
                 Section::make('Así puntúa esta sección')
                     ->description('Lo mismo que verán los socios junto al ranking.')

@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources\Socios\Schemas;
 
+use App\Models\Seccion;
 use App\Models\Socio;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * La ficha de un socio pide lo justo: nombre, teléfono (para mandarle el acceso
@@ -35,6 +38,27 @@ class SocioForm
                         }
                     })
                     ->nullable(),
+                // En qué secciones compite. Se marca sola al pesarle en una manga; aquí se corrige.
+                CheckboxList::make('seccions')
+                    ->label('Secciones en las que compite')
+                    ->helperText('Se marcan solas al pesarle en una manga. Un socio de una sección sale en su ranking aunque no haya ido a ninguna manga.')
+                    ->relationship(
+                        name: 'seccions',
+                        titleAttribute: 'nombre',
+                        modifyQueryUsing: fn (Builder $query) => $query->where('club_id', auth()->user()->club_id)->orderBy('nombre'),
+                    )
+                    // Desde la pestaña de una sección (?seccion=ID) viene marcada; con una sola sección en el club, también.
+                    ->default(function (): array {
+                        $secciones = Seccion::query()->where('club_id', auth()->user()->club_id)->pluck('id');
+                        $pedida = (int) request()->query('seccion');
+
+                        return match (true) {
+                            $pedida > 0 && $secciones->contains($pedida) => [$pedida],
+                            $secciones->count() === 1 => [$secciones->first()],
+                            default => [],
+                        };
+                    })
+                    ->columns(2),
                 TextInput::make('email')
                     ->label('Email (opcional)')
                     ->email()

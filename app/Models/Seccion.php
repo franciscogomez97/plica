@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -171,6 +172,12 @@ class Seccion extends Model
     public function participacions(): HasMany
     {
         return $this->hasMany(Participacion::class);
+    }
+
+    /** Los socios de la sección: los que han pescado alguna manga de ella y los que el club marque a mano. */
+    public function socios(): BelongsToMany
+    {
+        return $this->belongsToMany(Socio::class, 'seccion_socio')->withTimestamps();
     }
 
     public function mangas(): HasMany

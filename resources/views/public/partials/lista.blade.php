@@ -27,7 +27,7 @@
                 'bg-slate-800 text-slate-300' => $fila->puesto > 3,
             ])>{{ $fila->puesto }}º</div>
             <div class="min-w-0 flex-1">
-                <div @class(['truncate font-semibold', 'text-lg' => $fila->puesto === 1, 'text-base' => $fila->puesto !== 1])>{{ $fila->socio->nombre }}</div>
+                <div @class(['truncate font-semibold', 'text-lg' => $fila->puesto === 1, 'text-base' => $fila->puesto !== 1])>{{ $fila->socio->nombre }}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-700 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-slate-300">Baja</span>@endif</div>
                 <div class="text-sm text-slate-500">
                     @if ($modo === 'temporada')
                         @php $mayorFila = \App\Services\Scoring::piezaMayorTexto($grupo->criterio, $fila); @endphp

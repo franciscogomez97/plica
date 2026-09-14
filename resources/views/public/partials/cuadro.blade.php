@@ -76,7 +76,7 @@
                         <td>
                             <span class="inline-flex max-w-full items-center gap-2 font-semibold">
                                 <span @class(['pos', 'p'.$fila->puesto => $fila->puesto <= 3])>{{ $fila->puesto }}</span>
-                                <span class="n largo truncate">{{ $fila->socio->nombre }}</span>
+                                <span class="n largo truncate">{{ $fila->socio->nombre }}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-700 px-1 text-[10px] font-bold uppercase text-slate-300">Baja</span>@endif</span>
                                 <span class="n corto truncate" title="{{ $fila->socio->nombre }}">{{ $abreviar($fila->socio->nombre) }}</span>
                             </span>
                         </td>

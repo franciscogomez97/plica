@@ -43,6 +43,12 @@ class BassMadridTest extends TestCase
         'Marius Modi' => 1000,
         'Juan Juarez' => 500,
         'Marcos Casado' => 500,
+        // Los cinco que no han ido a ninguna manga, con ceros, como en la hoja.
+        'Fran Gomez' => 0,
+        'Victor Calvo' => 0,
+        'Maria de la Hija' => 0,
+        'Luis Enrique' => 0,
+        'Isidoro Rodriguez' => 0,
     ];
 
     public function test_el_ranking_de_orilla_es_el_de_la_hoja_del_club(): void
@@ -76,6 +82,7 @@ class BassMadridTest extends TestCase
         $this->assertSame(15, $puestos['Marius Modi']);
         $this->assertSame(17, $puestos['Juan Juarez']);
         $this->assertSame(17, $puestos['Marcos Casado']);
+        $this->assertSame(19, $puestos['Fran Gomez']); // los cinco de ceros comparten el 19º
 
         // Pieza mayor de la temporada: la de 2040 g de Juan Francisco en Sierra Brava (2ª manga).
         $this->assertSame('Juan Francisco Trujillo', $orilla->piezaMayor->socio->nombre);
