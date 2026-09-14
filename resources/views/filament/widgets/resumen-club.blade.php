@@ -21,7 +21,7 @@
             </div>
             @if ($d->proxima)
                 <div class="resumen-valor">{{ $d->proxima->fecha->format('d/m') }}</div>
-                <div class="resumen-sub">{{ $d->proxima->nombre }}{{ $d->proxima->lugar ? ' · '.$d->proxima->lugar : '' }}</div>
+                <div class="resumen-sub">{{ $d->proxima->nombre }}{{ $d->proxima->horarioCorto() ? ' · '.$d->proxima->horarioCorto() : '' }}{{ $d->proxima->lugar ? ' · '.$d->proxima->lugar : '' }}</div>
             @else
                 <div class="resumen-valor">—</div>
                 <div class="resumen-sub">Sin mangas programadas</div>

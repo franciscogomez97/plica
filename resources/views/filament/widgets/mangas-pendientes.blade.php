@@ -10,7 +10,7 @@
         @foreach ($this->getMangas() as $manga)
             <div style="display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; justify-content:space-between">
                 <div>
-                    <div style="font-weight:600">{{ $manga->nombre }} — {{ $manga->fecha->format('d/m/Y') }}{{ $manga->lugar ? ' · '.$manga->lugar : '' }}</div>
+                    <div style="font-weight:600">{{ $manga->nombre }} — {{ $manga->fecha->format('d/m/Y') }}{{ $manga->horarioCorto() ? ' · '.$manga->horarioCorto() : '' }}{{ $manga->lugar ? ' · '.$manga->lugar : '' }}</div>
                     <div style="font-size:.8rem; opacity:.7">
                         {{ $manga->participacions_count > 0
                             ? $manga->participacions_count.' participaciones apuntadas'

@@ -140,6 +140,13 @@ class ClubPruebaSeeder extends Seeder
                     'ubicacion_url' => $tipo === 'proxima' ? 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($lugares[($i + array_search($clave, array_keys($calendario), true)) % count($lugares)]) : null,
                     'estado' => $tipo === 'celebrada' ? Manga::ESTADO_CELEBRADA : Manga::ESTADO_PROGRAMADA,
                     'notas' => $tipo === 'pendiente' ? 'Ya se ha pescado: falta marcar la asistencia y meter las plicas.' : null,
+                    // Las próximas, con horario y quedada previa, para que se vea en la convocatoria.
+                    ...($tipo === 'proxima' ? [
+                        'hora_inicio' => $clave === 'pato' ? '07:00' : '08:00',
+                        'hora_fin' => $clave === 'pato' ? '13:00' : '14:00',
+                        'quedada_lugar' => 'Gasolinera de la entrada al pueblo',
+                        'quedada_hora' => $clave === 'pato' ? '06:15' : '07:15',
+                    ] : []),
                 ]);
 
                 if ($tipo === 'proxima') {

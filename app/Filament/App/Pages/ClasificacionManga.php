@@ -55,6 +55,7 @@ class ClasificacionManga extends Page
 
         return implode(' · ', array_filter([
             $manga->fecha->format('d/m/Y'),
+            $manga->horario(),
             $manga->lugar,
             $manga->estado === Manga::ESTADO_CELEBRADA ? null : 'clasificación provisional',
         ]));

@@ -61,6 +61,7 @@ class PesajeManga extends Page
 
         return implode(' · ', array_filter([
             $manga->fecha->format('d/m/Y'),
+            $manga->horario(),
             $manga->lugar,
             $n === 1 ? '1 participante' : "{$n} participantes",
             $confirmados > 0 ? ($confirmados === 1 ? '1 confirmó que vendría' : "{$confirmados} confirmaron que vendrían") : null,

@@ -27,7 +27,7 @@
         </div>
         <h1 class="mt-2 text-3xl font-extrabold tracking-tight">🎣 {{ $manga->nombre }}</h1>
         <p class="mt-1 text-base text-slate-400">
-            {{ $manga->fecha->format('d/m/Y') }}{{ $manga->lugar ? ' · '.$manga->lugar : '' }}{{ $manga->seccion ? ' · '.$manga->seccion->nombre : '' }}
+            {{ $manga->fecha->format('d/m/Y') }}{{ $manga->horarioCorto() ? ' · '.$manga->horarioCorto() : '' }}{{ $manga->lugar ? ' · '.$manga->lugar : '' }}{{ $manga->seccion ? ' · '.$manga->seccion->nombre : '' }}
             @if ($manga->estado !== \App\Models\Manga::ESTADO_CELEBRADA && $grupos->isNotEmpty())
                 · <span class="text-amber-400">clasificación provisional</span>
             @endif
@@ -43,13 +43,22 @@
         {{-- Convocatoria: los socios dicen si irán. Es intención: la asistencia real la pasa el admin. --}}
         <section class="pb-8">
             <div class="rounded-2xl border border-emerald-900/60 bg-emerald-950/40 p-5">
-                <h2 class="text-lg font-bold text-emerald-400">📅 {{ ucfirst($manga->fecha->locale('es')->isoFormat('dddd D [de] MMMM')) }}</h2>
+                <h2 class="text-lg font-bold text-emerald-400">📅 {{ ucfirst($manga->fecha->locale('es')->isoFormat('dddd D [de] MMMM')) }}{{ $manga->horario() ? ' · '.$manga->horario() : '' }}</h2>
                 <p class="mt-1 text-base text-slate-300">
                     {{ $manga->lugar ?? 'Lugar por confirmar' }}
                     @if ($manga->ubicacion_url)
                         · <a href="{{ $manga->ubicacion_url }}" target="_blank" rel="noopener" class="font-semibold text-emerald-400 hover:underline">📍 Cómo llegar</a>
                     @endif
                 </p>
+                @if ($manga->quedada())
+                    {{-- Dónde se junta el club antes de ir al agua. --}}
+                    <p class="mt-2 text-base text-slate-300">
+                        🤝 Quedada previa {{ $manga->quedada() }}
+                        @if ($manga->quedada_url)
+                            · <a href="{{ $manga->quedada_url }}" target="_blank" rel="noopener" class="font-semibold text-emerald-400 hover:underline">📍 Cómo llegar</a>
+                        @endif
+                    </p>
+                @endif
 
                 @if (session('asistencia'))
                     <p class="mt-3 rounded-lg bg-emerald-600/20 px-3 py-2 text-sm font-semibold text-emerald-300">{{ session('asistencia') }}</p>

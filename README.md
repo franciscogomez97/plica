@@ -203,6 +203,15 @@ relativas al día en que se ejecuta.
   `MatrizAcumuladoTest` fija sus resultados, calculados aparte del motor con
   una implementación independiente, y comprueba que el cuadro coincide con
   el ranking.
+- **Horario y quedada de la manga** (14 de septiembre de 2026): la manga
+  tiene hora de inicio y de fin (`hora_inicio`, `hora_fin`) y una quedada
+  previa opcional, dónde y a qué hora se junta el club antes de ir al agua
+  (`quedada_lugar`, `quedada_hora`, `quedada_url`). Todo opcional. Sale en
+  la convocatoria («…en Embalse de Entrepeñas, de 08:00 a 14:00.» y «🤝
+  Quedada previa a las 07:15 en Bar La Presa» con su «cómo llegar»), en la
+  página pública de la manga, en el Inicio del socio, en el listado de
+  mangas y en los widgets del admin. Las horas van en columnas `time` y se
+  enseñan siempre en corto («08:00») con `Manga::horaCorta`.
 - **Secciones por socio** (`seccion_socio`, 14 de septiembre de 2026): hasta
   entonces un socio «era» de una sección solo si había pescado alguna manga
   de ella, y quien no había ido a ninguna no salía en el ranking; en la hoja

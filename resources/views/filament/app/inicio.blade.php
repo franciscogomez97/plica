@@ -56,16 +56,22 @@
                         <div class="plica-quien">
                             <div class="plica-nombre">{{ $manga->nombre }}{{ $manga->seccion ? ' · '.$manga->seccion->nombre : '' }}</div>
                             <div class="plica-detalle">
-                                {{ $manga->lugar ?? 'Lugar por confirmar' }}
+                                {{ $manga->lugar ?? 'Lugar por confirmar' }}{{ $manga->horarioCorto() ? ' · '.$manga->horarioCorto() : '' }}
                                 · {{ $manga->confirmacions_count === 1 ? '1 confirmado' : $manga->confirmacions_count.' confirmados' }}
                             </div>
+                            @if ($manga->quedada())
+                                <div class="plica-detalle">🤝 Quedada previa {{ $manga->quedada() }}</div>
+                            @endif
                         </div>
                         <div class="plica-valor">
                             {{ $manga->fecha->format('d/m') }}
                             <small>{{ $manga->fecha->format('Y') }}</small>
                         </div>
-                        @if ($socio || $manga->ubicacion_url)
+                        @if ($socio || $manga->ubicacion_url || $manga->quedada_url)
                             <div style="flex-basis:100%; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.5rem">
+                                @if ($manga->quedada_url)
+                                    <a class="plica-mapa" href="{{ $manga->quedada_url }}" target="_blank" rel="noopener">🤝 Quedada</a>
+                                @endif
                                 @if ($manga->ubicacion_url)
                                     <a class="plica-mapa" href="{{ $manga->ubicacion_url }}" target="_blank" rel="noopener">📍 Cómo llegar</a>
                                 @endif

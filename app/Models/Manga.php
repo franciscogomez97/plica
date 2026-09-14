@@ -13,13 +13,64 @@ class Manga extends Model
 
     public const ESTADO_CELEBRADA = 'celebrada';
 
-    protected $fillable = ['temporada_id', 'seccion_id', 'nombre', 'fecha', 'lugar', 'ubicacion_url', 'estado', 'notas'];
+    protected $fillable = [
+        'temporada_id', 'seccion_id', 'nombre', 'fecha', 'hora_inicio', 'hora_fin', 'lugar', 'ubicacion_url',
+        'quedada_lugar', 'quedada_hora', 'quedada_url', 'estado', 'notas',
+    ];
 
     protected $attributes = ['estado' => self::ESTADO_PROGRAMADA];
 
     protected function casts(): array
     {
         return ['fecha' => 'date'];
+    }
+
+    /** «08:00» a partir de lo que guarde la base de datos («08:00:00»). */
+    public static function horaCorta(?string $hora): ?string
+    {
+        return filled($hora) ? substr($hora, 0, 5) : null;
+    }
+
+    /** «de 08:00 a 14:00», «desde las 08:00» o «hasta las 14:00»; null sin horario. */
+    public function horario(): ?string
+    {
+        $inicio = static::horaCorta($this->hora_inicio);
+        $fin = static::horaCorta($this->hora_fin);
+
+        return match (true) {
+            $inicio !== null && $fin !== null => "de {$inicio} a {$fin}",
+            $inicio !== null => "desde las {$inicio}",
+            $fin !== null => "hasta las {$fin}",
+            default => null,
+        };
+    }
+
+    /** «08:00–14:00», para listados. */
+    public function horarioCorto(): ?string
+    {
+        $inicio = static::horaCorta($this->hora_inicio);
+        $fin = static::horaCorta($this->hora_fin);
+
+        return match (true) {
+            $inicio !== null && $fin !== null => "{$inicio}–{$fin}",
+            $inicio !== null => $inicio,
+            $fin !== null => "hasta {$fin}",
+            default => null,
+        };
+    }
+
+    /** «a las 07:00 en Bar Manolo»; null si no hay quedada previa. */
+    public function quedada(): ?string
+    {
+        $hora = static::horaCorta($this->quedada_hora);
+        $lugar = filled($this->quedada_lugar) ? trim($this->quedada_lugar) : null;
+
+        return match (true) {
+            $hora !== null && $lugar !== null => "a las {$hora} en {$lugar}",
+            $hora !== null => "a las {$hora}",
+            $lugar !== null => "en {$lugar}",
+            default => null,
+        };
     }
 
     public function temporada(): BelongsTo

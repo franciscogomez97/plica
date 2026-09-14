@@ -9,6 +9,8 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -62,6 +64,45 @@ class MangaForm
                     ->url()
                     ->maxLength(500)
                     ->nullable(),
+                // A qué hora se pesca. Sale en la convocatoria y en la página de la manga.
+                Section::make('Horario')
+                    ->description('A qué hora empieza y termina la manga. Sale en la convocatoria y en la página de la manga.')
+                    ->schema([
+                        TimePicker::make('hora_inicio')
+                            ->label('Empieza')
+                            ->seconds(false)
+                            ->nullable(),
+                        TimePicker::make('hora_fin')
+                            ->label('Termina')
+                            ->seconds(false)
+                            ->nullable(),
+                    ])
+                    ->columns(2),
+                // Dónde se junta el club antes de ir al embalse.
+                Section::make('Quedada previa')
+                    ->description('Si el club se junta antes en algún sitio (un bar, una gasolinera) para ir juntos al agua. Opcional.')
+                    ->schema([
+                        TextInput::make('quedada_lugar')
+                            ->label('Dónde')
+                            ->placeholder('Bar Manolo, gasolinera de la A-5…')
+                            ->maxLength(160)
+                            ->nullable(),
+                        TimePicker::make('quedada_hora')
+                            ->label('A qué hora')
+                            ->seconds(false)
+                            ->nullable(),
+                        TextInput::make('quedada_url')
+                            ->label('Cómo llegar a la quedada (enlace a Google Maps)')
+                            ->placeholder('https://maps.app.goo.gl/…')
+                            ->url()
+                            ->maxLength(500)
+                            ->nullable()
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    // Al editar una manga sin quedada, plegada; al crear, abierta para que se vea la opción.
+                    ->collapsed(fn (?Manga $record): bool => $record !== null && blank($record->quedada_lugar) && blank($record->quedada_hora)),
                 Radio::make('estado')
                     ->label('Estado')
                     ->options([

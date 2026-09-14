@@ -74,7 +74,7 @@ class DemoSeeder extends Seeder
         $mangasDef = [
             ['nombre' => '1ª Manga', 'fecha' => today()->subWeeks(12), 'lugar' => 'Embalse de San Juan', 'estado' => Manga::ESTADO_CELEBRADA],
             ['nombre' => '2ª Manga', 'fecha' => today()->subWeeks(8), 'lugar' => 'Pantano de Buendía', 'estado' => Manga::ESTADO_CELEBRADA],
-            ['nombre' => '3ª Manga', 'fecha' => today()->addWeeks(2), 'lugar' => 'Embalse de Entrepeñas', 'estado' => Manga::ESTADO_PROGRAMADA],
+            ['nombre' => '3ª Manga', 'fecha' => today()->addWeeks(2), 'lugar' => 'Embalse de Entrepeñas', 'estado' => Manga::ESTADO_PROGRAMADA, 'hora_inicio' => '08:00', 'hora_fin' => '14:00', 'quedada_lugar' => 'Bar La Presa (Sacedón)', 'quedada_hora' => '07:15'],
         ];
 
         // [índice de socio => [piezas, gramos, milímetros, pieza mayor en gramos]] — datos de ejemplo deterministas.

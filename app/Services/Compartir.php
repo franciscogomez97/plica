@@ -74,11 +74,20 @@ class Compartir
             "El {$fecha} se celebra la manga «{$manga->nombre}»"
                 .($manga->seccion ? " de {$manga->seccion->nombre}" : '')
                 .($manga->lugar ? " en {$manga->lugar}" : '')
+                .($manga->horario() ? ", {$manga->horario()}" : '')
                 .'.',
         ];
 
         if ($manga->ubicacion_url) {
             $lineas[] = "📍 Cómo llegar: {$manga->ubicacion_url}";
+        }
+
+        if ($manga->quedada()) {
+            $lineas[] = "🤝 Quedada previa {$manga->quedada()}";
+
+            if ($manga->quedada_url) {
+                $lineas[] = "📍 Cómo llegar a la quedada: {$manga->quedada_url}";
+            }
         }
 
         $lineas[] = '';

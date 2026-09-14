@@ -38,7 +38,7 @@
                     <a href="{{ $manga->urlPublica() }}" class="flex min-h-14 items-center gap-3 py-3 hover:text-emerald-300">
                         <div class="min-w-0 flex-1">
                             <div class="truncate text-base font-semibold">{{ $manga->nombre }}{{ $manga->seccion ? ' · '.$manga->seccion->nombre : '' }}</div>
-                            <div class="text-sm text-slate-500">{{ $manga->lugar ?? 'Lugar por confirmar' }}</div>
+                            <div class="text-sm text-slate-500">{{ $manga->lugar ?? 'Lugar por confirmar' }}{{ $manga->horarioCorto() ? ' · '.$manga->horarioCorto() : '' }}</div>
                         </div>
                         <div class="text-right text-base font-bold tabular-nums">
                             {{ $manga->fecha->format('d/m') }}

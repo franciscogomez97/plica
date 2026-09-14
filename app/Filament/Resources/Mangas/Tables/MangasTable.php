@@ -46,7 +46,7 @@ class MangasTable
                         ->grow(false)
                         ->visibleFrom('lg'),
                     TextColumn::make('fecha')
-                        ->date('d/m/Y')
+                        ->formatStateUsing(fn (Manga $record): string => $record->fecha->format('d/m/Y').($record->horarioCorto() ? ' · '.$record->horarioCorto() : ''))
                         ->color('gray')
                         ->grow(false),
                     TextColumn::make('estado')
