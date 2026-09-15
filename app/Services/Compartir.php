@@ -106,7 +106,7 @@ class Compartir
             ->implode(' · ');
     }
 
-    private static function valorRanking(object $grupo, object $fila): string
+    public static function valorRanking(object $grupo, object $fila): string
     {
         $conPuntos = ($grupo->sistema ?? Seccion::SISTEMA_ACUMULADO) === Seccion::SISTEMA_PUESTOS
             || ($grupo->puntosParticipacion ?? 0) > 0

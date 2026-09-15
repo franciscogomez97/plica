@@ -80,9 +80,11 @@ Route::get('/salud', function () {
 
 Route::get('/c/{club:slug}', [ClubPublicoController::class, 'club'])->name('club.publico');
 Route::get('/c/{club:slug}/manga/{manga}', [ClubPublicoController::class, 'manga'])->name('club.manga');
+Route::get('/c/{club:slug}/manga/{manga}/podio.jpg', [ClubPublicoController::class, 'podioManga'])->name('club.manga.podio');
 Route::post('/c/{club:slug}/manga/{manga}/asistire', [ClubPublicoController::class, 'asistire'])
     ->middleware('throttle:30,1')
     ->name('club.manga.asistire');
+Route::get('/c/{club:slug}/{seccion}/podio.jpg', [ClubPublicoController::class, 'podioSeccion'])->name('club.seccion.podio');
 Route::get('/c/{club:slug}/{seccion}', [ClubPublicoController::class, 'seccion'])->name('club.seccion');
 
 // ---------- Enlaces de acceso (un solo uso, por WhatsApp) ----------

@@ -6,9 +6,14 @@ use App\Models\Club;
 use App\Models\Manga;
 use App\Models\Socio;
 use App\Services\Compartir;
+use App\Services\Podio;
 use App\Services\Scoring;
+use App\Support\RankingDeSeccion;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Páginas públicas del club. La portada respeta el interruptor «perfil
@@ -52,29 +57,8 @@ class ClubPublicoController extends Controller
     public function seccion(Club $club, string $seccion): View
     {
         $seccion = $club->seccions()->where('slug', $seccion)->firstOrFail();
-        $temporada = $club->temporadaActiva();
 
-        $cuadro = $temporada ? Scoring::cuadroSeccion($temporada, $seccion) : null;
-        $grupo = $temporada
-            ? Scoring::rankingTemporada($temporada)->firstWhere('seccionId', $seccion->id)
-            : null;
-
-        $ultimaManga = $cuadro?->mangas->last();
-        $clasifUltima = $ultimaManga
-            ? Scoring::clasificacionManga($ultimaManga)->first(fn (object $g) => $g->seccion?->id === $seccion->id)
-            : null;
-
-        return view('public.seccion', [
-            'club' => $club,
-            'seccion' => $seccion,
-            'temporada' => $temporada,
-            'grupo' => $grupo,
-            'cuadro' => $cuadro,
-            'ultimaManga' => $ultimaManga,
-            'clasifUltima' => $clasifUltima,
-            'url' => $seccion->urlPublica(),
-            'texto' => $grupo && $temporada ? Compartir::textoRanking($club, $temporada, $grupo) : null,
-        ]);
+        return view('public.seccion', RankingDeSeccion::datos($club, $seccion));
     }
 
     public function manga(Club $club, Manga $manga): View
@@ -94,6 +78,48 @@ class ClubPublicoController extends Controller
             'confirmados' => $manga->confirmacions()->with('socio')->get()->map(fn ($c) => $c->socio->nombre)->sort()->values(),
             'socio' => $socio,
             'voy' => $manga->confirmadoPor($socio),
+        ]);
+    }
+
+    /**
+     * La tarjeta del podio de una manga (imagen para compartir y vista previa
+     * del enlace). En una manga de club con varias secciones, `?seccion=slug`
+     * elige cuál; sin ella, la primera. `?v=` es solo para que WhatsApp no
+     * cachee una versión vieja: la imagen que se sirve es siempre la actual.
+     */
+    public function podioManga(Club $club, Manga $manga, Request $request): BinaryFileResponse
+    {
+        abort_unless($manga->temporada->club_id === $club->id, 404);
+
+        $grupos = Scoring::clasificacionManga($manga);
+        abort_if($grupos->isEmpty(), 404);
+
+        $slug = $request->query('seccion');
+        $grupo = $slug ? $grupos->first(fn (object $g) => $g->seccion?->slug === $slug) : $grupos->first();
+        abort_if($grupo === null, 404);
+
+        return $this->imagen(Podio::deManga($manga, $grupo), Str::slug($manga->nombre.' '.$grupo->nombre).'.jpg');
+    }
+
+    /** La tarjeta del ranking de una sección en la temporada activa. */
+    public function podioSeccion(Club $club, string $seccion): BinaryFileResponse
+    {
+        $seccion = $club->seccions()->where('slug', $seccion)->firstOrFail();
+        $temporada = $club->temporadaActiva();
+        abort_if($temporada === null, 404);
+
+        $grupo = Scoring::rankingTemporada($temporada)->firstWhere('seccionId', $seccion->id);
+        abort_if($grupo === null, 404);
+
+        return $this->imagen(Podio::deRanking($temporada, $seccion, $grupo), Str::slug('ranking '.$seccion->nombre).'.jpg');
+    }
+
+    private function imagen(string $ruta, string $nombre): BinaryFileResponse
+    {
+        return response()->file($ruta, [
+            'Content-Type' => 'image/jpeg',
+            'Content-Disposition' => 'inline; filename="'.$nombre.'"',
+            'Cache-Control' => 'public, max-age=300',
         ]);
     }
 

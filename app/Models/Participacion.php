@@ -2,27 +2,49 @@
 
 namespace App\Models;
 
+use App\Support\Participante;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Participacion extends Model
 {
-    protected $fillable = ['manga_id', 'socio_id', 'seccion_id', 'plica', 'pieza_mayor_gramos'];
+    protected $fillable = ['manga_id', 'socio_id', 'equipo_id', 'seccion_id', 'plica', 'pieza_mayor_gramos'];
+
+    private ?Participante $participanteCache = null;
 
     protected function casts(): array
     {
         return ['plica' => 'boolean'];
     }
 
-    /** Quien pesa en una manga de una sección pasa a ser socio de esa sección (si no lo era). */
+    /** Quien pesa en una manga de una sección pasa a ser socio de esa sección (si no lo era); en equipos, todos sus socios. */
     protected static function booted(): void
     {
         static::created(function (Participacion $participacion): void {
             if ($participacion->seccion_id !== null) {
-                $participacion->socio->seccions()->syncWithoutDetaching([$participacion->seccion_id]);
+                foreach ($participacion->participante()->socios as $socio) {
+                    $socio->seccions()->syncWithoutDetaching([$participacion->seccion_id]);
+                }
             }
         });
+    }
+
+    public function equipo(): BelongsTo
+    {
+        return $this->belongsTo(Equipo::class);
+    }
+
+    /** Quien participa: el socio o, en secciones por equipos, el equipo. */
+    public function participante(): Participante
+    {
+        return $this->participanteCache ??= Participante::de($this);
+    }
+
+    /** Id del participante (socio o equipo); dentro de una sección no se mezclan. */
+    public function participanteId(): int
+    {
+        return (int) ($this->equipo_id ?? $this->socio_id);
     }
 
     public function manga(): BelongsTo

@@ -112,11 +112,13 @@ class CompartirPublicoTest extends TestCase
         $manga = Manga::where('estado', Manga::ESTADO_CELEBRADA)->orderByDesc('fecha')->orderByDesc('id')->firstOrFail();
 
         // El enlace público va dentro del wa.me del botón (codificado): WhatsApp se abre con él escrito.
-        $this->actingAs($admin)->get('/admin/ranking')->assertOk()
-            ->assertSee('Compartir por WhatsApp')
-            ->assertSee(rawurlencode($orilla->urlPublica()), escape: false);
+        // El ranking del admin es la página pública con pestañas: mismos botones (compactos) y el enlace a la web.
+        $this->actingAs($admin)->get('/admin/ranking?seccion=orilla')->assertOk()
+            ->assertSee('href="https://wa.me/?text=', escape: false)
+            ->assertSee(rawurlencode($orilla->urlPublica()), escape: false)
+            ->assertSee('Ver la página pública');
         $this->actingAs($admin)->get("/admin/ranking/{$orilla->id}")->assertOk()
-            ->assertSee('Compartir por WhatsApp')
+            ->assertSee('href="https://wa.me/?text=', escape: false)
             ->assertSee('Ver la página pública');
         $this->actingAs($admin)->get("/admin/mangas/{$manga->id}/clasificacion")->assertOk()
             ->assertSee('Compartir por WhatsApp')

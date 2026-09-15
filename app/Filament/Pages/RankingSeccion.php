@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\Seccion;
 use App\Models\Temporada;
 use App\Services\Scoring;
+use App\Support\RankingDeSeccion;
 use Filament\Pages\Page;
 
 /**
@@ -53,9 +54,15 @@ class RankingSeccion extends Page
     public function getBreadcrumbs(): array
     {
         return [
-            Ranking::getUrl() => 'Ranking',
+            Ranking::urlDeSeccion($this->getSeccion()) => 'Ranking',
             $this->getSeccion()->nombre,
         ];
+    }
+
+    /** Los mismos datos que la página pública de la sección (parcial compartido). */
+    public function getDatos(): array
+    {
+        return once(fn () => RankingDeSeccion::datos(auth()->user()->club, $this->getSeccion()));
     }
 
     public function getCuadro(): ?object

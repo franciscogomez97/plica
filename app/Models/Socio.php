@@ -60,6 +60,11 @@ class Socio extends Model
         return $this->belongsToMany(Seccion::class, 'seccion_socio')->withTimestamps();
     }
 
+    public function equipos(): BelongsToMany
+    {
+        return $this->belongsToMany(Equipo::class)->withTimestamps();
+    }
+
     public function confirmacions(): HasMany
     {
         return $this->hasMany(Confirmacion::class);

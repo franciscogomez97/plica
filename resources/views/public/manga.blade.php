@@ -7,10 +7,16 @@
     <meta property="og:description" content="{{ $grupos->map(fn ($g) => $g->nombre.': '.\App\Services\Compartir::resumen($g))->implode(' — ') ?: 'Clasificación de la manga.' }}">
     <meta property="og:url" content="{{ $url }}">
     <meta property="og:type" content="website">
-    @if ($club->logoUrl())
+    @if ($grupos->isNotEmpty())
+        {{-- La vista previa del enlace en WhatsApp es la tarjeta del podio. --}}
+        <meta property="og:image" content="{{ \App\Services\Podio::urlManga($manga, $grupos->first()) }}">
+        <meta property="og:image:width" content="{{ \App\Services\Podio::ANCHO }}">
+        <meta property="og:image:height" content="{{ \App\Services\Podio::ALTO }}">
+        <meta name="twitter:card" content="summary_large_image">
+    @elseif ($club->logoUrl())
         <meta property="og:image" content="{{ $club->logoUrl() }}">
+        <meta name="twitter:card" content="summary">
     @endif
-    <meta name="twitter:card" content="summary">
 @endsection
 
 @section('content')
@@ -33,8 +39,16 @@
             @endif
         </p>
         @if ($grupos->isNotEmpty())
-            <div class="mt-4">
+            <div class="mt-4 flex flex-wrap items-center gap-2">
                 @include('partials.compartir', ['titulo' => $manga->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url])
+                @if ($grupos->count() === 1)
+                    @include('partials.compartir-imagen', ['titulo' => $manga->nombre.' · '.$club->nombre, 'url' => \App\Services\Podio::urlManga($manga, $grupos->first()), 'pie' => $texto."\n".$url])
+                @else
+                    {{-- Manga de club con varias secciones: una tarjeta por sección. --}}
+                    @foreach ($grupos as $g)
+                        @include('partials.compartir-imagen', ['titulo' => $manga->nombre.' · '.$g->nombre.' · '.$club->nombre, 'url' => \App\Services\Podio::urlManga($manga, $g), 'etiqueta' => 'Imagen '.$g->nombre, 'pie' => $texto."\n".$url])
+                    @endforeach
+                @endif
             </div>
         @endif
     </section>

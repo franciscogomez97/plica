@@ -151,6 +151,93 @@ class Club extends Model
         return compact('creados', 'repetidos');
     }
 
+    /**
+     * Alta de equipos pegando la lista: un equipo por línea, sus socios separados
+     * por «/» (o «,» o «;»), y un nombre opcional delante con dos puntos:
+     * «Los Lucios: Mario López / Javier Ruiz». Los socios que no existan se dan de
+     * alta; todos quedan apuntados a la sección. Un socio solo puede estar en un
+     * equipo por sección y temporada: la línea que lo repita se rechaza entera.
+     *
+     * @return array{creados: string[], errores: string[], sociosNuevos: string[]}
+     */
+    public function altaDeEquipos(string $texto, Seccion $seccion, Temporada $temporada): array
+    {
+        $socios = $this->socios()->get()->keyBy(fn (Socio $s) => static::claveNombre($s->nombre));
+        $ocupados = Equipo::query()
+            ->where('seccion_id', $seccion->id)
+            ->where('temporada_id', $temporada->id)
+            ->with('socios')->get()
+            ->flatMap(fn (Equipo $e) => $e->socios->pluck('id'))
+            ->flip()->all();
+
+        $creados = [];
+        $errores = [];
+        $sociosNuevos = [];
+
+        foreach (preg_split('/\R/u', $texto) ?: [] as $linea) {
+            $linea = preg_replace('/^\s*(?:\d+\s*[.)\-–:]\s*|\d+\s+|[-•*·]\s*)/u', '', trim($linea)) ?? $linea;
+            $linea = trim($linea);
+
+            if ($linea === '') {
+                continue;
+            }
+
+            $nombreEquipo = null;
+            if (preg_match('/^([^:\/,;]+):\s*(.+)$/u', $linea, $m)) {
+                $nombreEquipo = trim($m[1]);
+                $linea = $m[2];
+            }
+
+            $nombres = array_values(array_filter(array_map(
+                fn (string $n) => trim(preg_replace('/\s+/u', ' ', $n) ?? $n),
+                preg_split('/\s*[\/,;]\s*/u', $linea) ?: [],
+            )));
+
+            if ($nombres === []) {
+                continue;
+            }
+
+            // Primero se comprueba la línea entera; si algo falla, no se crea nada de ella.
+            $miembros = [];
+            $error = null;
+            foreach ($nombres as $nombre) {
+                $clave = static::claveNombre($nombre);
+                $socio = $socios[$clave] ?? null;
+                if ($socio !== null && isset($ocupados[$socio->id])) {
+                    $error = "{$nombre} ya está en otro equipo de {$seccion->nombre}";
+                    break;
+                }
+                if (in_array($clave, array_column($miembros, 'clave'), true)) {
+                    $error = "{$nombre} aparece dos veces en el mismo equipo";
+                    break;
+                }
+                $miembros[] = ['clave' => $clave, 'nombre' => $nombre, 'socio' => $socio];
+            }
+
+            if ($error !== null) {
+                $errores[] = $error;
+
+                continue;
+            }
+
+            $equipo = $seccion->equipos()->create(['temporada_id' => $temporada->id, 'nombre' => $nombreEquipo]);
+            foreach ($miembros as $m) {
+                $socio = $m['socio'];
+                if ($socio === null) {
+                    $socio = $this->socios()->create(['nombre' => $m['nombre']]);
+                    $socios[$m['clave']] = $socio;
+                    $sociosNuevos[] = $m['nombre'];
+                }
+                $socio->seccions()->syncWithoutDetaching([$seccion->id]);
+                $equipo->socios()->attach($socio->id);
+                $ocupados[$socio->id] = true;
+            }
+            $creados[] = $equipo->load('socios')->etiqueta();
+        }
+
+        return compact('creados', 'errores', 'sociosNuevos');
+    }
+
     /** «José  Pérez» y «jose perez» son el mismo socio. */
     private static function claveNombre(string $nombre): string
     {

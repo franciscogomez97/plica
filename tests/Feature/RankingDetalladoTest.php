@@ -104,10 +104,24 @@ class RankingDetalladoTest extends TestCase
         $orilla = Seccion::where('nombre', 'Orilla')->firstOrFail();
         $url = RankingSeccion::getUrl(['seccion' => $orilla->id]);
 
-        $this->get(Ranking::getUrl())
+        // El ranking del admin: una pestaña por sección (como Mangas) y, dentro, el cuadro manga a manga directo.
+        $this->get(Ranking::getUrl(['seccion' => 'orilla']))
             ->assertOk()
-            ->assertSee('Ver manga a manga')
-            ->assertSee($url);
+            ->assertSee('Orilla')
+            ->assertSee('Embarcación')
+            ->assertSee('Pato — Lucio')
+            ->assertSee('Líder')
+            ->assertSee('Pieza mayor de la temporada')
+            ->assertSee('Clasificación general')
+            ->assertSee('ganador de la manga')
+            ->assertSee('Mario L.')
+            ->assertSee('Última manga')
+            ->assertDontSee('Ver manga a manga');
+
+        // La pestaña se recuerda: al volver sin parámetro sigue en Orilla.
+        $this->get(Ranking::getUrl())->assertOk()->assertSee('Clasificación general')->assertSee('4,350');
+        // Y cambiar de pestaña cambia de sección.
+        $this->get(Ranking::getUrl(['seccion' => 'pato-lucio']))->assertOk()->assertSee('Ranking Pato — Lucio');
 
         $this->get($url)
             ->assertOk()

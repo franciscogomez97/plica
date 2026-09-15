@@ -47,6 +47,7 @@
                         'texto' => \App\Services\Compartir::textoRanking($club, $temporada, $grupo),
                         'url' => $cuadro->seccion->urlPublica(),
                     ])
+                    @include('partials.compartir-imagen', ['titulo' => 'Ranking '.$grupo->nombre.' · '.$club->nombre, 'url' => \App\Services\Podio::urlRanking($temporada, $cuadro->seccion, $grupo), 'compacto' => true, 'pie' => \App\Services\Compartir::textoRanking($club, $temporada, $grupo)."\n".$cuadro->seccion->urlPublica()])
                 </div>
             @endif
         </x-filament::section>

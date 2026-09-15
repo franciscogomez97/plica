@@ -15,8 +15,8 @@
     $filas = $grupo->filas->values();
     $max = max(1, (int) $filas->max($valorDe));
     $visibles = $limite ? $filas->take($limite) : $filas;
-    $miFila = $socioId ? $filas->first(fn ($f) => $f->socio->id === $socioId) : null;
-    $miFilaOculta = $miFila !== null && $limite && ! $visibles->contains(fn ($f) => $f->socio->id === $socioId);
+    $miFila = $socioId ? $filas->first(fn ($f) => $f->participante->incluye($socioId)) : null;
+    $miFilaOculta = $miFila !== null && $limite && ! $visibles->contains(fn ($f) => $f->participante->incluye($socioId));
     $ocultas = $filas->count() - $visibles->count() - ($miFilaOculta ? 1 : 0);
 @endphp
 
@@ -25,10 +25,10 @@
         @if ($miFilaOculta && $loop->last && $ocultas > 0)
             <div class="plica-salto">···</div>
         @endif
-        <div @class(['plica-fila', 'plica-yo' => $socioId && $fila->socio->id === $socioId, 'plica-lider' => $fila->puesto === 1])>
+        <div @class(['plica-fila', 'plica-yo' => $fila->participante->incluye($socioId), 'plica-lider' => $fila->puesto === 1])>
             <div @class(['plica-pos', 'p'.$fila->puesto => $fila->puesto <= 3])>{{ $fila->puesto }}º</div>
             <div class="plica-quien">
-                <div class="plica-nombre">{{ $fila->socio->nombre }}{{ $socioId && $fila->socio->id === $socioId ? ' · tú' : '' }}@if ($fila->baja ?? false) <span class="plica-baja">Baja</span>@endif</div>
+                <div class="plica-nombre">{!! implode('<br>', array_map('e', $fila->participante->lineas())) !!}{{ $fila->participante->incluye($socioId) ? ' · tú' : '' }}@if ($fila->baja ?? false) <span class="plica-baja">Baja</span>@endif</div>
                 <div class="plica-detalle">
                     @if ($modo === 'temporada')
                         @php $mayorFila = \App\Services\Scoring::piezaMayorTexto($grupo->criterio, $fila); @endphp

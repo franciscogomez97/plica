@@ -23,7 +23,7 @@ class AsistenciaAction
         return Action::make($name)
             ->label('Marcar asistencia')
             ->icon(Heroicon::OutlinedClipboardDocumentCheck)
-            ->modalHeading('¿Quién ha participado en esta manga?')
+            ->modalHeading(fn (): string => $manga()->porEquipos() ? '¿Qué equipos han participado en esta manga?' : '¿Quién ha participado en esta manga?')
             ->modalDescription(function () use ($manga): string {
                 $confirmados = $manga()->confirmacions()->count();
 
@@ -36,9 +36,13 @@ class AsistenciaAction
             ->modalSubmitActionLabel('Guardar asistencia')
             ->schema([
                 CheckboxList::make('socios')
-                    ->label('Socios')
+                    ->label(fn (): string => $manga()->porEquipos() ? 'Equipos' : 'Socios')
                     // Primero los de la sección de la manga; los demás, detrás y marcados como «otra sección».
+                    // Por equipos: los equipos de la sección en esta temporada, y punto.
                     ->options(function () use ($manga): array {
+                        if ($manga()->porEquipos()) {
+                            return $manga()->equiposPosibles()->mapWithKeys(fn ($e) => [$e->id => $e->etiqueta()])->all();
+                        }
                         $deLaSeccion = $manga()->seccion->socios()->pluck('socios.id');
                         $todos = Socio::query()
                             ->where('club_id', auth()->user()->club_id)
@@ -52,17 +56,34 @@ class AsistenciaAction
                     })
                     // Ya apuntados; y si aún no hay nadie, los que dijeron «asistiré».
                     ->default(function () use ($manga): array {
-                        $apuntados = $manga()->participacions()->pluck('socio_id');
+                        if ($manga()->porEquipos()) {
+                            $apuntados = $manga()->participacions()->pluck('equipo_id')->filter();
+                            // Sin nadie apuntado: los equipos con algún socio que dijo «asistiré».
+                            $confirmados = $manga()->confirmacions()->pluck('socio_id');
+                            $conConfirmado = $manga()->equiposPosibles()->filter(fn ($e) => $e->socios->pluck('id')->intersect($confirmados)->isNotEmpty())->pluck('id');
+
+                            return ($apuntados->isNotEmpty() ? $apuntados : $conConfirmado)->map(fn ($id) => (string) $id)->all();
+                        }
+                        $apuntados = $manga()->participacions()->pluck('socio_id')->filter();
 
                         return ($apuntados->isNotEmpty() ? $apuntados : $manga()->confirmacions()->pluck('socio_id'))
                             ->map(fn ($id) => (string) $id)
                             ->all();
                     })
-                    ->descriptions(fn (): array => $manga()
-                        ->confirmacions()
-                        ->pluck('socio_id')
-                        ->mapWithKeys(fn ($id) => [(string) $id => 'Confirmó que vendría'])
-                        ->all())
+                    ->descriptions(function () use ($manga): array {
+                        $confirmados = $manga()->confirmacions()->with('socio')->get();
+                        if ($manga()->porEquipos()) {
+                            return $manga()->equiposPosibles()
+                                ->mapWithKeys(function ($e) use ($confirmados) {
+                                    $nombres = $confirmados->whereIn('socio_id', $e->socios->pluck('id'))->map(fn ($c) => $c->socio->nombre);
+
+                                    return $nombres->isEmpty() ? [] : [(string) $e->id => 'Confirmó que vendría: '.$nombres->implode(', ')];
+                                })
+                                ->all();
+                        }
+
+                        return $confirmados->pluck('socio_id')->mapWithKeys(fn ($id) => [(string) $id => 'Confirmó que vendría'])->all();
+                    })
                     ->searchable()
                     ->columns(['default' => 1, 'sm' => 2])
                     ->bulkToggleable(),

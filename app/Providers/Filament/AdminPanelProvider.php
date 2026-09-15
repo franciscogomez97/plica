@@ -24,6 +24,7 @@ use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Foundation\Vite;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -69,6 +70,8 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => Marca::iconos().Marca::estilosPanel().view('partials.copiar')->render()
+                    // Utilidades de la web pública: el ranking del admin pinta los mismos parciales que la web.
+                    .app(Vite::class)->__invoke(['resources/css/publico.css'])->toHtml()
                     .'<style>'
                     .'.fi-ta-record .fi-ta-record-content-ctn { flex-direction: row; align-items: center; }'
                     .'.fi-ta-record .fi-ta-record-content-ctn > div:first-child { flex: 1 1 0%; min-width: 0; }'
@@ -120,7 +123,7 @@ class AdminPanelProvider extends PanelProvider
             $page instanceof EditManga, $page instanceof ClasificacionManga => MangaResource::getUrl('pesaje', ['record' => $page->getRecord()]),
             $page instanceof CreateRecord, $page instanceof EditRecord => $page::getResource()::getUrl(),
             $page instanceof EditProfile => Inicio::getUrl(),
-            $page instanceof RankingSeccion => Ranking::getUrl(),
+            $page instanceof RankingSeccion => Ranking::urlDeSeccion($page->getSeccion()),
             $page instanceof MiClub => Inicio::getUrl(),
             default => null,
         };

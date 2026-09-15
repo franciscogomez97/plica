@@ -63,7 +63,7 @@ class PesajeManga extends Page
             $manga->fecha->format('d/m/Y'),
             $manga->horario(),
             $manga->lugar,
-            $n === 1 ? '1 participante' : "{$n} participantes",
+            $manga->porEquipos() ? ($n === 1 ? '1 equipo' : "{$n} equipos") : ($n === 1 ? '1 participante' : "{$n} participantes"),
             $confirmados > 0 ? ($confirmados === 1 ? '1 confirmó que vendría' : "{$confirmados} confirmaron que vendrían") : null,
         ]));
     }
@@ -94,9 +94,9 @@ class PesajeManga extends Page
     {
         $participaciones = $this->getRecord()
             ->participacions()
-            ->with(['socio', 'seccion', 'capturas'])
+            ->with(['socio', 'equipo.socios', 'seccion', 'capturas'])
             ->get()
-            ->sortBy(fn (Participacion $p) => Str::lower(Str::ascii($p->socio->nombre)))
+            ->sortBy(fn (Participacion $p) => Str::lower(Str::ascii($p->participante()->nombre)))
             ->values();
 
         return Scoring::agruparPorSeccion($participaciones);
@@ -111,6 +111,19 @@ class PesajeManga extends Page
     public function getSociosDisponibles(): array
     {
         $manga = $this->getRecord();
+
+        // Por equipos: los equipos de la sección que aún no están en la manga.
+        if ($manga->porEquipos()) {
+            $apuntados = $manga->participacions()->pluck('equipo_id')->filter();
+
+            return array_filter([
+                "Equipos de {$manga->seccion->nombre}" => $manga->equiposPosibles()
+                    ->reject(fn ($e) => $apuntados->contains($e->id))
+                    ->mapWithKeys(fn ($e) => [$e->id => $e->etiqueta()])
+                    ->all(),
+            ]);
+        }
+
         $deLaSeccion = $manga->seccion->socios()->pluck('socios.id');
 
         $todos = Socio::query()
@@ -144,19 +157,32 @@ class PesajeManga extends Page
         }
 
         $manga = $this->getRecord();
-        $socio = Socio::query()
-            ->where('club_id', auth()->user()->club_id)
-            ->where('activo', true)
-            ->find((int) $value);
 
-        if ($socio === null || $manga->participacions()->where('socio_id', $socio->id)->exists()) {
-            return;
+        if ($manga->porEquipos()) {
+            // Un equipo de la sección (nunca de otra ni de otro club) que aún no esté en la manga.
+            $equipo = $manga->equiposPosibles()->firstWhere('id', (int) $value);
+            if ($equipo === null || $manga->participacions()->where('equipo_id', $equipo->id)->exists()) {
+                return;
+            }
+            $participacion = $manga->participacions()->create([
+                'equipo_id' => $equipo->id,
+                'seccion_id' => $manga->seccion_id,
+            ]);
+        } else {
+            $socio = Socio::query()
+                ->where('club_id', auth()->user()->club_id)
+                ->where('activo', true)
+                ->find((int) $value);
+
+            if ($socio === null || $manga->participacions()->where('socio_id', $socio->id)->exists()) {
+                return;
+            }
+
+            $participacion = $manga->participacions()->create([
+                'socio_id' => $socio->id,
+                'seccion_id' => $manga->seccion_id,
+            ]);
         }
-
-        $participacion = $manga->participacions()->create([
-            'socio_id' => $socio->id,
-            'seccion_id' => $manga->seccion_id,
-        ]);
         $participacion->load(['seccion', 'capturas']);
 
         $this->filas[$participacion->id] = PesajeRapido::fila($participacion);

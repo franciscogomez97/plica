@@ -70,7 +70,7 @@
                     <th>Pescador</th>
                     @foreach ($cuadro->mangas as $manga)
                         <th>
-                            <a href="{{ route('club.manga', ['club' => $club->slug, 'manga' => $manga->id]) }}" class="hover:text-emerald-700">{{ $manga->nombre }}</a>
+                            <a href="{{ ($urlManga ?? fn ($m) => route('club.manga', ['club' => $club->slug, 'manga' => $m->id]))($manga) }}" class="hover:text-emerald-700">{{ $manga->nombre }}</a>
                             <small>{{ $manga->fecha->format('d/m') }}</small>
                         </th>
                     @endforeach
@@ -98,8 +98,8 @@
                         <td>
                             <span class="inline-flex max-w-full items-center gap-1.5 font-semibold">
                                 <span @class(['pos', 'p'.$fila->puesto => $fila->puesto <= 3])>{{ $fila->puesto }}</span>
-                                <span class="n largo truncate">{{ $fila->socio->nombre }}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-200 px-1 text-[10px] font-bold uppercase text-slate-700">Baja</span>@endif</span>
-                                <span class="n corto truncate" title="{{ $fila->socio->nombre }}">{{ $abreviar($fila->socio->nombre) }}</span>
+                                <span class="n largo truncate">{!! implode('<br>', array_map('e', $fila->participante->lineas())) !!}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-200 px-1 text-[10px] font-bold uppercase text-slate-700">Baja</span>@endif</span>
+                                <span class="n corto truncate" title="{{ $fila->participante->nombre }}">{{ $fila->participante->nombreCorto() }}</span>
                             </span>
                         </td>
                         @foreach ($cuadro->mangas as $manga)

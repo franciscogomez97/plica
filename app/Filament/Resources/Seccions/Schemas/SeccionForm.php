@@ -69,6 +69,31 @@ class SeccionForm
                             ->live()
                             ->afterStateUpdated($corregirDesempate)
                             ->required(),
+                        // Quién pesca: en embarcación o carpfishing, la plica es del equipo.
+                        Radio::make('modalidad')
+                            ->label('¿Quién pesca?')
+                            ->options([
+                                Seccion::MODALIDAD_INDIVIDUAL => 'Cada socio por su cuenta',
+                                Seccion::MODALIDAD_EQUIPOS => 'Por equipos (barcos, parejas…)',
+                            ])
+                            ->descriptions([
+                                Seccion::MODALIDAD_INDIVIDUAL => 'Lo normal en orilla: cada uno pesa lo suyo.',
+                                Seccion::MODALIDAD_EQUIPOS => 'Embarcación o carpfishing: la plica es del equipo, fijo toda la temporada. Los equipos se forman en «Equipos».',
+                            ])
+                            ->default(Seccion::MODALIDAD_INDIVIDUAL)
+                            ->live()
+                            ->required(),
+                        TextInput::make('tamano_equipo')
+                            ->label('Personas por equipo')
+                            ->helperText('2 en embarcación; en carpfishing, las que sean.')
+                            ->numeric()
+                            ->integer()
+                            ->minValue(2)
+                            ->maxValue(20)
+                            ->default(2)
+                            ->visible(fn (Get $get): bool => $get('modalidad') === Seccion::MODALIDAD_EQUIPOS)
+                            ->required(fn (Get $get): bool => $get('modalidad') === Seccion::MODALIDAD_EQUIPOS)
+                            ->live(onBlur: true),
                         // Solo informativo: no entra en ningún cálculo.
                         TextInput::make('numero_socios')
                             ->label('Número de socios de la sección')
@@ -228,6 +253,8 @@ class SeccionForm
                                 (string) ($get('bolo') ?: Seccion::BOLO_MEDIA),
                                 (int) ($get('puntos_bolo') ?: 0),
                                 (string) ($get('desempate_general') ?: Seccion::DESEMPATE_COMPARTIDO),
+                                (string) ($get('modalidad') ?: Seccion::MODALIDAD_INDIVIDUAL),
+                                (int) ($get('tamano_equipo') ?: 2),
                             )),
                     ]),
             ]);

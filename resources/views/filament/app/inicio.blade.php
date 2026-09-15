@@ -92,7 +92,7 @@
 
     {{-- Ranking: un resumen por sección (podio y tu puesto); el completo, a un toque. --}}
     @foreach ($rankingGrupos as $grupo)
-        @php $miFila = $socio ? $grupo->filas->first(fn ($f) => $f->socio->id === $socio->id) : null; @endphp
+        @php $miFila = $socio ? $grupo->filas->first(fn ($f) => $f->participante->incluye($socio->id)) : null; @endphp
         <x-filament::section>
             <x-slot name="heading">
                 <span class="plica-h">
@@ -105,7 +105,7 @@
             <x-slot name="description">{{ $temporada?->nombre }} · {{ $grupo->numMangas === 1 ? '1 manga celebrada' : $grupo->numMangas.' mangas celebradas' }}</x-slot>
             @if ($miFila)
                 <div class="plica-yo-resumen">
-                    <span>Vas <strong>{{ $miFila->puesto }}º</strong> de {{ $grupo->filas->count() }}</span>
+                    <span>{{ $miFila->participante->esEquipo ? 'Tu equipo va' : 'Vas' }} <strong>{{ $miFila->puesto }}º</strong> de {{ $grupo->filas->count() }}</span>
                     <span style="opacity:.7">·</span>
                     <span>{{ $grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0 || ($grupo->puntosNoAsistencia ?? 0) !== 0
                         ? \App\Services\Scoring::formatPuntos($miFila->puntos).' pts'

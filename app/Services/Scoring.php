@@ -6,6 +6,7 @@ use App\Models\Manga;
 use App\Models\Participacion;
 use App\Models\Seccion;
 use App\Models\Socio;
+use App\Support\Participante;
 use App\Models\Temporada;
 use Illuminate\Support\Collection;
 
@@ -52,7 +53,7 @@ class Scoring
     public static function clasificacionManga(Manga $manga): Collection
     {
         $participaciones = $manga->participacions()
-            ->with(['socio', 'seccion', 'capturas', 'manga'])
+            ->with(['socio', 'equipo.socios', 'seccion', 'capturas', 'manga'])
             ->get();
 
         return static::agruparPorSeccion($participaciones)
@@ -78,7 +79,7 @@ class Scoring
             ->whereHas('manga', fn ($q) => $q
                 ->where('temporada_id', $temporada->id)
                 ->where('estado', Manga::ESTADO_CELEBRADA))
-            ->with(['socio', 'seccion', 'capturas', 'manga'])
+            ->with(['socio', 'equipo.socios', 'seccion', 'capturas', 'manga'])
             ->get();
 
         return static::agruparPorSeccion($participaciones)
@@ -127,8 +128,9 @@ class Scoring
             ->whereHas('manga', fn ($q) => $q
                 ->where('temporada_id', $temporada->id)
                 ->where('estado', Manga::ESTADO_CELEBRADA))
-            ->with(['socio', 'capturas', 'manga'])
+            ->with(['socio', 'equipo.socios', 'seccion', 'capturas', 'manga'])
             ->get();
+        $participaciones = static::segunModalidad($participaciones);
 
         $criterio = $seccion->criterio ?? Seccion::CRITERIO_PESO;
         $sistema = $seccion->sistema_puntuacion ?? Seccion::SISTEMA_ACUMULADO;
@@ -153,11 +155,11 @@ class Scoring
             $clasif = static::ordenarYNumerar($deManga->map(fn (Participacion $p) => static::fila($p)), $criterio, $desempate);
             $porPuesto = static::puntosPorPuesto($clasif, $puestosEmpate, $bolo, $puntosBolo, $puntosNoAsistencia);
             foreach ($clasif as $fila) {
-                $puestos[$mangaId][$fila->socio->id] = $fila->puesto;
-                $puntosManga[$mangaId][$fila->socio->id] = $porPuesto[$fila->socio->id];
+                $puestos[$mangaId][$fila->participante->id] = $fila->puesto;
+                $puntosManga[$mangaId][$fila->participante->id] = $porPuesto[$fila->participante->id];
             }
             $ausentes[$mangaId] = static::puntosDeAusente($clasif, $puntosNoAsistencia);
-            $mayores[$mangaId] = static::piezaMayorDe($deManga, $criterio)?->socio->id;
+            $mayores[$mangaId] = static::piezaMayorDe($deManga, $criterio)?->participante->id;
         }
 
         // El orden y los puntos son EXACTAMENTE los del ranking de temporada.
@@ -167,13 +169,13 @@ class Scoring
 
         $mangaIds = $mangas->pluck('id')->all();
 
-        $filas = $ranking->map(function (object $fila) use ($participaciones, $mangas, $mangaIds, $puestos, $puntosManga, $ausentes, $mayores, $criterio, $sistema, $descartes, $descartesAusencias) {
-            $deSocio = $participaciones->where('socio_id', $fila->socio->id);
+        $filas = $ranking->map(function (object $fila) use ($participaciones, $mangas, $mangaIds, $puestos, $puntosManga, $ausentes, $mayores, $criterio, $sistema, $descartes, $descartesAusencias, $puntosParticipacion, $puntosNoAsistencia) {
+            $deSocio = $participaciones->filter(fn (Participacion $p) => $p->participanteId() === $fila->participante->id);
 
             // Mangas descartadas: EXACTAMENTE las mismas que en el ranking (también las no pescadas si la sección lo dice).
             $porManga = $sistema === Seccion::SISTEMA_PUESTOS
-                ? static::porMangaPuestos($fila->socio, $mangaIds, $puntosManga, $ausentes)
-                : static::porMangaAcumulado($deSocio, $mangaIds, $criterio);
+                ? static::porMangaPuestos($fila->participante, $mangaIds, $puntosManga, $ausentes)
+                : static::porMangaAcumulado($deSocio, $mangaIds, $criterio, $puntosParticipacion, $puntosNoAsistencia);
             $descartadas = static::descartadas($porManga, $descartes, $descartesAusencias, $sistema === Seccion::SISTEMA_PUESTOS);
             $fila->descartadas = $descartadas; // ids de manga, incluidas las no pescadas
 
@@ -186,9 +188,9 @@ class Scoring
                     'texto' => static::valorPrincipal($criterio, static::fila($p)),
                     'piezas' => $p->piezasTotal(),
                     'mayor' => static::piezaMayorTexto($criterio, static::fila($p)),
-                    'mayorDeLaManga' => ($mayores[$manga->id] ?? null) === $p->socio_id,
-                    'puesto' => $puestos[$manga->id][$p->socio_id] ?? null,
-                    'puntos' => $puntosManga[$manga->id][$p->socio_id] ?? null, // por puestos: lo que suma esa manga
+                    'mayorDeLaManga' => ($mayores[$manga->id] ?? null) === $p->participanteId(),
+                    'puesto' => $puestos[$manga->id][$p->participanteId()] ?? null,
+                    'puntos' => $puntosManga[$manga->id][$p->participanteId()] ?? null, // por puestos: lo que suma esa manga
                     'descartada' => in_array($manga->id, $descartadas, true),
                 ];
             }
@@ -219,27 +221,24 @@ class Scoring
 
     private static function rankingAcumulado(Collection $participaciones, string $criterio, int $puntosParticipacion, int $descartes, string $desempate, int $puntosNoAsistencia = 0, bool $descartesAusencias = false, ?Seccion $seccion = null): Collection
     {
-        // Mangas celebradas de la sección: las que un socio del ranking no pescó son
-        // sus «no asistencias». Están en el ranking los socios de la sección (aunque
-        // no hayan ido a ninguna) y quien haya pescado alguna manga de ella.
-        $mangaIds = $participaciones->pluck('manga_id')->unique()->values()->all();
+        // Mangas celebradas de la sección, por fecha (el desempate de los descartes es
+        // «la más antigua», y el cuadro las ordena igual): las que un socio del ranking
+        // no pescó son sus «no asistencias». Están en el ranking los socios de la
+        // sección (aunque no hayan ido a ninguna) y quien haya pescado alguna manga de ella.
+        $mangaIds = static::mangaIdsPorFecha($participaciones);
 
-        $filas = static::sociosDelRanking($participaciones, $seccion)
+        $filas = static::participantesDelRanking($participaciones, $seccion)
             ->map(function (array $par) use ($criterio, $puntosParticipacion, $descartes, $puntosNoAsistencia, $descartesAusencias, $mangaIds) {
-                [$socio, $deSocio] = $par;
-                $porManga = static::porMangaAcumulado($deSocio, $mangaIds, $criterio);
+                [$participante, $deSocio] = $par;
+                // Cada manga lleva lo que aporta de verdad (pescado + asistencia, o el castigo):
+                // el descarte quita la que menos aporta, y el total es la suma de las que cuentan.
+                $porManga = static::porMangaAcumulado($deSocio, $mangaIds, $criterio, $puntosParticipacion, $puntosNoAsistencia);
                 $descartadas = static::descartadas($porManga, $descartes, $descartesAusencias, false);
                 $cuentan = array_diff_key($porManga, array_flip($descartadas));
 
-                // Lo pescado en las mangas que cuentan, más la asistencia de las pescadas
-                // que cuentan, más lo que dé (o quite) la sección por cada no pescada que cuenta.
-                $pescadas = array_filter($cuentan, fn (array $m) => $m['pescada']);
-                $noPescadas = count($cuentan) - count($pescadas);
-                $puntos = (int) array_sum(array_column($pescadas, 'puntos'))
-                    + count($pescadas) * $puntosParticipacion
-                    + $noPescadas * $puntosNoAsistencia;
+                $puntos = (int) array_sum(array_column($cuentan, 'puntos'));
 
-                return static::filaAgregada($socio, $deSocio, $puntos);
+                return static::filaAgregada($participante, $deSocio, $puntos);
             })
             ->values();
 
@@ -263,16 +262,16 @@ class Scoring
         }
         $mangaIds = array_keys($puntosManga);
 
-        $filas = static::sociosDelRanking($participaciones, $seccion)
+        $filas = static::participantesDelRanking($participaciones, $seccion)
             ->map(function (array $par) use ($puntosManga, $ausentes, $mangaIds, $descartes, $descartesAusencias) {
-                [$socio, $deSocio] = $par;
-                $porManga = static::porMangaPuestos($socio, $mangaIds, $puntosManga, $ausentes);
+                [$participante, $deSocio] = $par;
+                $porManga = static::porMangaPuestos($participante, $mangaIds, $puntosManga, $ausentes);
                 $descartadas = static::descartadas($porManga, $descartes, $descartesAusencias, true);
                 $cuentan = array_diff_key($porManga, array_flip($descartadas));
 
                 $total = array_sum(array_column($cuentan, 'puntos'));
 
-                $fila = static::filaAgregada($socio, $deSocio, $total == (int) $total ? (int) $total : (float) $total);
+                $fila = static::filaAgregada($participante, $deSocio, $total == (int) $total ? (int) $total : (float) $total);
                 // Su mejor manga del año (la de menos puntos de las que pescó), para el desempate de la general.
                 $pescadas = array_filter($porManga, fn (array $m) => $m['pescada']);
                 $fila->mejorManga = $pescadas === [] ? null : min(array_column($pescadas, 'puntos'));
@@ -293,21 +292,30 @@ class Scoring
 
     /**
      * Las mangas de la sección vistas por un socio, en «suma lo pescado»:
-     * manga_id => ['puntos' => lo pescado, 'pescada' => si fue]. No ir = 0.
+     * manga_id => ['puntos' => lo que aporta esa manga al ranking, 'pescado' => lo
+     * pescado en bruto, 'pescada' => si fue]. Lo que aporta una manga pescada es lo
+     * pescado más los puntos por asistencia; una no pescada, los puntos por
+     * ausencia (positivos o castigo). Con eso se decide el descarte y se suma.
      *
-     * @return array<int, array{puntos: int|float, pescada: bool}>
+     * @return array<int, array{puntos: int|float, pescado: int, pescada: bool}>
      */
-    private static function porMangaAcumulado(Collection $deSocio, array $mangaIds, string $criterio): array
+    private static function porMangaAcumulado(Collection $deSocio, array $mangaIds, string $criterio, int $puntosParticipacion = 0, int $puntosNoAsistencia = 0): array
     {
         $porManga = [];
         foreach ($mangaIds as $mangaId) {
             $p = $deSocio->firstWhere('manga_id', $mangaId);
             $porManga[$mangaId] = $p === null
-                ? ['puntos' => 0, 'pescada' => false]
-                : ['puntos' => static::valor($p, $criterio), 'pescada' => true];
+                ? ['puntos' => $puntosNoAsistencia, 'pescado' => 0, 'pescada' => false]
+                : ['puntos' => static::valor($p, $criterio) + $puntosParticipacion, 'pescado' => static::valor($p, $criterio), 'pescada' => true];
         }
 
         return $porManga;
+    }
+
+    /** Ids de las mangas de unas participaciones, por fecha (y a igual fecha, por id). */
+    private static function mangaIdsPorFecha(Collection $participaciones): array
+    {
+        return $participaciones->pluck('manga')->unique('id')->sortBy(['fecha', 'id'])->pluck('id')->values()->all();
     }
 
     /**
@@ -315,9 +323,9 @@ class Scoring
      *
      * @return array<int, array{puntos: int|float, pescada: bool}>
      */
-    private static function porMangaPuestos(Socio $socio, array $mangaIds, array $puntosManga, array $ausentes): array
+    private static function porMangaPuestos(Participante $participante, array $mangaIds, array $puntosManga, array $ausentes): array
     {
-        $socioId = $socio->id;
+        $socioId = $participante->id;
 
         $porManga = [];
         foreach ($mangaIds as $mangaId) {
@@ -343,14 +351,26 @@ class Scoring
             return [];
         }
 
+        // De peor a mejor por lo que aporta cada manga; a igualdad, la más antigua
+        // (uasort es estable y las mangas vienen por fecha).
+        //  - Por puestos (menos es mejor): una ausencia ya lleva su coste en puntos, el
+        //    que la sección eligió, así que compite con las demás por puntos.
+        //  - Suma lo pescado: «faltar cuenta como la peor manga y es la primera que se
+        //    descarta» (si la sección descarta no pescadas): las ausencias van primero,
+        //    por fecha, y después las pescadas por lo que aportan (pescado + asistencia).
         $candidatas = $incluirAusencias ? $porManga : array_filter($porManga, fn (array $m) => $m['pescada']);
 
-        // De peor a mejor; a igualdad, la más antigua primero (orden de las mangas).
-        uasort($candidatas, fn (array $a, array $b) => $menosEsMejor
-            ? $b['puntos'] <=> $a['puntos']
-            : $a['puntos'] <=> $b['puntos']);
+        if ($menosEsMejor) {
+            uasort($candidatas, fn (array $a, array $b) => $b['puntos'] <=> $a['puntos']);
 
-        return array_slice(array_keys($candidatas), 0, $descartes);
+            return array_slice(array_keys($candidatas), 0, $descartes);
+        }
+
+        $ausencias = array_keys(array_filter($candidatas, fn (array $m) => ! $m['pescada']));
+        $pescadas = array_filter($candidatas, fn (array $m) => $m['pescada']);
+        uasort($pescadas, fn (array $a, array $b) => $a['puntos'] <=> $b['puntos']);
+
+        return array_slice([...$ausencias, ...array_keys($pescadas)], 0, $descartes);
     }
 
     // ------------------------------------------------------------------
@@ -360,7 +380,7 @@ class Scoring
     /** Agrupa por sección y ordena los grupos (Sin sección al final). También lo usa el pesaje rápido. */
     public static function agruparPorSeccion(Collection $participaciones): Collection
     {
-        return $participaciones
+        return static::segunModalidad($participaciones)
             ->groupBy(fn (Participacion $p) => $p->seccion_id ?? 0)
             ->map(function (Collection $grupo) {
                 $seccion = $grupo->first()->seccion;
@@ -373,6 +393,19 @@ class Scoring
                 ];
             })
             ->sortBy(fn (object $g) => $g->nombre === 'Sin sección' ? 'zzz' : $g->nombre)
+            ->values();
+    }
+
+    /**
+     * En una sección por equipos cuentan las participaciones de equipos; en una
+     * individual, las de socios. Así, cambiar la modalidad de una sección con
+     * historial no mezcla barcos con personas: el historial del otro modo queda
+     * guardado, pero no se pinta.
+     */
+    public static function segunModalidad(Collection $participaciones): Collection
+    {
+        return $participaciones
+            ->filter(fn (Participacion $p) => ($p->seccion?->esPorEquipos() ?? false) ? $p->equipo_id !== null : $p->socio_id !== null)
             ->values();
     }
 
@@ -396,7 +429,8 @@ class Scoring
         }
 
         return (object) [
-            'socio' => $mejor['p']->socio,
+            'participante' => $mejor['p']->participante(),
+            'socio' => $mejor['p']->participante(), // alias: las vistas leen ->socio->nombre
             'manga' => $mejor['p']->manga,
             'valor' => $mejor['valor'],
             'texto' => $criterio === Seccion::CRITERIO_MEDIDA
@@ -413,7 +447,8 @@ class Scoring
     private static function fila(Participacion $p): object
     {
         return (object) [
-            'socio' => $p->socio,
+            'participante' => $p->participante(),
+            'socio' => $p->participante(), // alias: las vistas leen ->socio->nombre / ->socio->id
             'piezas' => $p->piezasTotal(),
             'peso' => $p->pesoTotal(),
             'medida' => $p->medidaTotal(),
@@ -456,7 +491,7 @@ class Scoring
                     ? $fila->puesto + ($tamano - 1) / 2
                     : $fila->puesto;
             }
-            $puntos[$fila->socio->id] = $valor == (int) $valor ? (int) $valor : $valor;
+            $puntos[$fila->participante->id] = $valor == (int) $valor ? (int) $valor : $valor;
         }
 
         return $puntos;
@@ -475,26 +510,33 @@ class Scoring
      *
      * @return Collection<int, array{0: Socio, 1: Collection<int, Participacion>}>
      */
-    private static function sociosDelRanking(Collection $participaciones, ?Seccion $seccion): Collection
+    private static function participantesDelRanking(Collection $participaciones, ?Seccion $seccion): Collection
     {
-        $porSocio = $participaciones->groupBy('socio_id');
-        $socios = $participaciones->map(fn (Participacion $p) => $p->socio)->unique('id');
+        $porParticipante = $participaciones->groupBy(fn (Participacion $p) => $p->participanteId());
+        $participantes = $participaciones->map(fn (Participacion $p) => $p->participante())->unique('id');
 
         if ($seccion !== null) {
-            $socios = $socios->concat($seccion->socios()->get())->unique('id');
+            // Los de la sección salen aunque no hayan ido a ninguna manga: los socios o,
+            // por equipos, los equipos de esa temporada.
+            $temporadaId = $participaciones->first()?->manga?->temporada_id;
+            $delaSeccion = $seccion->esPorEquipos()
+                ? ($temporadaId ? $seccion->equipos()->where('temporada_id', $temporadaId)->with('socios')->get() : collect())
+                : $seccion->socios()->get();
+            $participantes = $participantes->concat($delaSeccion->map(fn ($m) => new Participante($m)))->unique('id');
         }
 
-        return $socios
+        return $participantes
             ->sortBy('nombre')
             ->values()
-            ->map(fn (Socio $socio) => [$socio, $porSocio->get($socio->id, collect())]);
+            ->map(fn (Participante $participante) => [$participante, $porParticipante->get($participante->id, collect())]);
     }
 
-    private static function filaAgregada(Socio $socio, Collection $deSocio, int|float $puntos): object
+    private static function filaAgregada(Participante $participante, Collection $deSocio, int|float $puntos): object
     {
         return (object) [
-            'socio' => $socio,
-            'baja' => ! $socio->activo,
+            'participante' => $participante,
+            'socio' => $participante, // alias: las vistas leen ->socio->nombre / ->socio->id
+            'baja' => ! $participante->activo,
             'mangas' => $deSocio->count(),
             'piezas' => (int) $deSocio->sum(fn (Participacion $p) => $p->piezasTotal()),
             'peso' => (int) $deSocio->sum(fn (Participacion $p) => $p->pesoTotal()),

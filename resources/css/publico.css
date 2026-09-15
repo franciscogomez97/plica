@@ -1,0 +1,8 @@
+/* Utilidades de Tailwind de la web pública, para pintar dentro del panel del
+   admin los MISMOS parciales que la web (ranking de sección): solo tema y
+   utilidades, sin preflight, para no pisar los estilos base de Filament. */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@source '../views/public/**/*.blade.php';
+@source '../views/partials/**/*.blade.php';

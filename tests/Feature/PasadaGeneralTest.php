@@ -39,6 +39,8 @@ class PasadaGeneralTest extends TestCase
         $this->seed(DemoSeeder::class);
 
         $html = $this->get('/c/cd-pesca-piloto/orilla')->assertOk()->getContent();
+        // El texto que viaja con la imagen del podio (atributo data-pie) también la nombra: solo cuenta lo visible.
+        $html = preg_replace('/ data-pie="[^"]*"/', '', $html);
         // Solo en la tarjeta de cabecera; ni la lista ni el cuadro la repiten.
         $this->assertSame(1, substr_count($html, 'Pieza mayor de la temporada'));
     }

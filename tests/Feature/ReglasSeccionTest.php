@@ -75,7 +75,7 @@ class ReglasSeccionTest extends TestCase
 
         $this->actingAs($admin)->get('/admin/seccions/create')->assertOk()->assertSee('Así puntúa esta sección');
         $this->actingAs($admin)->get("/admin/seccions/{$orilla->id}/edit")->assertOk()->assertSee('No cuenta la peor manga de cada socio.');
-        $this->actingAs($admin)->get('/admin/ranking')->assertOk()->assertSee('No cuenta la peor manga de cada socio.');
+        $this->actingAs($admin)->get('/admin/ranking?seccion=orilla')->assertOk()->assertSee('No cuenta la peor manga de cada socio.');
 
         // Sesión limpia: el panel comprueba el hash de contraseña guardado en sesión al cambiar de usuario.
         $this->flushSession();

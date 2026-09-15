@@ -108,6 +108,7 @@ class PanelSocioTest extends TestCase
         $this->flushSession();
         $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
         Filament::setCurrentPanel(Filament::getPanel('admin'));
-        $this->get('/admin/ranking')->assertOk()->assertSee('plica-pos p1')->assertSee('plica-barra');
+        // El admin ve la MISMA página que el público (cuadro manga a manga), con pestañas de sección encima.
+        $this->get('/admin/ranking')->assertOk()->assertSee('Clasificación general')->assertSee('ganador de la manga');
     }
 }

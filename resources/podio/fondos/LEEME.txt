@@ -1,0 +1,2 @@
+Fotos de fondo para la tarjeta del podio (JPEG, 1080×1920 o más, horizontal o vertical: se recorta a cubrir).
+Se elige una por manga (estable) y otra por sección. Sin ficheros aquí, la tarjeta lleva un degradado oscuro.

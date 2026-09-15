@@ -1,5 +1,8 @@
 {{-- Estilos comunes de clasificaciones/rankings en los paneles Filament --}}
 <style>
+    /* La página pública de la sección, tal cual, dentro del panel: fondo claro y tipografía de la web. */
+    .plica-web { padding: 1rem; border-radius: 1rem; background: rgb(248 250 252); color: rgb(15 23 42); }
+    .plica-web section { display: block; }
     .plica-baja { display: inline-block; margin-left: .35rem; padding: .05rem .4rem; border-radius: .35rem; background: rgba(128,128,128,.2); font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; vertical-align: middle; opacity: .8; }
     /* Cabeceras de sección con icono */
     .plica-h { display: inline-flex; align-items: center; gap: .5rem; }

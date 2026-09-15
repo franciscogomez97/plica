@@ -97,8 +97,8 @@
                     <td>
                         <span class="quien">
                             <span @class(['pos', 'p'.$fila->puesto => $fila->puesto <= 3])>{{ $fila->puesto }}</span>
-                            <span class="n largo">{{ $fila->socio->nombre }}@if ($fila->baja ?? false) <span class="plica-baja">Baja</span>@endif</span>
-                            <span class="n corto" title="{{ $fila->socio->nombre }}">{{ $abreviar($fila->socio->nombre) }}</span>
+                            <span class="n largo">{!! implode('<br>', array_map('e', $fila->participante->lineas())) !!}@if ($fila->baja ?? false) <span class="plica-baja">Baja</span>@endif</span>
+                            <span class="n corto" title="{{ $fila->participante->nombre }}">{{ $fila->participante->nombreCorto() }}</span>
                         </span>
                     </td>
                     @foreach ($cuadro->mangas as $manga)

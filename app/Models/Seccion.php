@@ -10,6 +10,11 @@ use Illuminate\Support\Str;
 
 class Seccion extends Model
 {
+    /** Quién pesca: cada socio por su cuenta, o por equipos (la plica es del equipo). */
+    public const MODALIDAD_INDIVIDUAL = 'individual';
+
+    public const MODALIDAD_EQUIPOS = 'equipos';
+
     public const CRITERIO_PESO = 'peso';
 
     public const CRITERIO_MEDIDA = 'medida';
@@ -77,7 +82,7 @@ class Seccion extends Model
     ];
 
     protected $fillable = [
-        'club_id', 'nombre', 'slug', 'criterio', 'numero_socios',
+        'club_id', 'nombre', 'slug', 'criterio', 'modalidad', 'tamano_equipo', 'numero_socios',
         'sistema_puntuacion', 'puntos_participacion', 'puntos_no_asistencia', 'bolo', 'puntos_bolo', 'descartes', 'descartes_ausencias', 'desempate', 'desempate_general',
     ];
 
@@ -218,6 +223,23 @@ class Seccion extends Model
         return $this->hasMany(Manga::class);
     }
 
+    public function equipos(): HasMany
+    {
+        return $this->hasMany(Equipo::class);
+    }
+
+    /** En una sección por equipos, quien participa en la manga es el equipo. */
+    public function esPorEquipos(): bool
+    {
+        return ($this->modalidad ?? self::MODALIDAD_INDIVIDUAL) === self::MODALIDAD_EQUIPOS;
+    }
+
+    /** Los equipos de esta sección en una temporada, con sus socios. */
+    public function equiposDe(Temporada $temporada)
+    {
+        return $this->equipos()->where('temporada_id', $temporada->id)->with('socios')->get();
+    }
+
     /** Las reglas de esta sección en una frase: formulario, listado y rankings enseñan lo mismo. */
     public function resumenReglas(): string
     {
@@ -232,6 +254,8 @@ class Seccion extends Model
             $this->bolo ?? self::BOLO_MEDIA,
             (int) $this->puntos_bolo,
             $this->desempate_general ?? self::DESEMPATE_COMPARTIDO,
+            $this->modalidad ?? self::MODALIDAD_INDIVIDUAL,
+            (int) ($this->tamano_equipo ?: 2),
         );
     }
 
@@ -247,9 +271,15 @@ class Seccion extends Model
         string $bolo = self::BOLO_MEDIA,
         int $puntosBolo = 0,
         string $desempateGeneral = self::DESEMPATE_COMPARTIDO,
+        string $modalidad = self::MODALIDAD_INDIVIDUAL,
+        int $tamanoEquipo = 2,
     ): string {
         $desempate ??= static::desempatePorDefecto($criterio);
-        $frases = [
+        $frases = [];
+        if ($modalidad === self::MODALIDAD_EQUIPOS) {
+            $frases[] = "Se pesca por equipos de {$tamanoEquipo}: la plica es del equipo y el ranking también.";
+        }
+        $frases = [...$frases, 
             match ($criterio) {
                 self::CRITERIO_MEDIDA => 'Cada manga la gana quien más centímetros suma (un pez por línea).',
                 self::CRITERIO_PIEZAS => 'Cada manga la gana quien más piezas saca.',

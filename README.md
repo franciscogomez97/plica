@@ -68,6 +68,21 @@ todo el club» (varias secciones en una manga) se retiró; la migración
 php artisan test
 ```
 
+**El motor es el producto, y se prueba como tal.** Además de los casos a mano
+(reglamentos reales, matrices calculadas aparte), `tests/Feature/MotorMatrizTest`
+recorre el producto cartesiano de las reglas de una sección (criterio ×
+sistema × asistencia × ausencia × descartes × descartes de ausencias × bolo ×
+desempate × desempate general: 1.210 configuraciones en la matriz completa, 450 en la reducida)
+sobre varios escenarios (temporada normal, empates exactos, todos bolo, uno
+solo en la manga, quien entra a mitad, quien no va nunca, guardado en otro
+orden, equipos de una y de dos personas) y compara ranking, cuadro y
+clasificación de cada manga con `tests/Support/MotorDeReferencia`, un segundo
+motor escrito aparte y a lo simple a partir de la frase de reglas. Si discrepan,
+uno de los dos lee mal la regla. Los escenarios se escriben con
+`tests/Support/Escenario` (una línea por socio, una columna por manga; `bolo`,
+`—`, o el detalle de piezas y pieza mayor) y la sección se reconfigura sin
+reconstruir nada, así que una combinación nueva son tres líneas.
+
 Cubren: páginas públicas, panel admin completo, clasificación por secciones,
 panel de socio, control de acceso, flujo de invitación completo, el motor
 de puntuación (puestos, descartes, puntos por asistencia) con casos
@@ -449,6 +464,21 @@ relativas al día en que se ejecuta.
   puntúa. Al pasar lista, el checklist arranca con los confirmados si aún no
   había nadie apuntado, y el admin decide quién ha venido de verdad. El
   listado de mangas enseña «N confirmados» hasta que se pasa lista.
+- **El Ranking del admin ES la página pública, con pestañas** (septiembre de
+  2026): `/admin/ranking?seccion={slug}`, una pestaña por sección como en Mangas
+  y sin «Todas» (no hay ranking general). Debajo se pinta el MISMO parcial que
+  `/c/{club}/{seccion}` (`public/partials/seccion-ranking`, datos de
+  `App\Support\RankingDeSeccion`): escudo y nombre del club grandes (sin enlace
+  a la portada), líder y pieza mayor de la temporada, la clasificación general
+  como cuadro manga a manga directamente, los botones de compartir y la última
+  manga. Para que el panel pueda pintar Tailwind de la web, carga
+  `resources/css/publico.css` (solo tema y utilidades, sin preflight) dentro de
+  un envoltorio `.plica-web` de fondo claro. En el panel, las mangas enlazan a su
+  clasificación del admin (`$urlManga`) y hay un enlace «Ver la página pública».
+  La pestaña se recuerda en sesión; sin recuerdo, se abre la sección con más
+  participaciones de la temporada. `/admin/ranking/{id}` (`RankingSeccion`)
+  sigue existiendo para enlaces directos con el mismo parcial y vuelve a su
+  pestaña con «Atrás». Un solo diseño de ranking que mantener.
 - **Ranking manga a manga** (`/admin/ranking/{seccion}`, página `RankingSeccion`):
   cada sección del ranking enlaza a un cuadro tipo hoja de cálculo con los
   pescadores en filas (en el orden del ranking, con sus mismos puntos) y las
@@ -461,6 +491,68 @@ relativas al día en que se ejecuta.
   cada celda con la unidad en la cabecera, y la tabla a sangre hasta los
   bordes de la tarjeta. Ojo: las cabeceras fijas van con `color`, no con
   `opacity`, porque la opacidad vuelve translúcido el fondo del sticky.
+- **La tarjeta del podio** (septiembre de 2026): cada manga y cada ranking de
+  sección tienen una imagen 1080×1920 (historia de WhatsApp) con el podio de
+  tres con foto, del 4º al 33º en dos columnas, la pieza mayor y «y N
+  pescadores más en plicapesca.es». La pinta `App\Services\Podio` con GD y
+  las fuentes Poppins de `resources/podio/fuentes` (OFL), a partir de la
+  MISMA clasificación de `Scoring`: no hay una segunda verdad. Es una caché en
+  `storage/app/podios`, con un hash del contenido en el nombre: se genera la
+  primera vez que alguien la pide, cambia sola si cambia un pesaje, y se puede
+  vaciar (`Podio::vaciar()`) sin perder nada; no entra en el backup. Rutas
+  públicas `/c/{club}/manga/{id}/podio.jpg` (`?seccion=` en mangas de club con
+  varias secciones) y `/c/{club}/{seccion}/podio.jpg`, siempre con `?v=hash`
+  para que WhatsApp no cachee una vieja. Esa imagen es la vista previa
+  (Open Graph) de los enlaces de manga y sección: quien pega el enlace en un
+  grupo ve el podio. El botón «Compartir imagen» (`partials/compartir-imagen`,
+  en páginas públicas y paneles) adjunta el JPEG a la hoja de compartir del
+  móvil, la única excepción a «WhatsApp directo», porque un enlace wa.me no
+  puede llevar un fichero; en escritorio descarga. Fondo: una foto de
+  `resources/podio/fondos` elegida por el id (estable por manga); sin fotos,
+  degradado oscuro. Requiere GD con FreeType y JPEG.
+- **Secciones por equipos** (septiembre de 2026, en construcción): en
+  embarcación la plica es del barco y en carpfishing del equipo, así que una
+  sección tiene `modalidad` (`individual` o `equipos`) y `tamano_equipo`. Los
+  equipos (`Equipo`: sección, temporada, nombre opcional y socios) son fijos
+  toda la temporada; un socio solo está en un equipo por sección y temporada;
+  sin nombre, el equipo se presenta con los nombres de sus socios. El menú
+  «Equipos» solo aparece si el club tiene alguna sección por equipos, con
+  pestañas por sección y «Añadir varios» pegando la lista («Los Lucios: Mario
+  López / Javier Ruiz» por línea; `Club::altaDeEquipos` da de alta a los socios
+  que no existan y los apunta a la sección). Un club de orilla no nota nada.
+  Decisiones: los reservas quedan fuera de momento; si cambia un miembro a
+  mitad de temporada el historial sale con la formación actual; un barco con
+  un solo tripulante cuenta igual. **La participación es del participante**
+  (`participacions.socio_id` o `equipo_id`, nunca los dos): en una sección por
+  equipos quien participa en la manga es el equipo, las capturas cuelgan de su
+  participación y el motor puntúa por participante (`App\Support\Participante`:
+  socio o equipo, con `nombre`, `id`, `foto`, `socios` e `incluye($socioId)`
+  para el «· tú»). Las filas de `Scoring` llevan `participante` y, como alias,
+  `socio`, para que vistas y tests que leen `->socio->nombre` sigan valiendo.
+  `Scoring::segunModalidad` hace que en una sección por equipos solo cuenten
+  las participaciones de equipos (y al revés): cambiar la modalidad con
+  historial no mezcla barcos con personas. Pasar lista y el pesaje rápido
+  listan equipos en las mangas de una sección por equipos (`Manga::porEquipos`,
+  `equiposPosibles`); el checklist arranca marcando los equipos con algún socio
+  que dijo «asistiré». Las mangas de todo el club siguen siendo individuales.
+  Cómo se pinta un equipo (`Participante::lineas`, `nombreCorto`,
+  `detalleEquipo`): con nombre propio, su nombre (y sus socios en pequeño en el
+  pesaje); sin nombre, un socio por línea en listas y cuadros, aunque la fila
+  salga más alta; en columnas estrechas «Mario L. / Sergio R.». La tarjeta del
+  podio dibuja los avatares de los socios solapados y el nombre en una o dos
+  líneas. El Inicio del socio dice «Tu equipo va 3º». Todas las vistas de
+  clasificación son parciales compartidos, así que el panel del socio lo
+  hereda sin código propio.
+- **Descartes: qué es «la peor manga»** (arreglado el 15 de septiembre de 2026):
+  en «suma lo pescado», cada manga aporta lo pescado más los puntos por
+  asistencia, o los puntos por ausencia si no se fue; el descarte quita la que
+  menos aporta, y si la sección descarta no pescadas, «faltar cuenta como la
+  peor manga y es la primera que se descarta» (lo que dice el formulario). Por
+  puestos, cada ausencia ya lleva su coste en puntos (el que eligió la
+  sección), así que compite con las demás por puntos. En los dos sistemas las
+  mangas van por fecha y, a igualdad, se descarta la más antigua, igual en el
+  ranking y en el cuadro (antes el ranking usaba el orden de guardado y podía
+  tachar una manga distinta de la del cuadro).
 - **Las reglas se cuentan en una frase** (`Seccion::resumenReglas`): la misma
   frase en el formulario de sección (en vivo, mientras se configura), en el
   listado y bajo cada ranking (admin, socio y página pública). Si el club no

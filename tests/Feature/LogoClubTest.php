@@ -67,8 +67,11 @@ class LogoClubTest extends TestCase
         $this->get('/c/cd-pesca-piloto')->assertOk()
             ->assertSee($club->logoUrl())
             ->assertSee('property="og:image" content="'.$club->logoUrl().'"', escape: false);
+        // En la sección, la vista previa del enlace es la tarjeta del podio (que lleva el logo
+        // pintado dentro); el logo sigue en la cabecera de la página.
         $this->get('/c/cd-pesca-piloto/orilla')->assertOk()
-            ->assertSee('property="og:image" content="'.$club->logoUrl().'"', escape: false);
+            ->assertSee('src="'.$club->logoUrl().'"', escape: false)
+            ->assertSee('/orilla/podio.jpg?v=', escape: false);
     }
 
     public function test_al_cambiar_o_quitar_el_logo_el_archivo_viejo_no_se_queda_huerfano(): void

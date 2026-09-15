@@ -126,19 +126,21 @@ class Manga extends Model
      */
     public function sincronizarAsistencia(array $socioIds): array
     {
-        // Toda manga es de una sección: los apuntados compiten en ella.
+        // Toda manga es de una sección: los apuntados compiten en ella. En una
+        // sección por equipos, los ids son de equipos: quien participa es el barco.
         $seccionId = $this->seccion_id;
+        $columna = $this->porEquipos() ? 'equipo_id' : 'socio_id';
         $socioIds = array_map('intval', $socioIds);
-        $actuales = $this->participacions()->with(['socio', 'capturas'])->get();
+        $actuales = $this->participacions()->with(['socio', 'equipo.socios', 'capturas'])->get();
 
         $creadas = 0;
         $eliminadas = 0;
         $bloqueadas = [];
 
         foreach ($socioIds as $socioId) {
-            if (! $actuales->contains('socio_id', $socioId)) {
+            if (! $actuales->contains($columna, $socioId)) {
                 $this->participacions()->create([
-                    'socio_id' => $socioId,
+                    $columna => $socioId,
                     'seccion_id' => $seccionId,
                 ]);
                 $creadas++;
@@ -146,12 +148,12 @@ class Manga extends Model
         }
 
         foreach ($actuales as $participacion) {
-            if (in_array($participacion->socio_id, $socioIds, true)) {
+            if (in_array((int) $participacion->{$columna}, $socioIds, true)) {
                 continue;
             }
 
             if ($participacion->capturas->isNotEmpty()) {
-                $bloqueadas[] = $participacion->socio->nombre;
+                $bloqueadas[] = $participacion->participante()->nombre;
 
                 continue;
             }
@@ -164,6 +166,20 @@ class Manga extends Model
     }
 
     /** Enlace público de la clasificación de esta manga: cualquiera con el enlace la ve. */
+    /** En una manga de una sección por equipos, quien participa es el equipo. */
+    public function porEquipos(): bool
+    {
+        return (bool) $this->seccion?->esPorEquipos();
+    }
+
+    /** Los equipos que pueden participar: los de la sección en la temporada de la manga, con sus socios. */
+    public function equiposPosibles()
+    {
+        return $this->porEquipos()
+            ? $this->seccion->equipos()->where('temporada_id', $this->temporada_id)->with('socios')->get()
+            : collect();
+    }
+
     public function urlPublica(): string
     {
         return route('club.manga', ['club' => $this->temporada->club->slug, 'manga' => $this->id]);

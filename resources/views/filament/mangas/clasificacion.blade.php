@@ -18,6 +18,9 @@
                 'texto' => \App\Services\Compartir::textoManga($manga, $grupos),
                 'url' => $manga->urlPublica(),
             ])
+            @foreach ($grupos as $g)
+                @include('partials.compartir-imagen', ['titulo' => $manga->nombre.' · '.$g->nombre.' · '.auth()->user()->club->nombre, 'url' => \App\Services\Podio::urlManga($manga, $g), 'compacto' => true, 'etiqueta' => $grupos->count() > 1 ? 'Imagen '.$g->nombre : 'Imagen', 'pie' => \App\Services\Compartir::textoManga($manga, $grupos)."\n".$manga->urlPublica()])
+            @endforeach
             <a href="{{ $manga->urlPublica() }}" target="_blank" rel="noopener" style="font-size:.85rem; opacity:.7; text-decoration:underline">Ver la página pública</a>
         </div>
     @endif

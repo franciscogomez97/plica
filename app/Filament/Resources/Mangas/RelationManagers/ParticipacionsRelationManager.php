@@ -48,6 +48,15 @@ class ParticipacionsRelationManager extends RelationManager
 
         return $schema
             ->components([
+                // Por equipos, quien participa es el equipo; si no, el socio.
+                Select::make('equipo_id')
+                    ->label('Equipo')
+                    ->options(fn (): array => $this->getOwnerRecord()->equiposPosibles()->mapWithKeys(fn ($e) => [$e->id => $e->etiqueta()])->all())
+                    ->disableOptionWhen(fn (string $value, string $operation): bool => $operation === 'create'
+                        && $this->getOwnerRecord()->participacions()->where('equipo_id', $value)->exists())
+                    ->searchable()
+                    ->visible(fn (): bool => $this->getOwnerRecord()->porEquipos())
+                    ->required(fn (): bool => $this->getOwnerRecord()->porEquipos()),
                 Select::make('socio_id')
                     ->label('Socio')
                     ->options(fn (): array => Socio::query()
@@ -59,7 +68,8 @@ class ParticipacionsRelationManager extends RelationManager
                     ->disableOptionWhen(fn (string $value, string $operation): bool => $operation === 'create'
                         && $this->getOwnerRecord()->participacions()->where('socio_id', $value)->exists())
                     ->searchable()
-                    ->required(),
+                    ->visible(fn (): bool => ! $this->getOwnerRecord()->porEquipos())
+                    ->required(fn (): bool => ! $this->getOwnerRecord()->porEquipos()),
                 Toggle::make('plica')
                     ->label('Entregó plica')
                     ->default(true),
@@ -141,13 +151,17 @@ class ParticipacionsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['socio', 'seccion', 'capturas']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['socio', 'equipo.socios', 'seccion', 'capturas']))
             ->columns([
                 // Una sola línea por pesaje; el detalle, donde cabe.
                 Split::make([
-                    TextColumn::make('socio.nombre')
+                    TextColumn::make('participante')
+                        ->state(fn ($record): string => $record->participante()->nombre)
                         ->weight(FontWeight::SemiBold)
-                        ->searchable(),
+                        ->searchable(query: fn (Builder $query, string $search) => $query
+                            ->whereHas('socio', fn ($q) => $q->where('nombre', 'like', "%{$search}%"))
+                            ->orWhereHas('equipo', fn ($q) => $q->where('nombre', 'like', "%{$search}%")
+                                ->orWhereHas('socios', fn ($qq) => $qq->where('nombre', 'like', "%{$search}%")))),
                     TextColumn::make('detalle')
                         ->state(function ($record): string {
                             $piezas = $record->piezasTotal();

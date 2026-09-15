@@ -1,46 +1,39 @@
 <x-filament-panels::page>
-    @php $grupos = $this->getGrupos(); @endphp
+    @php
+        $secciones = $this->getSecciones();
+        $activa = $this->getSeccionActiva();
+        $datos = $this->getDatos();
+    @endphp
 
     @include('filament.partials.estilos')
 
-    @if ($grupos->isEmpty())
+    @if ($secciones->isEmpty())
         <x-filament::section>
-            <p style="opacity:.7">Aún no hay mangas celebradas esta temporada. En cuanto marques la primera como celebrada, aquí saldrá el ranking de cada sección.</p>
+            <p style="opacity:.7">Todavía no hay secciones. Crea la primera en «Secciones» y, cuando se celebre una manga, aquí saldrá su ranking.</p>
         </x-filament::section>
-    @endif
-
-    @foreach ($grupos as $grupo)
-        <x-filament::section>
-            <x-slot name="heading">
-                <span class="plica-h">
-                    <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedTrophy" />
-                    {{ $grupo->nombre }}
-                </span>
-            </x-slot>
-            <x-slot name="description">
-                {{ $grupo->reglas }}
-            </x-slot>
-            @include('filament.partials.lista-clasificacion', ['grupo' => $grupo, 'modo' => 'temporada'])
-            @if ($grupo->seccionId !== null)
-                {{-- Al pie y no en la cabecera: en móvil la cabecera no tiene sitio para botones. --}}
-                <div style="display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:.6rem; margin-top:.9rem">
-                    @include('partials.compartir', [
-                        'titulo' => 'Ranking '.$grupo->nombre.' · '.auth()->user()->club->nombre,
-                        'texto' => \App\Services\Compartir::textoRanking(auth()->user()->club, $this->getTemporada(), $grupo),
-                        'url' => route('club.seccion', ['club' => auth()->user()->club->slug, 'seccion' => $grupo->seccionSlug]),
-                    ])
-                    <x-filament::button
+    @else
+        {{-- Una pestaña por sección, como en Mangas. Los rankings son siempre por sección: no hay «Todas». --}}
+        @if ($secciones->count() > 1)
+            <x-filament::tabs label="Secciones">
+                @foreach ($secciones as $seccion)
+                    <x-filament::tabs.item
                         tag="a"
-                        size="sm"
-                        color="gray"
-                        icon="heroicon-o-table-cells"
-                        href="{{ \App\Filament\Pages\RankingSeccion::getUrl(['seccion' => $grupo->seccionId]) }}"
+                        :active="$activa?->id === $seccion->id"
+                        :href="\App\Filament\Pages\Ranking::urlDeSeccion($seccion)"
                         wire:navigate
                     >
-                        Ver manga a manga
-                    </x-filament::button>
-                </div>
-            @endif
-        </x-filament::section>
-    @endforeach
+                        {{ $seccion->nombre }}
+                    </x-filament::tabs.item>
+                @endforeach
+            </x-filament::tabs>
+        @endif
+
+        {{-- Lo mismo que ve cualquiera en la página pública de la sección: mismo parcial, mismos datos. --}}
+        <div class="plica-web">
+            @include('public.partials.seccion-ranking', $datos + [
+                'enPanel' => true,
+                'urlManga' => fn ($manga) => \App\Filament\Resources\Mangas\MangaResource::getUrl('clasificacion', ['record' => $manga]),
+            ])
+        </div>
+    @endif
 </x-filament-panels::page>

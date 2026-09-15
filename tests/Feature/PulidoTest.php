@@ -93,7 +93,11 @@ class PulidoTest extends TestCase
     {
         $club = Club::where('slug', 'cd-pesca-piloto')->firstOrFail();
 
-        $this->get('/c/cd-pesca-piloto/orilla')->assertOk()->assertSee('href="'.route('club.publico', $club).'"', escape: false);
+        // Decisión de septiembre de 2026: el nombre del club en el ranking va grande y en negrita,
+        // sin enlace a la portada del club (de momento tiene poco uso), esté o no encendida.
+        $this->get('/c/cd-pesca-piloto/orilla')->assertOk()
+            ->assertSee('CD Pesca Piloto')
+            ->assertDontSee('href="'.route('club.publico', $club).'"', escape: false);
 
         $club->update(['perfil_publico' => false]);
         $this->get('/c/cd-pesca-piloto/orilla')->assertOk()

@@ -31,7 +31,7 @@
                         ])>{{ $fila->puesto }}</span>
                     </td>
                     <td class="min-w-0 px-2 py-2.5">
-                        <div class="font-semibold text-slate-900">{{ $fila->socio->nombre }}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-200 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-slate-700">Baja</span>@endif</div>
+                        <div class="font-semibold text-slate-900">{!! implode('<br>', array_map('e', $fila->participante->lineas())) !!}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-200 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-slate-700">Baja</span>@endif</div>
                         <div class="text-xs text-slate-500">
                             @if ($modo === 'temporada')
                                 @php $mayorFila = \App\Services\Scoring::piezaMayorTexto($grupo->criterio, $fila); @endphp

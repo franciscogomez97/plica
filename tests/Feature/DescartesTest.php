@@ -115,7 +115,7 @@ class DescartesTest extends TestCase
         $this->actingAs(User::where('email', 'admin@plica.test')->firstOrFail());
         $html = $this->get("/admin/ranking/{$this->orilla->id}")->assertOk()->getContent();
         $this->assertStringContainsString('No participó: 48 pts · manga descartada', $html);
-        $this->assertStringContainsString('<s>48</s>', $html);
+        $this->assertStringContainsString('class="ausente descartada"', $html); // tachado por CSS, como en la web
 
         $this->get('/c/cd-pesca-piloto/orilla')->assertOk()->assertSee('No participó: 48 pts · manga descartada');
     }
