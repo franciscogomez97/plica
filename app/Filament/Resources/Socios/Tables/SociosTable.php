@@ -25,7 +25,11 @@ class SociosTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with('seccions')->withCount('participacions'))
+            ->modifyQueryUsing(fn ($query) => $query->with('seccions')->withCount([
+                'participacions',
+                // En equipos la plica es del barco: un socio sin pesajes propios puede tener historial por su equipo.
+                'equipos as equipos_con_historial_count' => fn ($q) => $q->whereHas('participacions'),
+            ]))
             ->columns([
                 // En pantalla ancha, una línea por socio; en el móvil se apila (nombre,
                 // teléfono, insignias) y así el botón «Acceso» no se sale por la derecha.
@@ -120,16 +124,19 @@ class SociosTable
                         ->requiresConfirmation()
                         ->action(fn (Socio $record) => $record->user->update(['role' => User::ROLE_SOCIO])),
                     DeleteAction::make()
-                        // Un socio con historial no se borra: se da de baja.
-                        ->visible(fn (Socio $record): bool => $record->participacions_count === 0),
+                        // Un socio con historial (propio o de su equipo) no se borra: se da de baja.
+                        ->visible(fn (Socio $record): bool => $record->participacions_count === 0 && $record->equipos_con_historial_count === 0),
                     Action::make('protegido')
                         ->label('Borrar')
                         ->icon('heroicon-o-trash')
                         ->color('gray')
-                        ->visible(fn (Socio $record): bool => $record->participacions_count > 0)
+                        ->visible(fn (Socio $record): bool => $record->participacions_count > 0 || $record->equipos_con_historial_count > 0)
                         ->modalHeading(fn (Socio $record): string => "{$record->nombre} no se puede borrar")
                         ->modalDescription(fn (Socio $record): string => 'Tiene '
-                            .($record->participacions_count === 1 ? '1 pesaje' : "{$record->participacions_count} pesajes")
+                            .implode(' y ', array_filter([
+                                $record->participacions_count > 0 ? ($record->participacions_count === 1 ? '1 pesaje' : "{$record->participacions_count} pesajes") : null,
+                                $record->equipos_con_historial_count > 0 ? ($record->equipos_con_historial_count === 1 ? 'un equipo con pesajes' : "{$record->equipos_con_historial_count} equipos con pesajes") : null,
+                            ]))
                             .' en el historial del club. Si ya no es socio, dale de baja: deja de aparecer en asistencias y listados, pero sus clasificaciones se conservan.')
                         ->modalSubmitActionLabel('Dar de baja')
                         ->modalCancelActionLabel('Cancelar')

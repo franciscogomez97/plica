@@ -37,7 +37,13 @@ class MangaForm
                         modifyQueryUsing: fn (Builder $query) => $query->where('club_id', auth()->user()->club_id),
                     )
                     ->placeholder('Elige la sección')
-                    ->helperText('Toda manga es de una sección: los apuntados compiten en ella.')
+                    // Con pesajes, la sección no se cambia: las participaciones son de la sección de entonces
+                    // y la manga puntuaría en un ranking mientras se lista en otro.
+                    ->disabled(fn (?Manga $record): bool => $record?->participacions()->exists() ?? false)
+                    ->dehydrated(fn (?Manga $record): bool => ! ($record?->participacions()->exists() ?? false))
+                    ->helperText(fn (?Manga $record): string => ($record?->participacions()->exists() ?? false)
+                        ? 'Esta manga ya tiene pesajes: su sección no se puede cambiar.'
+                        : 'Toda manga es de una sección: los apuntados compiten en ella.')
                     // Viniendo de «crear sección» (?seccion=ID) la sección ya viene puesta.
                     ->default(function (): ?int {
                         $id = (int) request()->query('seccion');

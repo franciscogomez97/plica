@@ -31,7 +31,8 @@ class IntegridadDatosTest extends TestCase
     {
         $socio = Socio::has('participacions')->firstOrFail();
 
-        $this->expectException(QueryException::class);
+        // Lo para el modelo, con un mensaje claro, antes de que lo pare la BD (que también lo haría: restrictOnDelete).
+        $this->expectException(\LogicException::class);
         $socio->delete();
     }
 

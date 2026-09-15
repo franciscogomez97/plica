@@ -27,7 +27,24 @@ class Socio extends Model
                 FotoSocio::borrar($socio->getOriginal('foto'));
             }
         });
-        static::deleting(fn (Socio $socio) => FotoSocio::borrar($socio->foto));
+        static::deleting(function (Socio $socio): void {
+            // Con historial (pesajes propios o de un equipo suyo) no se borra: se da de baja.
+            if ($socio->tieneHistorial()) {
+                throw new \LogicException("{$socio->nombre} tiene historial en el club: no se puede borrar, solo dar de baja.");
+            }
+            FotoSocio::borrar($socio->foto);
+        });
+    }
+
+    /**
+     * ¿Sale en alguna clasificación? Por sus pesajes o por los de un equipo del que
+     * forma parte (en equipos, la plica es del barco, no del socio). Borrarlo
+     * cambiaría quién ganó: solo se da de baja.
+     */
+    public function tieneHistorial(): bool
+    {
+        return $this->participacions()->exists()
+            || $this->equipos()->whereHas('participacions')->exists();
     }
 
     /** URL de su foto (WebP cuadrada en el disco «public»), o null si no tiene. */
