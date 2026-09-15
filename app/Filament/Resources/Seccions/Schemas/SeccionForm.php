@@ -61,9 +61,9 @@ class SeccionForm
                                 Seccion::CRITERIO_PIEZAS => 'Nº de piezas',
                             ])
                             ->descriptions([
-                                Seccion::CRITERIO_PESO => 'Lo habitual: gana la manga quien más kilos saca.',
-                                Seccion::CRITERIO_MEDIDA => 'Captura y suelta: se apunta cada pez en centímetros y gana quien más suma.',
-                                Seccion::CRITERIO_PIEZAS => 'Gana quien más peces saca; el peso solo desempata.',
+                                Seccion::CRITERIO_PESO => 'Gana quien más kilos saca.',
+                                Seccion::CRITERIO_MEDIDA => 'Se apunta cada pez en centímetros. Gana quien más centímetros suma.',
+                                Seccion::CRITERIO_PIEZAS => 'Gana quien más piezas saca.',
                             ])
                             ->default(Seccion::CRITERIO_PESO)
                             ->live()
@@ -77,8 +77,8 @@ class SeccionForm
                                 Seccion::MODALIDAD_EQUIPOS => 'Por equipos (barcos, parejas…)',
                             ])
                             ->descriptions([
-                                Seccion::MODALIDAD_INDIVIDUAL => 'Lo normal en orilla: cada uno pesa lo suyo.',
-                                Seccion::MODALIDAD_EQUIPOS => 'Embarcación o carpfishing: la plica es del equipo, fijo toda la temporada. Los equipos se forman en «Equipos».',
+                                Seccion::MODALIDAD_INDIVIDUAL => 'Cada socio entrega su plica.',
+                                Seccion::MODALIDAD_EQUIPOS => 'La plica es del equipo, fijo toda la temporada. Los equipos se forman en «Equipos».',
                             ])
                             ->default(Seccion::MODALIDAD_INDIVIDUAL)
                             // Con pesajes en la temporada activa no se cambia: escondería ese historial.
@@ -91,7 +91,7 @@ class SeccionForm
                             ->required(),
                         TextInput::make('tamano_equipo')
                             ->label('Personas por equipo')
-                            ->helperText('2 en embarcación; en carpfishing, las que sean.')
+                            ->helperText('2 en embarcación. En carpfishing, las que sean.')
                             ->numeric()
                             ->integer()
                             ->minValue(2)
@@ -103,7 +103,7 @@ class SeccionForm
                         // Solo informativo: no entra en ningún cálculo.
                         TextInput::make('numero_socios')
                             ->label('Número de socios de la sección')
-                            ->helperText('Solo para tenerlo a la vista: no afecta a ningún cálculo. Sirve, por ejemplo, para poner los puntos por ausencia (socios + 1).')
+                            ->helperText('Solo informativo. No entra en ningún cálculo.')
                             ->numeric()
                             ->integer()
                             ->minValue(0)
@@ -111,7 +111,7 @@ class SeccionForm
                     ]),
 
                 Section::make('El ranking de la temporada')
-                    ->description('Cómo se juntan las mangas del año en una clasificación general.')
+                    ->description('Cómo se suman las mangas del año en la clasificación general.')
                     ->schema([
                         Radio::make('sistema_puntuacion')
                             ->label('Sistema')
@@ -120,8 +120,8 @@ class SeccionForm
                                 Seccion::SISTEMA_PUESTOS => 'Suma los puestos (Sistema de la Federación)',
                             ])
                             ->descriptions([
-                                Seccion::SISTEMA_ACUMULADO => 'Gana quien más suma en el año (kilos, centímetros o piezas), más los puntos por asistencia si los hay.',
-                                Seccion::SISTEMA_PUESTOS => 'Cada manga da tantos puntos como tu puesto (1º = 1 punto) y gana quien menos suma.',
+                                Seccion::SISTEMA_ACUMULADO => 'Se suma lo pescado en todas las mangas, más los puntos por asistencia si los hay. Gana quien más suma.',
+                                Seccion::SISTEMA_PUESTOS => 'Cada manga da tantos puntos como el puesto: 1º, 1 punto. Gana quien menos suma.',
                             ])
                             ->default(Seccion::SISTEMA_ACUMULADO)
                             ->live()
@@ -134,7 +134,7 @@ class SeccionForm
                         // Suma lo pescado: se puede premiar ir a las mangas.
                         TextInput::make('puntos_participacion')
                             ->label('Puntos por asistencia')
-                            ->helperText('Se suman por cada manga a la que se va, se pesque o no. 0 = no se usan.')
+                            ->helperText('Por cada manga a la que se va, se pesque o no. 0 = no se usan.')
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
@@ -147,10 +147,10 @@ class SeccionForm
                             ->label('Puntos por ausencia')
                             // Sumando lo pescado, no ir nunca suma: 0 o castigo (en negativo).
                             ->maxValue(fn (Get $get): ?int => $esPuestos($get) ? null : 0)
-                            ->validationMessages(['max' => 'Sumando lo pescado, no ir no puede sumar puntos: 0 o un castigo en negativo.'])
+                            ->validationMessages(['max' => 'Sumando lo pescado, no ir no puede sumar puntos: 0 o un número negativo.'])
                             ->helperText(fn (Get $get): string => $esPuestos($get)
-                                ? 'Los puntos que se lleva quien no va a una manga (aquí, cuantos más puntos, peor). Con 0, es automático: el último de esa manga más uno; si fueron 29, el ausente se lleva 30. Con un número fijo, faltar cuesta siempre lo mismo: lo habitual es el número de socios más uno, 48 con 47 socios.'
-                                : 'Por cada manga a la que un socio no va. En negativo, resta (castigo). 0 = nada.')
+                                ? 'Puntos que se lleva quien no va a una manga. Con 0, el último puesto de esa manga más uno. Con un número fijo, faltar cuesta siempre lo mismo.'
+                                : 'Por cada manga a la que no se va. En negativo, resta. 0 = no se usan.')
                             ->numeric()
                             ->integer()
                             ->minValue(fn (Get $get): ?int => $esPuestos($get) ? 0 : null)
@@ -159,14 +159,14 @@ class SeccionForm
 
                         // Por puestos: el bolo (ir y no pescar). C = los que pescaron, N = los que fueron.
                         Radio::make('bolo')
-                            ->label('Quien va y no pesca (el «bolo») se lleva…')
+                            ->label('Quien va y no pesca (bolo) se lleva')
                             ->options(Seccion::BOLOS)
                             ->descriptions([
-                                Seccion::BOLO_MEDIA => 'La fórmula oficial: ((pescaron + 1) + fueron) / 2. Si pescaron 21 y fueron 29, cada bolo se lleva (22 + 29) / 2 = 25,5.',
-                                Seccion::BOLO_PRIMER_LIBRE => 'El puesto siguiente al último que pescó. Si pescaron 21, cada bolo se lleva 22. Hacer bolo casi no se nota.',
-                                Seccion::BOLO_ULTIMO => 'Tantos puntos como gente fue. Si fueron 29, cada bolo se lleva 29. Hacer bolo cuesta como quedar el último.',
-                                Seccion::BOLO_FIJO => 'Siempre los mismos puntos, pase lo que pase en la manga. Pon el número debajo.',
-                                Seccion::BOLO_AUSENCIA => 'Ir sin pescar cuesta lo mismo que no ir: los puntos por ausencia de aquí abajo.',
+                                Seccion::BOLO_MEDIA => 'La fórmula de la federación: (pescaron + 1 + fueron) / 2. Pescaron 21 y fueron 29: 25,5 puntos.',
+                                Seccion::BOLO_PRIMER_LIBRE => 'El puesto siguiente al último que pescó. Pescaron 21: 22 puntos.',
+                                Seccion::BOLO_ULTIMO => 'Tantos puntos como participantes. Fueron 29: 29 puntos.',
+                                Seccion::BOLO_FIJO => 'Un número fijo de puntos, el de la casilla de abajo.',
+                                Seccion::BOLO_AUSENCIA => 'Los mismos puntos que no ir.',
                             ])
                             ->default(Seccion::BOLO_MEDIA)
                             ->visible($esPuestos)
@@ -174,7 +174,7 @@ class SeccionForm
                             ->required(),
                         TextInput::make('puntos_bolo')
                             ->label('Puntos del bolo')
-                            ->helperText('Los que se lleva cada bolo, siempre. Lo normal es que sea menos que la ausencia, para que ir sin pescar sea mejor que no ir.')
+                            ->helperText('Los puntos de cada bolo. Normalmente, menos que la ausencia.')
                             ->numeric()
                             ->integer()
                             ->minValue(0)
@@ -185,17 +185,17 @@ class SeccionForm
 
                         TextInput::make('descartes')
                             ->label('Descartes')
-                            ->helperText('Peores mangas de cada socio que no cuentan al final del año. 0 = cuentan todas.')
+                            ->helperText('Peores mangas de cada socio que no cuentan en la clasificación general. 0 = cuentan todas.')
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
                             ->live(onBlur: true),
                         // Con descartes, qué es «la peor manga» para quien faltó a alguna.
                         Radio::make('descartes_ausencias')
-                            ->label('¿Qué mangas se pueden descartar?')
+                            ->label('Qué mangas se descartan')
                             ->boolean(
-                                'También las no pescadas: faltar cuenta como la peor manga y es la primera que se descarta.',
-                                'Solo las pescadas: se quita la peor de las que fue; las que se perdió cuentan igual.',
+                                'Todas: no ir cuenta como la peor manga y se descarta primero.',
+                                'Solo las mangas a las que se fue.',
                             )
                             ->default(false)
                             ->visible(fn (Get $get): bool => (int) ($get('descartes') ?: 0) > 0)
@@ -206,31 +206,31 @@ class SeccionForm
                         // decide algo (pieza mayor, piezas) o no decide nada y comparten.
                         Radio::make('desempate')
                             // Sumando puestos, esta regla es la de cada manga; el año tiene la suya, debajo.
-                            ->label(fn (Get $get): string => $esPuestos($get) ? 'Si empatan en una manga, ¿quién gana?' : 'Si empatan, ¿quién gana?')
+                            ->label(fn (Get $get): string => $esPuestos($get) ? 'Empate en una manga' : 'Empate')
                             ->options(fn (Get $get): array => Seccion::desempatesPara(
                                 (string) ($get('criterio') ?: Seccion::CRITERIO_PESO),
                                 (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
                             ))
                             ->default(Seccion::DESEMPATE_PIEZAS)
                             ->helperText(fn (Get $get): string => $esPuestos($get)
-                                ? 'Decide el puesto de cada manga, y con él los puntos. Si desempata algo y siguen igual, comparten puesto (1º, 1º, 3º).'
-                                : 'Vale para cada manga y para el ranking. Si desempata algo y siguen igual, comparten puesto (1º, 1º, 3º).')
+                                ? 'Decide el puesto de la manga y, con él, los puntos. Si siguen igual, comparten puesto: 1º, 1º, 3º.'
+                                : 'Vale para cada manga y para la clasificación general. Si siguen igual, comparten puesto: 1º, 1º, 3º.')
                             ->live()
                             ->required(),
                         // El empate en el ranking del año, sumando puestos: los reglamentos lo resuelven aparte
                         // (más gramos o mejor manga en Castilla-La Mancha; pieza mayor o menos capturas en la FEPyC).
                         Radio::make('desempate_general')
-                            ->label('Si empatan en el ranking de la temporada, ¿quién gana?')
+                            ->label('Empate en la clasificación general')
                             ->options(fn (Get $get): array => Seccion::desempatesGeneralPara((string) ($get('criterio') ?: Seccion::CRITERIO_PESO)))
                             ->default(Seccion::DESEMPATE_COMPARTIDO)
-                            ->helperText('A igual suma de puntos en el año. Si desempata algo y siguen igual, comparten puesto.')
+                            ->helperText('A igual suma de puntos en el año. Si siguen igual, comparten puesto.')
                             ->visible($esPuestos)
                             ->live()
                             ->required($esPuestos),
                     ]),
 
                 Section::make('Socios de la sección')
-                    ->description('Se marcan solos al pesarles en una manga de esta sección. Márcalos aquí para que salgan en el ranking desde el principio, aunque aún no hayan ido a ninguna manga.')
+                    ->description('Se apuntan solos al pesar en una manga de esta sección. Márcalos aquí para que salgan en el ranking desde el principio.')
                     ->schema([
                         CheckboxList::make('socios')
                             ->hiddenLabel()
@@ -246,7 +246,7 @@ class SeccionForm
                     ->collapsible(),
 
                 Section::make('Así puntúa esta sección')
-                    ->description('Lo mismo que verán los socios junto al ranking.')
+                    ->description('La misma frase que ven los socios junto al ranking.')
                     ->schema([
                         // Las reglas, en una frase, mientras se configuran.
                         Placeholder::make('resumen')
