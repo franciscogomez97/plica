@@ -196,7 +196,7 @@ class Podio
     /** Cambiar cuando cambie el diseño, para que se regeneren todas. */
     private static function versionDiseno(): string
     {
-        return '9';
+        return '10';
     }
 
     // ----------------------------------------------------------------------
@@ -296,12 +296,13 @@ class Podio
             $rx = 64 + $col * ($colAncho + 24);
             $ry = $y0 + $fila * ($alto + $hueco);
             static::caja($img, $rx, $ry, $colAncho, $alto, 14, self::NAVY, 0.55);
-            $ty = $ry + 34;
-            static::texto($img, (string) $f['puesto'], $rx + 22, $ty, 26, 'Bold', self::BLANCO);
-            $valorAncho = static::anchoTexto($f['valor'], 26, 'Bold');
-            static::texto($img, $f['valor'], $rx + $colAncho - 20 - $valorAncho, $ty, 26, 'Bold', self::BLANCO);
-            $nombre = static::recortar($f['corto'], 26, 'SemiBold', $colAncho - 90 - $valorAncho - 24, abreviar: true);
-            static::texto($img, $nombre, $rx + 78, $ty, 26, 'SemiBold', self::BLANCO);
+            $ty = $ry + 33;
+            static::texto($img, (string) $f['puesto'], $rx + 18, $ty, 24, 'Bold', self::BLANCO);
+            $valorAncho = static::anchoTexto($f['valor'], 24, 'Bold');
+            static::texto($img, $f['valor'], $rx + $colAncho - 18 - $valorAncho, $ty, 24, 'Bold', self::BLANCO);
+            // El nombre entero si cabe; si no, la cadena de abreviaturas («Juan Antonio P.», «J. Antonio P.», «Juan A.»).
+            $nombre = static::recortar($f['nombre'], 24, 'SemiBold', $colAncho - 66 - $valorAncho - 20, abreviar: true);
+            static::texto($img, $nombre, $rx + 66, $ty, 24, 'SemiBold', self::BLANCO);
         }
 
         // ---- Pie
@@ -520,18 +521,19 @@ class Podio
         return (int) abs($caja[2] - $caja[0]);
     }
 
-    /** Si no cabe: primero «Nombre A.» (si se pide), luego puntos suspensivos. */
+    /** Si no cabe: la cadena de abreviaturas del nombre (si se pide) y, al final, puntos suspensivos. */
     private static function recortar(string $t, int $tam, string $peso, int $maximo, bool $abreviar = false): string
     {
         if (static::anchoTexto($t, $tam, $peso) <= $maximo) {
             return $t;
         }
         if ($abreviar) {
-            $corto = static::abreviar($t);
-            if (static::anchoTexto($corto, $tam, $peso) <= $maximo) {
-                return $corto;
+            foreach (\App\Support\Participante::abreviaturas($t) as $corto) {
+                if (static::anchoTexto($corto, $tam, $peso) <= $maximo) {
+                    return $corto;
+                }
             }
-            $t = $corto;
+            $t = \App\Support\Participante::abreviar($t);
         }
         while (mb_strlen($t) > 1 && static::anchoTexto($t.'…', $tam, $peso) > $maximo) {
             $t = mb_substr($t, 0, -1);

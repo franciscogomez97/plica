@@ -590,7 +590,12 @@ relativas al día en que se ejecuta.
   federación»; el bolo se explica con el ejemplo, sin fórmula. La frase «Así
   puntúa esta sección» va dentro del bloque del ranking, justo bajo el sistema,
   pegada arriba al hacer scroll para verla en el móvil mientras se tocan las
-  opciones; los socios de la sección van al final.
+  opciones; los socios de la sección van al final. El `position: sticky` va en
+  la columna de la rejilla de la sección (`.fi-grid-col:has(.plica-resumen-fijo)`
+  en `AdminPanelProvider`): Filament envuelve el grupo en dos divs de su mismo
+  alto y ahí no tiene dónde pegarse. **Para cosas de pantalla, la prueba es el
+  banco** (`pruebas-navegador/`): un test que comprueba que «la clase está» da
+  verde con la función rota; se comprobó bajando 3.200 px en el móvil.
 - **Revisión con lupa de los rankings** (15 de septiembre de 2026): por
   puestos, el cuadro lleva una columna junto al total con lo que decide el
   empate de la general (cm, kg, pieza mayor, piezas o mejor manga), para que un
@@ -600,7 +605,12 @@ relativas al día en que se ejecuta.
   se desliza. La abreviatura de nombres (`Participante::abreviar`, la misma en
   web y tarjeta) respeta nombres compuestos y partículas: «Miguel Ángel T.»,
   «Sergio del R.», «Paco de la T.». En la tarjeta, del 4º en adelante, hasta
-  ocho van en una columna y más se reparten mitad y mitad. «1 pt» en singular
+  ocho van en una columna y más se reparten mitad y mitad; donde un nombre no
+  cabe, una cadena de recortes antes de los puntos suspensivos
+  (`Participante::abreviaturas`: «Juan Antonio P.» → «J. Antonio P.» → «Juan
+  A.»), con la letra a 24 para que «Fernando M.» quepa siempre. Por puestos,
+  con la columna de empate desaparece la de piezas (no cabían las dos en
+  escritorio). El panel del socio no repite el encabezado. «1 pt» en singular
   (`Scoring::pts`). Con una sola pieza no se repite la pieza mayor. Y **el
   panel del socio es la misma página que la web**: el mismo parcial
   `public/partials/seccion-ranking`, con su fila resaltada («· tú», parámetro

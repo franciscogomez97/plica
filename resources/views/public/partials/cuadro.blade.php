@@ -13,6 +13,8 @@
         \App\Models\Seccion::DESEMPATE_GENERAL_MEJOR_MANGA => ['mejor', fn ($f) => $f->mejorManga === null ? '—' : \App\Services\Scoring::pts($f->mejorManga)],
         default => null,
     };
+    // La columna de piezas no cabe con la de empate en escritorio; por puestos, si no decide el empate, sobra.
+    $mostrarPiezas = $cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS && $columnaDesempate === null;
     $unidad = match ($cuadro->criterio) {
         \App\Models\Seccion::CRITERIO_MEDIDA => 'cm',
         \App\Models\Seccion::CRITERIO_PIEZAS => 'piezas',
@@ -99,7 +101,7 @@
                     @if ($columnaDesempate)
                         <th class="desempate" title="Decide los empates de la clasificación general">{{ $columnaDesempate[0] }}<small>empate</small></th>
                     @endif
-                    @if ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS)
+                    @if ($mostrarPiezas)
                         <th class="piezas">Piezas</th>
                     @endif
                     <th class="piezas">Mayor</th>
@@ -112,7 +114,7 @@
                     foreach ($cuadro->filas->values() as $i => $f) {
                         if ($f->mangas === 0) { $primeroSinMangas ??= $i; } else { $primeroSinMangas = null; }
                     }
-                    $columnas = 2 + $cuadro->mangas->count() + ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS ? 1 : 0) + 1 + ($columnaDesempate ? 1 : 0);
+                    $columnas = 2 + $cuadro->mangas->count() + ($mostrarPiezas ? 1 : 0) + 1 + ($columnaDesempate ? 1 : 0);
                 @endphp
                 @foreach ($cuadro->filas as $fila)
                     @if ($loop->index === $primeroSinMangas && $loop->index > 0)
@@ -185,7 +187,7 @@
                         @if ($columnaDesempate)
                             <td class="desempate">{{ $columnaDesempate[1]($fila) }}</td>
                         @endif
-                        @if ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS)
+                        @if ($mostrarPiezas)
                             <td class="piezas">{{ $fila->piezas }}</td>
                         @endif
                         <td class="piezas">{{ \App\Services\Scoring::piezaMayorTexto($cuadro->criterio, $fila) ?: '—' }}</td>

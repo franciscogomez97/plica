@@ -58,9 +58,20 @@ class RankingSeccion extends Page
         return 'Ranking '.$this->getSeccion()->nombre;
     }
 
+    /** Sin encabezado de Filament: el parcial de la web ya lleva club, título y temporada. */
+    public function getHeading(): ?string
+    {
+        return null;
+    }
+
     public function getSubheading(): ?string
     {
-        return $this->getTemporada()?->nombre;
+        return null;
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [];
     }
 
     /** Los mismos datos que la página pública de la sección (parcial compartido). */

@@ -102,6 +102,36 @@ final class Participante
     private const PARTICULAS = ['de', 'del', 'la', 'las', 'los', 'y', 'san', 'santa', 'da', 'do', 'dos', 'das', 'van', 'von', 'di', 'le'];
 
     /**
+     * Cadena de recortes de un nombre, de más largo a más corto, para donde no cabe:
+     * «Juan Antonio Pérez» → «Juan Antonio P.» → «J. Antonio P.» → «Juan A.» → «Juan»;
+     * «Sergio del Río» → «Sergio del R.» → «Sergio R.» → «Sergio».
+     *
+     * @return string[] sin repetidos, empezando por el nombre entero
+     */
+    public static function abreviaturas(string $nombre): array
+    {
+        $partes = array_values(array_filter(preg_split('/\s+/u', trim($nombre)) ?: []));
+        $cadena = [$nombre];
+        if (count($partes) < 2) {
+            return $cadena;
+        }
+        $llano = fn (string $p): string => mb_strtolower(\Illuminate\Support\Str::ascii($p));
+        $cadena[] = static::abreviar($nombre);
+        // Sin partículas: «Sergio R.», «Paco T.».
+        $sinParticulas = array_values(array_filter($partes, fn ($p, $i) => $i === 0 || ! in_array($llano($p), self::PARTICULAS, true), ARRAY_FILTER_USE_BOTH));
+        $cadena[] = static::abreviar(implode(' ', $sinParticulas));
+        // Nombre compuesto con la primera parte en inicial: «J. Antonio P.».
+        if (count($partes) >= 3 && in_array($llano($partes[1]), self::SEGUNDOS_NOMBRES, true)) {
+            $cadena[] = mb_substr($partes[0], 0, 1).'. '.static::abreviar(implode(' ', array_slice($sinParticulas, 1)));
+        }
+        // Solo el primer nombre y la inicial del apellido: «Juan A.», y al final el nombre solo.
+        $cadena[] = $sinParticulas[0].' '.mb_substr($sinParticulas[1] ?? $partes[1], 0, 1).'.';
+        $cadena[] = $partes[0];
+
+        return array_values(array_unique($cadena));
+    }
+
+    /**
      * «Mario López García» → «Mario L.», «Miguel Ángel Toro» → «Miguel Ángel T.»,
      * «Sergio del Río» → «Sergio del R.», «Paco de la Torre» → «Paco de la T.».
      */

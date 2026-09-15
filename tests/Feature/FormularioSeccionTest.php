@@ -129,6 +129,7 @@ class FormularioSeccionTest extends TestCase
         // Y se queda pegada arriba: el sticky va en el envoltorio del campo (el contenido no tendría dónde pegarse).
         $this->assertStringContainsString('plica-resumen-fijo', $html);
         $this->assertMatchesRegularExpression('/class="[^"]*plica-resumen-fijo[^"]*"[^>]*>(?:(?!<\/div>).)*Así puntúa esta sección/s', $html, 'la clase está en un envoltorio que contiene la etiqueta');
-        $this->assertStringContainsString('.plica-resumen-fijo { position: sticky;', $html);
+        // El sticky va en la columna de la rejilla que contiene el grupo (un hijo directo del bloque), vía :has.
+        $this->assertStringContainsString('.fi-grid-col:has(.plica-resumen-fijo) { position: sticky;', $html);
     }
 }

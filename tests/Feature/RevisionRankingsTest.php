@@ -37,6 +37,27 @@ class RevisionRankingsTest extends TestCase
         $this->assertSame('Fernando', Participante::abreviar('Fernando'));
         $this->assertSame('Miguel Á.', Participante::abreviar('Miguel Ángel'), 'sin apellido detrás, «Ángel» es el apellido');
         $this->assertSame(Participante::abreviar('Sergio del Río'), Podio::abreviar('Sergio del Río'), 'la tarjeta abrevia igual que la web');
+
+        // Donde no cabe, una cadena de recortes antes de los puntos suspensivos.
+        $this->assertSame(['Juan Antonio Pérez', 'Juan Antonio P.', 'J. Antonio P.', 'Juan A.', 'Juan'], Participante::abreviaturas('Juan Antonio Pérez'));
+        $this->assertSame(['Sergio del Río', 'Sergio del R.', 'Sergio R.', 'Sergio'], Participante::abreviaturas('Sergio del Río'));
+        $this->assertSame(['Paco de la Torre', 'Paco de la T.', 'Paco T.', 'Paco'], Participante::abreviaturas('Paco de la Torre'));
+        $this->assertSame(['Fernando Montes', 'Fernando M.', 'Fernando'], Participante::abreviaturas('Fernando Montes'));
+        $this->assertSame(['Fernando'], Participante::abreviaturas('Fernando'));
+    }
+
+    public function test_en_la_tarjeta_los_nombres_largos_se_recortan_por_la_cadena_y_no_con_puntos(): void
+    {
+        $spec = [];
+        foreach (['Juan Antonio Pérez', 'Sergio del Río', 'José Luis Moreno', 'Paco de la Torre', 'Fernando Montes', 'Miguel Ángel Toro', 'Antonio Jiménez Rodríguez', 'Ana', 'Beatriz Sanz', 'Carlos Molina', 'Diego Ruiz', 'Elena Vidal'] as $i => $n) {
+            $spec[$n] = [12450 - $i * 500];
+        }
+        $escenario = Escenario::crear($spec, [], 'lupa-nombres');
+        $ruta = Podio::deManga($escenario->mangas->first());
+        $this->assertFileExists($ruta);
+        if ($destino = getenv('PODIO_GUARDAR')) {
+            copy($ruta, $destino.'/podio-nombres.jpg');
+        }
     }
 
     public function test_un_punto_es_un_pt_y_con_una_sola_pieza_no_se_repite_la_pieza_mayor(): void
@@ -63,6 +84,7 @@ class RevisionRankingsTest extends TestCase
         $html = $this->get('/c/'.$escenario->club->slug.'/'.$escenario->seccion->slug)->assertOk()->getContent();
         $this->assertStringContainsString('<th class="desempate" title="Decide los empates de la clasificación general">cm<small>empate</small></th>', $html);
         $this->assertStringContainsString('<td class="desempate">80 cm</td>', $html);
+        $this->assertStringNotContainsString('<th class="piezas">Piezas</th>', $html, 'con la columna de empate, la de piezas sobra (no cabía en escritorio)');
         $this->assertStringContainsString('<span class="v">no fue</span><span class="m">3 pts</span>', $html, 'el ausente dice «no fue» y lo que le cuesta');
         $this->assertStringContainsString('<span class="u"> pt</span>', $html, 'el ganador de la manga: 1 pt');
         $this->assertStringNotContainsString('1 pts', $html);
@@ -100,6 +122,9 @@ class RevisionRankingsTest extends TestCase
         $this->assertStringContainsString('<tr class="yo">', $html);
         $this->assertStringContainsString($nombre.' · tú', $html);
         $this->assertStringNotContainsString('.cuadro thead th', $html, 'ya no hay un segundo cuadro del panel');
+        // Sin el encabezado de Filament: el título sale una vez, el del parcial.
+        $this->assertStringNotContainsString('fi-header-heading', $html);
+        $this->assertSame(1, substr_count($html, '>Ranking Orilla</h1>'), 'el título una sola vez');
     }
 
     public function test_las_columnas_de_la_tarjeta_se_reparten_mitad_y_mitad(): void

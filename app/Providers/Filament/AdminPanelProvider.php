@@ -79,7 +79,11 @@ class AdminPanelProvider extends PanelProvider
                     .'.fi-ta-record .fi-ta-record-content-ctn > div:first-child { flex: 1 1 0%; min-width: 0; }'
                     .'.fi-ta-record .fi-ta-actions.fi-wrapped { flex: 0 0 auto; width: auto; flex-wrap: nowrap; padding-inline: .25rem .9rem; }'
                     // La frase «Así puntúa esta sección» se queda pegada arriba mientras se tocan las opciones.
-                    .'.plica-resumen-fijo { position: sticky; top: 4.5rem; z-index: 5; padding: .6rem .8rem; border-radius: .6rem; background: #ecfdf5; border: 1px solid rgba(5, 150, 105, .35); }'
+                    // El sticky va en la columna de la rejilla de la sección (el hijo directo del bloque que
+                    // abarca todas las opciones); el grupo, que Filament envuelve en dos divs de su mismo alto,
+                    // solo pone el fondo. Comprobado en el banco: sin :has no se pega.
+                    .'.fi-grid-col:has(> .fi-sc-component > .plica-resumen-fijo), .fi-grid-col:has(.plica-resumen-fijo) { position: sticky; top: 4.5rem; z-index: 5; }'
+                    .'.plica-resumen-fijo { padding: .6rem .8rem; border-radius: .6rem; background: #ecfdf5; border: 1px solid rgba(5, 150, 105, .35); }'
                     .'</style>',
             )
             ->renderHook(PanelsRenderHook::PAGE_START, $atras)
