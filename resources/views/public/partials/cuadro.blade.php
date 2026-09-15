@@ -1,7 +1,18 @@
 {{-- Cuadro manga a manga en la página pública de una sección (misma lógica que
      el del panel: pescadores en filas, mangas en columnas). Espera: $cuadro, $club. --}}
 @php
+    $socioId ??= null;
     $conPuntos = $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || $cuadro->puntosParticipacion > 0 || ($cuadro->puntosNoAsistencia ?? 0) !== 0;
+    // Por puestos, el empate de la general se decide por algo que hay que ver: una columna junto al total.
+    $desempateGeneral = $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS ? ($cuadro->seccion->desempate_general ?? 'compartido') : 'compartido';
+    $columnaDesempate = match ($desempateGeneral) {
+        \App\Models\Seccion::DESEMPATE_PESO => ['kg', fn ($f) => \App\Services\Scoring::formatPeso($f->peso)],
+        \App\Models\Seccion::DESEMPATE_GENERAL_MEDIDA => ['cm', fn ($f) => \App\Services\Scoring::formatMedida($f->medida)],
+        \App\Models\Seccion::DESEMPATE_PIEZA_MAYOR => ['mayor', fn ($f) => \App\Services\Scoring::piezaMayorTexto($cuadro->criterio, $f) ?: '—'],
+        \App\Models\Seccion::DESEMPATE_PIEZAS, \App\Models\Seccion::DESEMPATE_MENOS_PIEZAS => ['piezas', fn ($f) => (string) $f->piezas],
+        \App\Models\Seccion::DESEMPATE_GENERAL_MEJOR_MANGA => ['mejor', fn ($f) => $f->mejorManga === null ? '—' : \App\Services\Scoring::pts($f->mejorManga)],
+        default => null,
+    };
     $unidad = match ($cuadro->criterio) {
         \App\Models\Seccion::CRITERIO_MEDIDA => 'cm',
         \App\Models\Seccion::CRITERIO_PIEZAS => 'piezas',
@@ -48,6 +59,14 @@
 .pc .celda .pez { font-size: .8rem; line-height: 1; }
     .pc .celda.descartada .v { text-decoration: line-through; opacity: .45; }
     .pc td.ausente { color: rgb(148 163 184); }
+    .pc td.ausente .celda { align-items: flex-end; }
+    .pc td.ausente .v { font-size: .8rem; font-weight: 600; }
+    .pc tr.yo td { background: rgb(236 253 245); }
+    .pc tr.yo td:first-child, .pc tr.yo td.total { background: rgb(236 253 245); }
+    .pc th.desempate, .pc td.desempate { width: 1%; color: rgb(71 85 105); font-size: .85rem; }
+    /* Pista de que el cuadro se desliza: un degradado en el borde derecho, solo en pantallas estrechas. */
+    .pc-scroll { position: relative; }
+    .pc-scroll::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 2.5rem; pointer-events: none; background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,.9)); display: none; }
     .pc td.ausente.descartada { text-decoration: line-through; }
     .pc .n.corto { display: none; }
     @media (max-width: 640px) {
@@ -57,13 +76,14 @@
         .pc td:first-child .n { font-size: .85rem; }
         .pc th.total, .pc td.total { padding-left: .5rem; padding-right: .6rem; }
         .pc .u, .pc .extra, .pc .piezas { display: none; }
+        .pc-scroll::after { display: block; }
     }
 </style>
 
 @if ($cuadro->piezaMayor && ! ($sinPiezaMayor ?? false))
     <div class="mb-3 rounded-xl bg-amber-50 px-4 py-2.5 text-sm text-amber-800">🐟 Pieza mayor de la temporada: <strong>{{ $cuadro->piezaMayor->socio->nombre }}</strong> · {{ $cuadro->piezaMayor->texto }} ({{ $cuadro->piezaMayor->manga->nombre }})</div>
 @endif
-<div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white pc-scroll">
     <div class="overflow-x-auto">
         <table class="pc">
             <thead>
@@ -76,6 +96,9 @@
                         </th>
                     @endforeach
                     <th class="total">Total<small>{{ $conPuntos ? 'puntos' : $unidad }}</small></th>
+                    @if ($columnaDesempate)
+                        <th class="desempate" title="Decide los empates de la clasificación general">{{ $columnaDesempate[0] }}<small>empate</small></th>
+                    @endif
                     @if ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS)
                         <th class="piezas">Piezas</th>
                     @endif
@@ -89,13 +112,13 @@
                     foreach ($cuadro->filas->values() as $i => $f) {
                         if ($f->mangas === 0) { $primeroSinMangas ??= $i; } else { $primeroSinMangas = null; }
                     }
-                    $columnas = 2 + $cuadro->mangas->count() + ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS ? 1 : 0) + 1;
+                    $columnas = 2 + $cuadro->mangas->count() + ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS ? 1 : 0) + 1 + ($columnaDesempate ? 1 : 0);
                 @endphp
                 @foreach ($cuadro->filas as $fila)
                     @if ($loop->index === $primeroSinMangas && $loop->index > 0)
                         <tr class="corte"><td colspan="{{ $columnas }}">Sin ninguna manga esta temporada</td></tr>
                     @endif
-<tr>
+<tr @class(['yo' => $fila->participante->incluye($socioId)])>
                         <td>
                             <span class="inline-flex max-w-full items-center gap-1.5 font-semibold">
                                 <span @class(['pos', 'p'.$fila->puesto => $fila->puesto <= 3])>{{ $fila->puesto }}</span>
@@ -107,19 +130,19 @@
                             @php $c = $fila->celdas[$manga->id] ?? null; @endphp
                             @if ($c === null)
                                 @if ($cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS)
-                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó: {{ $cuadro->ausentePorManga[$manga->id] ?? '' }} pts{{ $d ? ' · manga descartada' : '' }}">—<br><small>@if ($d)<s>{{ $cuadro->ausentePorManga[$manga->id] ?? '' }}</s>@else{{ $cuadro->ausentePorManga[$manga->id] ?? '' }}@endif</small></td>
+                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó: {{ $cuadro->ausentePorManga[$manga->id] ?? '' }} pts{{ $d ? ' · manga descartada' : '' }}">@php $coste = \App\Services\Scoring::pts($cuadro->ausentePorManga[$manga->id] ?? 0); @endphp<div class="celda"><span class="v">no fue</span><span class="m">{!! $d ? '<s>'.e($coste).'</s> descarte' : e($coste) !!}</span></div></td>
                             @elseif (($cuadro->puntosNoAsistencia ?? 0) !== 0)
-                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó: {{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }} pts{{ $d ? ' · manga descartada' : '' }}">—<br><small>{{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }}</small></td>
+                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó: {{ $cuadro->puntosNoAsistencia > 0 ? '+' : '' }}{{ $cuadro->puntosNoAsistencia }} pts{{ $d ? ' · manga descartada' : '' }}">@php $coste = ($cuadro->puntosNoAsistencia > 0 ? '+' : '').\App\Services\Scoring::pts($cuadro->puntosNoAsistencia); @endphp<div class="celda"><span class="v">no fue</span><span class="m">{!! $d ? '<s>'.e($coste).'</s> descarte' : e($coste) !!}</span></div></td>
                             @else
-                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó{{ $d ? ' · manga descartada' : '' }}">—</td>
+                                @php $d = in_array($manga->id, $fila->descartadas ?? [], true); @endphp<td @class(['ausente', 'descartada' => $d]) title="No participó{{ $d ? ' · manga descartada' : '' }}"><div class="celda"><span class="v">no fue</span>{!! $d ? '<span class="m">descarte</span>' : '' !!}</div></td>
                             @endif
                             @else
                                 @php [$numero, $uni] = $partir($c->texto); @endphp
                                 <td>
-<div @class(['celda', 'gana' => $c->puesto === 1, 'mayor' => $c->mayorDeLaManga, 'descartada' => $c->descartada]) title="{{ $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS && $c->puntos !== null ? \App\Services\Scoring::formatPuntos($c->puntos).' pts · ' : '' }}{{ $c->texto }} · {{ $c->puesto }}º{{ $c->mayorDeLaManga ? ' · pieza mayor de la manga ('.$c->mayor.')' : '' }}">
+<div @class(['celda', 'gana' => $c->puesto === 1, 'mayor' => $c->mayorDeLaManga, 'descartada' => $c->descartada]) title="{{ $cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS && $c->puntos !== null ? \App\Services\Scoring::pts($c->puntos).' · ' : '' }}{{ $c->texto }} · {{ $c->puesto }}º{{ $c->mayorDeLaManga ? ' · pieza mayor de la manga ('.$c->mayor.')' : '' }}">
                                         @if ($cuadro->sistema === \App\Models\Seccion::SISTEMA_PUESTOS && $c->puntos !== null)
                                             {{-- Federación: los puntos de la manga arriba; lo pescado, debajo en pequeño. --}}
-                                            <span class="v pts font-semibold">{{ \App\Services\Scoring::formatPuntos($c->puntos) }}<span class="u"> pts</span></span>
+                                            <span class="v pts font-semibold">{{ \App\Services\Scoring::formatPuntos($c->puntos) }}<span class="u"> {{ $c->puntos == 1 ? 'pt' : 'pts' }}</span></span>
                                             <span class="m">
                                                 <span class="peso">{{ $c->valor > 0 ? $numero.($uni !== '' ? ' '.$uni : '') : '0 '.$unidad }}</span>
                                                 @if ($c->mayorDeLaManga)
@@ -133,7 +156,7 @@
                                                 @endif
                                             </span>
                                         @else
-                                            <span class="v font-semibold">{{ $numero }}@if ($uni !== '')<span class="u"> {{ $uni }}</span>@endif</span>
+                                            <span class="v font-semibold">{{ $c->valor > 0 ? $numero : '0' }}<span class="u"> {{ $c->valor > 0 ? $uni : $unidad }}</span></span>
                                             <span class="m">
                                                 <span class="pm">{{ $c->puesto }}º</span>
                                                 @if ($c->mayorDeLaManga)
@@ -153,12 +176,15 @@
                         @endforeach
                         <td class="total">
                             @if ($conPuntos)
-                                {{ \App\Services\Scoring::formatPuntos($fila->puntos) }}<span class="u"> pts</span>
+                                {{ \App\Services\Scoring::formatPuntos($fila->puntos) }}<span class="u"> {{ $fila->puntos == 1 ? 'pt' : 'pts' }}</span>
                             @else
                                 @php [$numero, $uni] = $partir(\App\Services\Scoring::valorRanking($cuadro->criterio, $fila->puntos)); @endphp
                                 {{ $numero }}@if ($uni !== '')<span class="u"> {{ $uni }}</span>@endif
                             @endif
                         </td>
+                        @if ($columnaDesempate)
+                            <td class="desempate">{{ $columnaDesempate[1]($fila) }}</td>
+                        @endif
                         @if ($cuadro->criterio !== \App\Models\Seccion::CRITERIO_PIEZAS)
                             <td class="piezas">{{ $fila->piezas }}</td>
                         @endif

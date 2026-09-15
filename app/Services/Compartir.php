@@ -113,7 +113,7 @@ class Compartir
             || ($grupo->puntosNoAsistencia ?? 0) !== 0;
 
         return $conPuntos
-            ? Scoring::formatPuntos($fila->puntos).' pts'
+            ? Scoring::pts($fila->puntos)
             : Scoring::valorRanking($grupo->criterio, $fila->puntos);
     }
 }

@@ -63,6 +63,12 @@ class RankingSeccion extends Page
         return $this->getTemporada()?->nombre;
     }
 
+    /** Los mismos datos que la página pública de la sección (parcial compartido). */
+    public function getDatos(): array
+    {
+        return once(fn () => \App\Support\RankingDeSeccion::datos($this->getClub(), $this->getSeccion()));
+    }
+
     public function getCuadro(): ?object
     {
         return once(function () {

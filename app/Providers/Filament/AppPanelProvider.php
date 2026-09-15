@@ -18,6 +18,7 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Foundation\Vite;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -66,7 +67,8 @@ class AppPanelProvider extends PanelProvider
             // puede «añadir a pantalla de inicio» como una app de verdad.
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
-                fn (): string => Marca::iconos().Marca::estilosPanel(),
+                // Utilidades de la web pública: el ranking del socio es la misma página que la web.
+                fn (): string => Marca::iconos().Marca::estilosPanel().app(Vite::class)->__invoke(['resources/css/publico.css'])->toHtml(),
             )
             // Flecha «Atrás» en las páginas interiores del socio (ranking de una
             // sección, clasificación de una manga, perfil): siempre al Inicio.

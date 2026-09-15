@@ -196,7 +196,7 @@ class Podio
     /** Cambiar cuando cambie el diseño, para que se regeneren todas. */
     private static function versionDiseno(): string
     {
-        return '8';
+        return '9';
     }
 
     // ----------------------------------------------------------------------
@@ -288,7 +288,8 @@ class Podio
         $alto = 48;
         $hueco = 6;   // 15 filas → termina en 1760, por encima del «y N más» (1798) y del pie
         $colAncho = (int) (($W - 128 - 24) / 2);
-        $porColumna = 15;
+        // Hasta ocho, una sola columna; más, mitad y mitad (nunca 15 y 2).
+        $porColumna = count($resto) > 8 ? (int) ceil(count($resto) / 2) : max(1, count($resto));
         foreach ($resto as $i => $f) {
             $col = intdiv($i, $porColumna);
             $fila = $i % $porColumna;
@@ -539,15 +540,10 @@ class Podio
         return rtrim($t).'…';
     }
 
-    /** «Mario López García» → «Mario L.» */
+    /** La misma abreviatura que la web («Miguel Ángel T.», «Sergio del R.»). */
     public static function abreviar(string $nombre): string
     {
-        $partes = preg_split('/\s+/', trim($nombre)) ?: [];
-        if (count($partes) < 2) {
-            return $nombre;
-        }
-
-        return $partes[0].' '.mb_strtoupper(mb_substr($partes[1], 0, 1)).'.';
+        return \App\Support\Participante::abreviar($nombre);
     }
 
     public static function iniciales(string $nombre): string

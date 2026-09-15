@@ -44,7 +44,7 @@
                     {{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}
                 @elseif ($grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0 || ($grupo->puntosNoAsistencia ?? 0) !== 0)
                     {{-- Puntos «artificiales»: se enseñan como pts, con lo pescado debajo. --}}
-                    {{ \App\Services\Scoring::formatPuntos($fila->puntos) }} pts
+                    {{ \App\Services\Scoring::pts($fila->puntos) }}
                     <small>{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</small>
                 @else
                     {{-- Lo que ordena el ranking (con descartes aplicados), en su unidad. --}}

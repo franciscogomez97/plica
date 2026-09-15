@@ -5,6 +5,7 @@
      por defecto la pública) y $enPanel (añade el enlace a la página pública). --}}
 @php
     $enPanel ??= false;
+    $socioId ??= null; // el socio que mira, para el «· tú» (panel del socio)
     $urlManga ??= fn ($manga) => route('club.manga', ['club' => $club->slug, 'manga' => $manga->id]);
 @endphp
     {{-- Cabecera: escudo y nombre del club grandes, título y temporada. Las reglas, plegadas. --}}
@@ -46,7 +47,7 @@
         @php
             $lider = $grupo->filas->first();
             $conPuntos = $grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0 || ($grupo->puntosNoAsistencia ?? 0) !== 0;
-            $liderValor = $conPuntos ? \App\Services\Scoring::formatPuntos($lider->puntos).' pts' : \App\Services\Scoring::valorRanking($grupo->criterio, $lider->puntos);
+            $liderValor = $conPuntos ? \App\Services\Scoring::pts($lider->puntos) : \App\Services\Scoring::valorRanking($grupo->criterio, $lider->puntos);
             $liderDetalle = $conPuntos ? \App\Services\Scoring::valorPrincipal($grupo->criterio, $lider) : ($lider->mangas === 1 ? '1 manga' : $lider->mangas.' mangas');
         @endphp
 
@@ -100,7 +101,7 @@
                     @endif
                 </div>
             </div>
-            @include('public.partials.cuadro', ['cuadro' => $cuadro, 'club' => $club, 'sinPiezaMayor' => true, 'urlManga' => $urlManga])
+            @include('public.partials.cuadro', ['cuadro' => $cuadro, 'club' => $club, 'sinPiezaMayor' => true, 'urlManga' => $urlManga, 'socioId' => $socioId])
         </section>
 
         @if ($clasifUltima)
@@ -112,7 +113,7 @@
                         · <a href="{{ $urlManga($ultimaManga) }}" class="font-medium text-emerald-700 hover:underline">Ver y compartir</a>
                     </p>
                 </div>
-                @include('public.partials.lista', ['grupo' => $clasifUltima, 'modo' => 'manga'])
+                @include('public.partials.lista', ['grupo' => $clasifUltima, 'modo' => 'manga', 'socioId' => $socioId])
             </section>
         @endif
     @endif

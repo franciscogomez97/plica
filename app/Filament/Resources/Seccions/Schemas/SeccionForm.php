@@ -7,6 +7,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -144,9 +145,12 @@ class SeccionForm
 
                         // La frase de reglas, en vivo, donde se necesita: junto a las opciones. Se queda pegada
                         // arriba al hacer scroll, para verla en el móvil mientras se tocan las de abajo.
+                        // El sticky tiene que ir en un envoltorio que sea hijo directo del bloque: el contenido
+                        // del texto mide lo mismo que su padre y no tendría dónde pegarse. Un grupo con la
+                        // clase; la regla CSS está en AdminPanelProvider.
+                        Group::make([
                         Placeholder::make('resumen')
                             ->label('Así puntúa esta sección')
-                            ->extraAttributes(['style' => 'position: sticky; top: 4.5rem; z-index: 5; padding: .6rem .8rem; border-radius: .6rem; background: rgba(5, 150, 105, .08); border: 1px solid rgba(5, 150, 105, .25)'])
                             ->content(fn (Get $get): string => Seccion::resumenReglasDe(
                                 (string) ($get('criterio') ?: Seccion::CRITERIO_PESO),
                                 $esAcumulado($get) ? (int) ($get('puntos_participacion') ?: 0) : 0,
@@ -161,6 +165,7 @@ class SeccionForm
                                 (string) ($get('modalidad') ?: Seccion::MODALIDAD_INDIVIDUAL),
                                 (int) ($get('tamano_equipo') ?: 2),
                             )),
+                        ])->extraAttributes(['class' => 'plica-resumen-fijo']),
 
                         // Suma lo pescado: se puede premiar ir a las mangas.
                         TextInput::make('puntos_participacion')

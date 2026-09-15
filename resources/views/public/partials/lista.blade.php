@@ -3,6 +3,7 @@
      Espera: $grupo (calculado por Scoring) · $modo ('manga' | 'temporada') · $limite opcional. --}}
 @php
     $limite ??= null;
+    $socioId ??= null;
     $filas = $grupo->filas->values();
     $visibles = $limite ? $filas->take($limite) : $filas;
     $ocultas = $filas->count() - $visibles->count();
@@ -20,7 +21,7 @@
         </thead>
         <tbody class="divide-y divide-slate-100">
             @foreach ($visibles as $fila)
-                <tr>
+                <tr @class(['bg-emerald-50' => $fila->participante->incluye($socioId)])>
                     <td class="px-3 py-2.5">
                         <span @class([
                             'inline-flex size-6 items-center justify-center rounded-full text-xs font-bold',
@@ -31,7 +32,7 @@
                         ])>{{ $fila->puesto }}</span>
                     </td>
                     <td class="min-w-0 px-2 py-2.5">
-                        <div class="font-semibold text-slate-900">{!! implode('<br>', array_map('e', $fila->participante->lineas())) !!}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-200 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-slate-700">Baja</span>@endif</div>
+                        <div class="font-semibold text-slate-900">{!! implode('<br>', array_map('e', $fila->participante->lineas())) !!}{{ $fila->participante->incluye($socioId) ? ' · tú' : '' }}@if ($fila->baja ?? false) <span class="ml-1 rounded bg-slate-200 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-slate-700">Baja</span>@endif</div>
                         <div class="text-xs text-slate-500">
                             @if ($modo === 'temporada')
                                 @php $mayorFila = \App\Services\Scoring::piezaMayorTexto($grupo->criterio, $fila); @endphp
@@ -45,7 +46,7 @@
                         @if ($modo !== 'temporada')
                             {{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}
                         @elseif ($conPuntos)
-                            {{ \App\Services\Scoring::formatPuntos($fila->puntos) }} pts
+                            {{ \App\Services\Scoring::pts($fila->puntos) }}
                             <div class="text-xs font-medium text-slate-500">{{ \App\Services\Scoring::valorPrincipal($grupo->criterio, $fila) }}</div>
                         @else
                             {{ \App\Services\Scoring::valorRanking($grupo->criterio, $fila->puntos) }}

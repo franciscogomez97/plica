@@ -125,5 +125,10 @@ class FormularioSeccionTest extends TestCase
         $sistema = strpos($html, 'El ranking de la temporada');
         $this->assertGreaterThan($sistema, $resumen);
         $this->assertLessThan($socios, $resumen);
+
+        // Y se queda pegada arriba: el sticky va en el envoltorio del campo (el contenido no tendría dónde pegarse).
+        $this->assertStringContainsString('plica-resumen-fijo', $html);
+        $this->assertMatchesRegularExpression('/class="[^"]*plica-resumen-fijo[^"]*"[^>]*>(?:(?!<\/div>).)*Así puntúa esta sección/s', $html, 'la clase está en un envoltorio que contiene la etiqueta');
+        $this->assertStringContainsString('.plica-resumen-fijo { position: sticky;', $html);
     }
 }

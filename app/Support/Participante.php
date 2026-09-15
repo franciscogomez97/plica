@@ -92,11 +92,40 @@ final class Participante
         return $this->socios->map(fn (Socio $s) => static::abreviar($s->nombre))->implode(' / ');
     }
 
-    /** «Mario López García» → «Mario L.» */
+    /** Segundos nombres habituales: «Miguel Ángel», «José Luis», «María José», «Juan Carlos»… */
+    private const SEGUNDOS_NOMBRES = ['angel', 'angela', 'antonio', 'carlos', 'carmen', 'cristina', 'david', 'elena', 'enrique', 'eva', 'fernando',
+        'francisco', 'ignacio', 'isabel', 'javier', 'jesus', 'jose', 'josep', 'juan', 'luis', 'luisa', 'manuel', 'mar', 'maria', 'mari', 'mario',
+        'miguel', 'pablo', 'pedro', 'pilar', 'rafael', 'ramon', 'rosa', 'teresa', 'vicente', 'alberto', 'andres', 'daniel', 'jorge', 'alejandro',
+        'ana', 'belen', 'jaime', 'felipe', 'victor', 'ruben', 'sergio'];
+
+    /** Partículas de apellido: «del Río», «de la Torre», «San Martín»… */
+    private const PARTICULAS = ['de', 'del', 'la', 'las', 'los', 'y', 'san', 'santa', 'da', 'do', 'dos', 'das', 'van', 'von', 'di', 'le'];
+
+    /**
+     * «Mario López García» → «Mario L.», «Miguel Ángel Toro» → «Miguel Ángel T.»,
+     * «Sergio del Río» → «Sergio del R.», «Paco de la Torre» → «Paco de la T.».
+     */
     public static function abreviar(string $nombre): string
     {
-        $partes = preg_split('/\s+/u', trim($nombre)) ?: [$nombre];
+        $partes = array_values(array_filter(preg_split('/\s+/u', trim($nombre)) ?: []));
+        if (count($partes) < 2) {
+            return $nombre;
+        }
 
-        return $partes[0].(isset($partes[1]) ? ' '.mb_substr($partes[1], 0, 1).'.' : '');
+        $llano = fn (string $p): string => mb_strtolower(\Illuminate\Support\Str::ascii($p));
+        $i = 1;
+        // Nombre compuesto: el segundo es un nombre de pila y aún queda apellido detrás.
+        if (count($partes) >= 3 && in_array($llano($partes[1]), self::SEGUNDOS_NOMBRES, true)) {
+            $i = 2;
+        }
+        $nombrePila = implode(' ', array_slice($partes, 0, $i));
+        // Partículas del apellido: van enteras, y la inicial es la de la palabra que sigue.
+        $particulas = [];
+        while (isset($partes[$i + 1]) && in_array($llano($partes[$i]), self::PARTICULAS, true)) {
+            $particulas[] = $partes[$i];
+            $i++;
+        }
+
+        return implode(' ', array_filter([$nombrePila, ...$particulas, mb_substr($partes[$i], 0, 1).'.'], fn ($x) => $x !== ''));
     }
 }

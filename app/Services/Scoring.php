@@ -658,9 +658,16 @@ class Scoring
             default => $fila->piezas.($fila->piezas === 1 ? ' pieza' : ' piezas'),
         };
 
-        $mayor = static::piezaMayorTexto($criterio, $fila);
+        // Con una sola pieza, la pieza mayor es esa: no se repite.
+        $mayor = ($fila->piezas ?? 0) > 1 ? static::piezaMayorTexto($criterio, $fila) : '';
 
         return implode(' · ', array_filter([$base, $mayor !== '' ? "mayor {$mayor}" : '']));
+    }
+
+    /** Puntos con su unidad: «1 pt», «18,5 pts». */
+    public static function pts(int|float $puntos): string
+    {
+        return static::formatPuntos($puntos).($puntos == 1 ? ' pt' : ' pts');
     }
 
     /** La pieza mayor de una fila (de manga o de temporada) en su unidad; «» si no la hay. */

@@ -78,6 +78,8 @@ class AdminPanelProvider extends PanelProvider
                     .'.fi-ta-record .fi-ta-record-content-ctn { flex-direction: row; align-items: center; }'
                     .'.fi-ta-record .fi-ta-record-content-ctn > div:first-child { flex: 1 1 0%; min-width: 0; }'
                     .'.fi-ta-record .fi-ta-actions.fi-wrapped { flex: 0 0 auto; width: auto; flex-wrap: nowrap; padding-inline: .25rem .9rem; }'
+                    // La frase «Así puntúa esta sección» se queda pegada arriba mientras se tocan las opciones.
+                    .'.plica-resumen-fijo { position: sticky; top: 4.5rem; z-index: 5; padding: .6rem .8rem; border-radius: .6rem; background: #ecfdf5; border: 1px solid rgba(5, 150, 105, .35); }'
                     .'</style>',
             )
             ->renderHook(PanelsRenderHook::PAGE_START, $atras)

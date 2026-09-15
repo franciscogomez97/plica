@@ -183,7 +183,7 @@ class PorPuestosTest extends TestCase
         $this->actingAs(User::create(['name' => 'Socio de prueba', 'email' => 'socio@be.test', 'password' => Hash::make('secreta1234'), 'club_id' => $this->club->id, 'role' => User::ROLE_SOCIO]));
         Filament::setCurrentPanel(Filament::getPanel('app'));
         Livewire::test(RankingSeccion::class, ['seccion' => $this->orilla->id])
-            ->assertSeeHtml('class="v pts">2<span class="u"> pts</span>')
+            ->assertSeeHtml('class="v pts font-semibold">2<span class="u"> pts</span>')
             ->assertSeeHtml('class="peso">3,250 kg')
             ->assertSeeHtml('class="peso">0 kg');
     }

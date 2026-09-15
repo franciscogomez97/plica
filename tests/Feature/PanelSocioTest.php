@@ -72,7 +72,7 @@ class PanelSocioTest extends TestCase
             ->assertSee('ganador de la manga')
             ->assertSee('1ª Manga')
             ->assertSee('Última manga')
-            ->assertSee('Compartir por WhatsApp');
+            ->assertSee('href="https://wa.me/?text=', escape: false);
 
         // Una sección de otro club no existe para este socio.
         $otro = Club::create(['nombre' => 'Otro', 'slug' => 'otro']);

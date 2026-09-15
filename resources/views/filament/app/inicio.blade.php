@@ -108,7 +108,7 @@
                     <span>{{ $miFila->participante->esEquipo ? 'Tu equipo va' : 'Vas' }} <strong>{{ $miFila->puesto }}º</strong> de {{ $grupo->filas->count() }}</span>
                     <span style="opacity:.7">·</span>
                     <span>{{ $grupo->sistema === \App\Models\Seccion::SISTEMA_PUESTOS || ($grupo->puntosParticipacion ?? 0) > 0 || ($grupo->puntosNoAsistencia ?? 0) !== 0
-                        ? \App\Services\Scoring::formatPuntos($miFila->puntos).' pts'
+                        ? \App\Services\Scoring::pts($miFila->puntos)
                         : \App\Services\Scoring::valorRanking($grupo->criterio, $miFila->puntos) }}</span>
                 </div>
             @endif
