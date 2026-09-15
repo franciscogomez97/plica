@@ -53,7 +53,9 @@ class AppPanelProvider extends PanelProvider
             ->brandLogoHeight('2.25rem')
             ->favicon(asset(Marca::FAVICON))
             ->colors([
-                'primary' => Color::Emerald,
+                // Emerald-600 sobre blanco da 3,77:1 y AA pide 4,5:1: los botones y enlaces
+                // (tono 600 en Filament) usan el 700 (5,5:1), y el 500 el 600. Casi no se nota.
+                'primary' => array_replace(Color::Emerald, [500 => Color::Emerald[600], 600 => Color::Emerald[700]]),
             ])
             // El panel del socio es una sola pantalla: sin menú lateral,
             // contenido estrecho y navegación sin recargas — sensación de app.

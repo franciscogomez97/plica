@@ -22,7 +22,7 @@
         </div>
         <p class="mt-1 text-base text-slate-500">
             {{ $club->localidad }}
-            @if ($club->email_contacto) · <a class="text-emerald-600 hover:underline" href="mailto:{{ $club->email_contacto }}">{{ $club->email_contacto }}</a> @endif
+            @if ($club->email_contacto) · <a class="text-emerald-700 hover:underline" href="mailto:{{ $club->email_contacto }}">{{ $club->email_contacto }}</a> @endif
             @if ($club->telefono_contacto) · {{ $club->telefono_contacto }} @endif
         </p>
         @if ($club->descripcion)
@@ -32,7 +32,7 @@
 
     @if ($proximas->isNotEmpty())
         <section class="pb-8">
-            <h2 class="mb-3 text-lg font-bold text-emerald-600">📅 Próximas mangas</h2>
+            <h2 class="mb-3 text-lg font-bold text-emerald-700">📅 Próximas mangas</h2>
             <div class="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white px-4">
                 @foreach ($proximas as $manga)
                     <a href="{{ $manga->urlPublica() }}" class="flex min-h-14 items-center gap-3 py-3 hover:text-emerald-800">
@@ -54,7 +54,7 @@
     @foreach ($ranking as $grupo)
         @php $seccion = $grupo->seccionId ? $secciones->get($grupo->seccionId) : null; @endphp
         <section class="pb-8">
-            <h2 class="mb-1 text-lg font-bold text-emerald-600">🏆 Ranking {{ $grupo->nombre }} <span class="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-600">por {{ mb_strtolower(\App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio) }}</span></h2>
+            <h2 class="mb-1 text-lg font-bold text-emerald-700">🏆 Ranking {{ $grupo->nombre }} <span class="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-emerald-700">por {{ mb_strtolower(\App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio) }}</span></h2>
             <p class="mb-3 text-sm text-slate-500">{{ $temporada->nombre }} · {{ $grupo->numMangas === 1 ? '1 manga celebrada' : $grupo->numMangas.' mangas celebradas' }} · {{ $grupo->reglas }}</p>
             @include('public.partials.lista', ['grupo' => $grupo, 'modo' => 'temporada', 'limite' => 3])
             @if ($seccion)
@@ -67,7 +67,7 @@
 
     @if ($clasifUltima->isNotEmpty())
         <section class="pb-8">
-            <h2 class="mb-1 text-lg font-bold text-emerald-600">🎣 Última manga · {{ $ultimaManga->nombre }}</h2>
+            <h2 class="mb-1 text-lg font-bold text-emerald-700">🎣 Última manga · {{ $ultimaManga->nombre }}</h2>
             <p class="mb-3 text-sm text-slate-500">{{ $ultimaManga->fecha->format('d/m/Y') }}{{ $ultimaManga->lugar ? ' · '.$ultimaManga->lugar : '' }}</p>
             @foreach ($clasifUltima as $grupo)
                 @if ($clasifUltima->count() > 1)
@@ -84,7 +84,7 @@
     <section class="pb-8">
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
             <p class="text-base text-slate-700">¿Eres socio de {{ $club->nombre }}?</p>
-            <a href="/app" class="mt-3 inline-block rounded-xl bg-emerald-600 px-6 py-3 text-base font-semibold text-white hover:bg-emerald-500">
+            <a href="/app" class="mt-3 inline-block rounded-xl bg-emerald-700 px-6 py-3 text-base font-semibold text-white hover:bg-emerald-700">
                 Entrar a mi cuenta
             </a>
             <p class="mt-2 text-sm text-slate-500">¿Sin cuenta todavía? Pídele tu enlace de acceso al admin del club.</p>

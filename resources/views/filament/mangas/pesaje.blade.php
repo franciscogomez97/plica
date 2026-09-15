@@ -110,7 +110,7 @@
                         <div class="pesaje-fila" wire:key="fila-{{ $p->id }}" data-fila="{{ $p->id }}">
                             <div class="pesaje-quien">
                                 @if ($estado['tipo'] === 'vacio')
-                                    <button type="button" class="pesaje-quitar" wire:click="quitar({{ $p->id }})" title="Quitar de la manga" aria-label="Quitar a {{ $p->participante()->nombre }} de la manga">
+                                    <button type="button" class="pesaje-quitar" tabindex="-1" wire:click="quitar({{ $p->id }})" title="Quitar de la manga" aria-label="Quitar a {{ $p->participante()->nombre }} de la manga">
                                         <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedXMark" />
                                     </button>
                                 @endif

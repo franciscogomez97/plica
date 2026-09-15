@@ -24,13 +24,13 @@
                 <img src="{{ asset(\App\Support\Marca::LOGO) }}" alt="" class="size-9">
                 Plica
             </a>
-            <nav class="flex items-center gap-4 text-sm">
+            <nav class="flex items-center gap-4 text-sm" aria-label="Principal">
                 @auth
                     <a href="{{ auth()->user()->isAdmin() ? '/admin' : '/app' }}"
-                       class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">Mi panel</a>
+                       class="rounded-lg bg-emerald-700 px-4 py-2 font-medium text-white hover:bg-emerald-700">Mi panel</a>
                 @else
                     {{-- Una sola puerta: socios y admins entran por el mismo login y cada uno va a su panel. --}}
-                    <a href="{{ route('filament.app.auth.login') }}" class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">Entrar</a>
+                    <a href="{{ route('filament.app.auth.login') }}" class="rounded-lg bg-emerald-700 px-4 py-2 font-medium text-white hover:bg-emerald-700">Entrar</a>
                 @endauth
             </nav>
         </div>
@@ -49,14 +49,14 @@
         <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-2">
                 <img src="{{ asset(\App\Support\Marca::LOGO) }}" alt="" class="size-6 opacity-80">
-                <a href="{{ route('landing') }}" class="font-semibold text-slate-500 hover:text-emerald-700">Hecho con Plica</a>
+                <a href="{{ route('landing') }}" class="font-semibold text-slate-500 hover:text-emerald-800">Hecho con Plica</a>
                 <span>· mangas, pesajes y rankings de tu club sin Excel</span>
             </div>
-            <nav class="flex flex-wrap gap-x-4 gap-y-1">
-                <a href="{{ route('legal.aviso') }}" class="hover:text-emerald-700">Aviso legal</a>
-                <a href="{{ route('legal.privacidad') }}" class="hover:text-emerald-700">Privacidad</a>
-                <a href="{{ route('legal.cookies') }}" class="hover:text-emerald-700">Cookies</a>
-                <a href="{{ route('legal.condiciones') }}" class="hover:text-emerald-700">Condiciones</a>
+            <nav class="flex flex-wrap gap-x-4 gap-y-1" aria-label="Legal">
+                <a href="{{ route('legal.aviso') }}" class="inline-flex min-h-11 items-center hover:text-emerald-800">Aviso legal</a>
+                <a href="{{ route('legal.privacidad') }}" class="inline-flex min-h-11 items-center hover:text-emerald-800">Privacidad</a>
+                <a href="{{ route('legal.cookies') }}" class="inline-flex min-h-11 items-center hover:text-emerald-800">Cookies</a>
+                <a href="{{ route('legal.condiciones') }}" class="inline-flex min-h-11 items-center hover:text-emerald-800">Condiciones</a>
             </nav>
         </div>
     </footer>

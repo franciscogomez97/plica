@@ -9,6 +9,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -21,9 +22,18 @@ class MangasTable
             ->columns([
                 // Una sola línea por manga; el detalle aparece según cabe.
                 Split::make([
-                    TextColumn::make('nombre')
-                        ->weight(FontWeight::SemiBold)
-                        ->searchable(),
+                    Stack::make([
+                        TextColumn::make('nombre')
+                            ->weight(FontWeight::SemiBold)
+                            ->searchable(),
+                        // En el móvil no cabe la insignia de sección al lado: va debajo del nombre
+                        // (tres «3ª Manga» iguales no se distinguen sin ella).
+                        TextColumn::make('seccion_movil')
+                            ->state(fn (Manga $record): ?string => $record->seccion?->nombre)
+                            ->color('gray')
+                            ->size('xs')
+                            ->hiddenFrom('sm'),
+                    ]),
                     TextColumn::make('seccion.nombre')
                         ->badge()
                         ->color('gray')

@@ -25,3 +25,10 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Banco de pruebas en el navegador (pruebas-navegador/LEEME.md)
+/pruebas-navegador/node_modules
+/pruebas-navegador/package-lock.json
+/pruebas-navegador/capturas
+/pruebas-navegador/demo.sqlite*
+/pruebas-navegador/servidor.pid

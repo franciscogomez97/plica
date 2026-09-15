@@ -1,0 +1,10 @@
+{
+  "name": "plica-pruebas-navegador",
+  "private": true,
+  "type": "module",
+  "description": "Banco de pruebas de Plica en el navegador (Playwright + axe). Ver LEEME.md.",
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "playwright": "1.63.0"
+  }
+}

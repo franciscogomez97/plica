@@ -6,7 +6,7 @@
 @section('content')
     @php $legal = config('plica.legal'); @endphp
     <article class="mx-auto max-w-3xl">
-        <p class="text-sm font-bold uppercase tracking-wide text-emerald-600">Legal</p>
+        <p class="text-sm font-bold uppercase tracking-wide text-emerald-700">Legal</p>
         <h1 class="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $titulo }}</h1>
         <p class="mt-2 text-sm text-slate-500">Última actualización: {{ $legal['actualizado'] }}</p>
 
@@ -15,10 +15,10 @@
         </div>
 
         <nav class="mt-10 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-200 pt-6 text-sm text-slate-500">
-            <a href="{{ route('legal.aviso') }}" class="hover:text-emerald-700">Aviso legal</a>
-            <a href="{{ route('legal.privacidad') }}" class="hover:text-emerald-700">Privacidad</a>
-            <a href="{{ route('legal.cookies') }}" class="hover:text-emerald-700">Cookies</a>
-            <a href="{{ route('legal.condiciones') }}" class="hover:text-emerald-700">Condiciones del servicio</a>
+            <a href="{{ route('legal.aviso') }}" class="hover:text-emerald-800">Aviso legal</a>
+            <a href="{{ route('legal.privacidad') }}" class="hover:text-emerald-800">Privacidad</a>
+            <a href="{{ route('legal.cookies') }}" class="hover:text-emerald-800">Cookies</a>
+            <a href="{{ route('legal.condiciones') }}" class="hover:text-emerald-800">Condiciones del servicio</a>
         </nav>
     </article>
 

@@ -9,7 +9,7 @@
     .cuadro thead th { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; font-weight: 700; vertical-align: bottom; border-bottom-width: 2px; }
     .dark .cuadro thead th { color: #9ca3af; }
     .cuadro thead th small { display: block; font-size: .72rem; font-weight: 500; text-transform: none; letter-spacing: 0; opacity: .8; }
-    .cuadro thead th a { display: inline-block; max-width: 9rem; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+    .cuadro thead th a { display: inline-block; max-width: 9rem; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; padding: .35rem 0; min-height: 1.5rem; } /* objetivo táctil ≥ 24 px */
     .cuadro thead th a:hover { color: rgb(16 185 129); }
     .cuadro tbody tr:last-child td { border-bottom: 0; }
 

@@ -22,7 +22,7 @@
                     @include('partials.compartir', ['titulo' => 'Ranking '.$seccion->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url, 'compacto' => true])
                     @include('partials.compartir-imagen', ['titulo' => 'Ranking '.$seccion->nombre.' · '.$club->nombre, 'url' => \App\Services\Podio::urlRanking($temporada, $seccion, $grupo), 'compacto' => true, 'pie' => $texto."\n".$url])
                     @if ($enPanel)
-                        <a href="{{ $url }}" target="_blank" rel="noopener" class="text-sm text-slate-500 underline hover:text-emerald-700">Ver la página pública</a>
+                        <a href="{{ $url }}" target="_blank" rel="noopener" class="text-sm text-slate-500 underline hover:text-emerald-800">Ver la página pública</a>
                     @endif
                 </div>
             @endif
@@ -31,7 +31,7 @@
             {{ $temporada?->nombre ?? 'Sin temporada activa' }}@if ($cuadro && $cuadro->mangas->isNotEmpty()) · {{ $cuadro->mangas->count() === 1 ? '1 manga celebrada' : $cuadro->mangas->count().' mangas celebradas' }}@endif
         </p>
         <details class="mt-3 text-sm text-slate-500">
-            <summary class="cursor-pointer select-none font-medium text-slate-700 hover:text-emerald-700">Cómo puntúa esta sección</summary>
+            <summary class="cursor-pointer select-none font-medium text-slate-700 hover:text-emerald-800">Cómo puntúa esta sección</summary>
             <p class="mt-1 max-w-3xl">{{ $seccion->resumenReglas() }}</p>
         </details>
     </section>
@@ -94,7 +94,7 @@
                 {{-- La leyenda del cuadro, en pequeño, junto al título. --}}
                 <div class="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
                     <span><span class="mr-1 inline-block size-2.5 rounded-full bg-amber-400 align-middle"></span>ganador de la manga</span>
-                    <span>🐟 <span class="font-semibold text-emerald-600">verde</span>: pieza mayor de la manga</span>
+                    <span>🐟 <span class="font-semibold text-emerald-700">verde</span>: pieza mayor de la manga</span>
                     @if ((int) $cuadro->seccion->descartes > 0)
                         <span><s>tachado</s>: manga descartada</span>
                     @endif

@@ -17,14 +17,14 @@
     <section class="py-8 text-center sm:py-14">
         <img src="{{ asset(\App\Support\Marca::LOGO) }}" alt="Plica" class="mx-auto size-20 sm:size-24">
         <h1 class="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
-            Tu club de pesca, <span class="text-emerald-600">sin Excel y sin líos de WhatsApp</span>
+            Tu club de pesca, <span class="text-emerald-700">sin Excel y sin líos de WhatsApp</span>
         </h1>
         <p class="mx-auto mt-5 max-w-2xl text-lg text-slate-500">
             Mangas, pesajes, clasificaciones y ranking de temporada, calculados solos y con las reglas de tu club.
             El admin mete las plicas en tres minutos desde el móvil; los socios lo ven al momento.
         </p>
         <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <a href="#solicitar" class="inline-flex min-h-12 items-center rounded-xl bg-emerald-600 px-6 text-base font-bold text-white hover:bg-emerald-500">Solicita acceso para tu club</a>
+            <a href="#solicitar" class="inline-flex min-h-12 items-center rounded-xl bg-emerald-700 px-6 text-base font-bold text-white hover:bg-emerald-700">Solicita acceso para tu club</a>
             @if ($demo)
                 <a href="{{ route('club.publico', $demo) }}" class="inline-flex min-h-12 items-center rounded-xl border border-slate-300 px-6 text-base font-semibold text-slate-800 hover:border-emerald-500 hover:text-emerald-800">Ver un club de ejemplo →</a>
             @endif
@@ -44,17 +44,17 @@
         <p class="mx-auto mt-2 max-w-2xl text-center text-slate-500">El ritual del agua no se toca: las plicas siguen en papel. Plica digitaliza el antes y el después.</p>
         <div class="mt-8 grid gap-4 sm:grid-cols-3">
             <div class="rounded-2xl border border-slate-200 bg-white p-6">
-                <div class="text-sm font-bold uppercase tracking-wide text-emerald-600">Antes</div>
+                <div class="text-sm font-bold uppercase tracking-wide text-emerald-700">Antes</div>
                 <h3 class="mt-1 text-lg font-bold">Convocas por WhatsApp</h3>
                 <p class="mt-2 text-sm text-slate-500">Fecha, lugar y «cómo llegar» con el texto ya escrito. Los socios tocan «Asistiré» y tú sabes con quién contar.</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-6">
-                <div class="text-sm font-bold uppercase tracking-wide text-emerald-600">El día</div>
+                <div class="text-sm font-bold uppercase tracking-wide text-emerald-700">El día</div>
                 <h3 class="mt-1 text-lg font-bold">Pesas en tres minutos</h3>
                 <p class="mt-2 text-sm text-slate-500">Una fila por socio: piezas, peso y pieza mayor. Cada casilla se guarda sola. Sin formularios, sin fórmulas, sin errores de suma.</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-6">
-                <div class="text-sm font-bold uppercase tracking-wide text-emerald-600">Después</div>
+                <div class="text-sm font-bold uppercase tracking-wide text-emerald-700">Después</div>
                 <h3 class="mt-1 text-lg font-bold">Compartes y ya está</h3>
                 <p class="mt-2 text-sm text-slate-500">Clasificación de la manga y ranking de temporada al instante, con un enlace que cualquiera puede abrir. Un botón y al grupo.</p>
             </div>
@@ -69,27 +69,27 @@
         </p>
         <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 sm:col-span-2 lg:col-span-1">
-                <h3 class="font-bold text-emerald-600">Empieza con lo que ya tienes</h3>
+                <h3 class="font-bold text-emerald-700">Empieza con lo que ya tienes</h3>
                 <p class="mt-2 text-sm text-slate-700">Mándanos por WhatsApp vuestro Excel o la lista de socios, tal cual estén. Os montamos el club en cuestión de minutos: secciones con sus reglas, socios y calendario. Y si queréis, cargamos las mangas ya celebradas para que el ranking salga entero desde el primer día.</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5">
-                <h3 class="font-bold text-emerald-600">Secciones con sus reglas</h3>
+                <h3 class="font-bold text-emerald-700">Secciones con sus reglas</h3>
                 <p class="mt-2 text-sm text-slate-500">Orilla, embarcación, pato, black bass, carpfishing… Cada sección compite por peso, medida o piezas, con sus descartes, sus puntos por asistencia y su desempate. Las reglas de vuestro reglamento, no las de un programa.</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5">
-                <h3 class="font-bold text-emerald-600">Manga a manga</h3>
+                <h3 class="font-bold text-emerald-700">Manga a manga</h3>
                 <p class="mt-2 text-sm text-slate-500">Un cuadro tipo hoja de cálculo: pescadores en filas, mangas en columnas, quién ganó cada una, quién hizo la pieza mayor y quién va ganando. Como vuestro Excel, pero solo y sin errores.</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5">
-                <h3 class="font-bold text-emerald-600">Socios sin registros</h3>
+                <h3 class="font-bold text-emerald-700">Socios sin registros</h3>
                 <p class="mt-2 text-sm text-slate-500">Cada socio recibe su enlace de acceso por WhatsApp y entra con un toque. Sin formularios de registro ni contraseñas que olvidar. Y quien no tenga cuenta ve igualmente las clasificaciones que compartáis.</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5">
-                <h3 class="font-bold text-emerald-600">Página pública del club</h3>
+                <h3 class="font-bold text-emerald-700">Página pública del club</h3>
                 <p class="mt-2 text-sm text-slate-500">Vuestro escudo, el calendario, los rankings y la última manga en una dirección que puedes mandar a cualquiera. Con vista previa bonita en WhatsApp.</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5">
-                <h3 class="font-bold text-emerald-600">Desde el móvil, como una app</h3>
+                <h3 class="font-bold text-emerald-700">Desde el móvil, como una app</h3>
                 <p class="mt-2 text-sm text-slate-500">Pensado para el admin que gestiona desde el embalse y para el socio que mira el ranking el domingo por la tarde. Se instala en la pantalla de inicio.</p>
             </div>
         </div>
@@ -103,10 +103,10 @@
             <p class="mt-6 text-5xl font-extrabold tracking-tight">{{ $plan['precio'] }} €<span class="text-xl font-semibold text-slate-500"> / temporada</span></p>
             <p class="mt-2 text-sm text-slate-500">IVA incluido. Una factura al año, en enero, cuando el club cobra las cuotas. La primera, en enero de {{ $gratisHasta->year }}, por la temporada {{ $gratisHasta->year }}.</p>
             <ul class="mx-auto mt-6 max-w-md space-y-2 text-left text-sm text-slate-700">
-                <li class="flex gap-2"><span class="text-emerald-600">✓</span> Gratis hasta el {{ $gratisHasta->isoFormat('D [de] MMMM [de] YYYY') }} para los clubes que entren en el otoño de {{ $anioOtono }}.</li>
-                <li class="flex gap-2"><span class="text-emerald-600">✓</span> Los diez primeros clubes: {{ $plan['fundadores'] }} € por temporada, para siempre.</li>
-                <li class="flex gap-2"><span class="text-emerald-600">✓</span> Alta acompañada por WhatsApp: nos pasas tus secciones y tu lista de socios y te lo dejamos montado.</li>
-                <li class="flex gap-2"><span class="text-emerald-600">✓</span> Sin permanencia. Si el club no renueva, los datos se conservan en solo lectura; nunca se borran.</li>
+                <li class="flex gap-2"><span class="text-emerald-700">✓</span> Gratis hasta el {{ $gratisHasta->isoFormat('D [de] MMMM [de] YYYY') }} para los clubes que entren en el otoño de {{ $anioOtono }}.</li>
+                <li class="flex gap-2"><span class="text-emerald-700">✓</span> Los diez primeros clubes: {{ $plan['fundadores'] }} € por temporada, para siempre.</li>
+                <li class="flex gap-2"><span class="text-emerald-700">✓</span> Alta acompañada por WhatsApp: nos pasas tus secciones y tu lista de socios y te lo dejamos montado.</li>
+                <li class="flex gap-2"><span class="text-emerald-700">✓</span> Sin permanencia. Si el club no renueva, los datos se conservan en solo lectura; nunca se borran.</li>
             </ul>
             <p class="mt-6 text-sm text-slate-500">Menos que los trofeos de una manga. Menos de 2 € por socio y año en un club de 80.</p>
         </div>
@@ -135,7 +135,7 @@
             <details class="group p-5">
                 <summary class="cursor-pointer list-none font-semibold">¿Qué pasa con los datos?
                     <span class="float-right text-slate-500 group-open:rotate-45">+</span></summary>
-                <p class="mt-2 text-sm text-slate-500">Guardamos lo mínimo: nombre, email si lo hay y resultados. Servidores en la Unión Europea, copias diarias, y el club es siempre el dueño de sus datos. Está todo en la <a href="{{ route('legal.privacidad') }}" class="text-emerald-600 hover:underline">política de privacidad</a>.</p>
+                <p class="mt-2 text-sm text-slate-500">Guardamos lo mínimo: nombre, email si lo hay y resultados. Servidores en la Unión Europea, copias diarias, y el club es siempre el dueño de sus datos. Está todo en la <a href="{{ route('legal.privacidad') }}" class="text-emerald-700 hover:underline">política de privacidad</a>.</p>
             </details>
             <details class="group p-5">
                 <summary class="cursor-pointer list-none font-semibold">¿Cuánto tarda el alta?
@@ -184,13 +184,13 @@
                         <textarea id="mensaje" name="mensaje" rows="3" maxlength="1000" placeholder="Secciones, número de socios, cómo lleváis hoy las plicas…"
                                   class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-base focus:border-emerald-500 focus:outline-none">{{ old('mensaje') }}</textarea>
                     </div>
-                    <button type="submit" class="w-full rounded-xl bg-emerald-600 py-3 text-base font-bold text-white hover:bg-emerald-500">
+                    <button type="submit" class="w-full rounded-xl bg-emerald-700 py-3 text-base font-bold text-white hover:bg-emerald-700">
                         Solicitar acceso
                     </button>
                     <p class="text-center text-xs text-slate-500">
-                        Solo usamos estos datos para darte de alta. <a href="{{ route('legal.privacidad') }}" class="underline hover:text-emerald-700">Privacidad</a>.
+                        Solo usamos estos datos para darte de alta. <a href="{{ route('legal.privacidad') }}" class="underline hover:text-emerald-800">Privacidad</a>.
                         @if ($whatsapp)
-                            <br>¿Prefieres hablar? <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="underline hover:text-emerald-700">Escríbenos por WhatsApp</a>.
+                            <br>¿Prefieres hablar? <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="underline hover:text-emerald-800">Escríbenos por WhatsApp</a>.
                         @endif
                     </p>
                 </form>

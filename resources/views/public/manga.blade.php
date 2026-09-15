@@ -26,7 +26,7 @@
                 <img src="{{ $club->logoUrl() }}" alt="" class="size-7 flex-none rounded-lg object-contain">
             @endif
             @if ($club->perfil_publico)
-                <a href="{{ route('club.publico', $club) }}" class="text-sm text-slate-500 hover:text-emerald-700">← {{ $club->nombre }}</a>
+                <a href="{{ route('club.publico', $club) }}" class="text-sm text-slate-500 hover:text-emerald-800">← {{ $club->nombre }}</a>
             @else
                 <span class="text-sm text-slate-500">{{ $club->nombre }}</span>
             @endif
@@ -57,11 +57,11 @@
         {{-- Convocatoria: los socios dicen si irán. Es intención: la asistencia real la pasa el admin. --}}
         <section class="pb-8">
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-                <h2 class="text-lg font-bold text-emerald-600">📅 {{ ucfirst($manga->fecha->locale('es')->isoFormat('dddd D [de] MMMM')) }}{{ $manga->horario() ? ' · '.$manga->horario() : '' }}</h2>
+                <h2 class="text-lg font-bold text-emerald-700">📅 {{ ucfirst($manga->fecha->locale('es')->isoFormat('dddd D [de] MMMM')) }}{{ $manga->horario() ? ' · '.$manga->horario() : '' }}</h2>
                 <p class="mt-1 text-base text-slate-700">
                     {{ $manga->lugar ?? 'Lugar por confirmar' }}
                     @if ($manga->ubicacion_url)
-                        · <a href="{{ $manga->ubicacion_url }}" target="_blank" rel="noopener" class="font-semibold text-emerald-600 hover:underline">📍 Cómo llegar</a>
+                        · <a href="{{ $manga->ubicacion_url }}" target="_blank" rel="noopener" class="font-semibold text-emerald-700 hover:underline">📍 Cómo llegar</a>
                     @endif
                 </p>
                 @if ($manga->quedada())
@@ -69,7 +69,7 @@
                     <p class="mt-2 text-base text-slate-700">
                         🤝 Quedada previa {{ $manga->quedada() }}
                         @if ($manga->quedada_url)
-                            · <a href="{{ $manga->quedada_url }}" target="_blank" rel="noopener" class="font-semibold text-emerald-600 hover:underline">📍 Cómo llegar</a>
+                            · <a href="{{ $manga->quedada_url }}" target="_blank" rel="noopener" class="font-semibold text-emerald-700 hover:underline">📍 Cómo llegar</a>
                         @endif
                     </p>
                 @endif
@@ -88,14 +88,14 @@
                             @csrf
                             <button type="submit" @class([
                                 'inline-flex min-h-11 items-center gap-2 rounded-xl px-5 py-2.5 text-base font-bold',
-                                'bg-emerald-600 text-white hover:bg-emerald-500' => $voy,
-                                'border border-emerald-500 text-emerald-600 hover:bg-emerald-50' => ! $voy,
+                                'bg-emerald-700 text-white hover:bg-emerald-700' => $voy,
+                                'border border-emerald-500 text-emerald-700 hover:bg-emerald-50' => ! $voy,
                             ])>{{ $voy ? '✓ Asistiré · toca para cancelar' : 'Asistiré' }}</button>
                         </form>
                     @elseif (auth()->check())
                         <p class="text-sm text-slate-500">Solo los socios del club pueden confirmar asistencia.</p>
                     @else
-                        <a href="/app" class="inline-flex min-h-11 items-center rounded-xl bg-emerald-600 px-5 py-2.5 text-base font-bold text-white hover:bg-emerald-500">¿Vas a ir? Entra y confirma</a>
+                        <a href="/app" class="inline-flex min-h-11 items-center rounded-xl bg-emerald-700 px-5 py-2.5 text-base font-bold text-white hover:bg-emerald-700">¿Vas a ir? Entra y confirma</a>
                         <p class="mt-2 text-sm text-slate-500">¿Sin cuenta todavía? Pídele tu enlace de acceso al admin del club.</p>
                     @endif
                 </div>
@@ -111,10 +111,10 @@
 
     @foreach ($grupos as $grupo)
         <section class="pb-8">
-            <h2 class="mb-1 text-lg font-bold text-emerald-600">{{ $grupo->nombre }} · por {{ mb_strtolower(\App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio) }}</h2>
+            <h2 class="mb-1 text-lg font-bold text-emerald-700">{{ $grupo->nombre }} · por {{ mb_strtolower(\App\Models\Seccion::CRITERIOS[$grupo->criterio] ?? $grupo->criterio) }}</h2>
             @if ($grupo->seccion)
                 <p class="mb-3 text-sm text-slate-500">
-                    <a href="{{ route('club.seccion', ['club' => $club->slug, 'seccion' => $grupo->seccion->slug]) }}" class="text-emerald-600 hover:underline">Ver el ranking de {{ $grupo->nombre }} →</a>
+                    <a href="{{ route('club.seccion', ['club' => $club->slug, 'seccion' => $grupo->seccion->slug]) }}" class="text-emerald-700 hover:underline">Ver el ranking de {{ $grupo->nombre }} →</a>
                 </p>
             @endif
             @include('public.partials.lista', ['grupo' => $grupo, 'modo' => 'manga'])

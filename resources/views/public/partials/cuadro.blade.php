@@ -22,6 +22,7 @@
     .pc th:first-child, .pc td:first-child, .pc th.total, .pc td.total, .pc th.piezas, .pc td.piezas { width: 1%; }
     .pc thead th { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: rgb(100 116 139); font-weight: 700; vertical-align: bottom; background: rgb(248 250 252); border-bottom: 1px solid rgb(226 232 240); }
     .pc thead th small { display: block; font-size: .7rem; font-weight: 500; text-transform: none; letter-spacing: 0; }
+    .pc thead th a { display: inline-block; padding: .35rem 0; min-height: 1.5rem; } /* objetivo táctil ≥ 24 px */
     .pc thead th:first-child { vertical-align: middle; }
     .pc th:first-child, .pc td:first-child { text-align: left; position: sticky; left: 0; z-index: 2; background: #fff; box-shadow: 6px 0 8px -6px rgba(0,0,0,.12); }
     .pc thead th:first-child { background: rgb(248 250 252); }
@@ -70,7 +71,7 @@
                     <th>Pescador</th>
                     @foreach ($cuadro->mangas as $manga)
                         <th>
-                            <a href="{{ ($urlManga ?? fn ($m) => route('club.manga', ['club' => $club->slug, 'manga' => $m->id]))($manga) }}" class="hover:text-emerald-700">{{ $manga->nombre }}</a>
+                            <a href="{{ ($urlManga ?? fn ($m) => route('club.manga', ['club' => $club->slug, 'manga' => $m->id]))($manga) }}" class="hover:text-emerald-800">{{ $manga->nombre }}</a>
                             <small>{{ $manga->fecha->format('d/m') }}</small>
                         </th>
                     @endforeach
