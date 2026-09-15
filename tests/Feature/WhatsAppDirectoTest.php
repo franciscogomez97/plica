@@ -35,7 +35,7 @@ class WhatsAppDirectoTest extends TestCase
         foreach (['/c/cd-pesca-piloto/orilla', '/c/cd-pesca-piloto/manga/'.$manga->id] as $url) {
             $html = $this->get($url)->assertOk()
                 ->assertSee('href="https://wa.me/?text=', escape: false)
-                ->assertSee('Compartir por WhatsApp')
+                ->assertSee('Compartir') // en la sección, el botón pequeño junto al título; en la manga, el normal
                 ->assertSee('data-imagen="', escape: false) // el mismo botón lleva la tarjeta del podio
                 ->getContent();
             // Un solo botón: la hoja del sistema solo para adjuntar la foto; sin ella, WhatsApp directo (el href).

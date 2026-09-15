@@ -103,7 +103,7 @@ class PodioTest extends TestCase
         $this->get('/c/cd-pesca-piloto/orilla')
             ->assertOk()
             ->assertSee('/orilla/podio.jpg?v=', escape: false)
-            ->assertSee('Compartir por WhatsApp');
+            ->assertSee('data-imagen="', escape: false); // el botón pequeño junto al título, con la tarjeta
 
         // Aislamiento: una manga de otro club no se sirve bajo este club.
         $otro = Club::create(['nombre' => 'Otro', 'slug' => 'otro']);
