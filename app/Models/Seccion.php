@@ -228,6 +228,19 @@ class Seccion extends Model
         return $this->hasMany(Equipo::class);
     }
 
+    /**
+     * ¿Ya hay pesajes de esta sección en la temporada activa? Entonces no se cambia
+     * quién pesca (individual/equipos): cambiarlo escondería ese historial.
+     */
+    public function tieneHistorialEnTemporadaActiva(): bool
+    {
+        $temporada = $this->club?->temporadaActiva();
+
+        return $temporada !== null && $this->participacions()
+            ->whereHas('manga', fn ($q) => $q->where('temporada_id', $temporada->id))
+            ->exists();
+    }
+
     /** En una sección por equipos, quien participa en la manga es el equipo. */
     public function esPorEquipos(): bool
     {

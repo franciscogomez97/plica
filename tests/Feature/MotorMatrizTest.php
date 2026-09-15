@@ -76,7 +76,7 @@ class MotorMatrizTest extends TestCase
             $desempates = array_keys(Seccion::desempatesPara($criterio, Seccion::SISTEMA_ACUMULADO));
             // Suma lo pescado.
             foreach ([0, 3] as $participacion) {
-                foreach ([0, 5, -7] as $ausencia) {
+                foreach ([0, -7] as $ausencia) { // sumando lo pescado, no ir nunca suma (el formulario lo impide)
                     foreach ([0, 1, 2] as $descartes) {
                         foreach ($descartes > 0 ? [false, true] : [false] as $descAus) {
                             foreach ($completo ? $desempates : [Seccion::desempatePorDefecto($criterio), Seccion::DESEMPATE_COMPARTIDO] as $desempate) {

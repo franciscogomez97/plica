@@ -45,9 +45,14 @@ class EquipoForm
                     ->bulkToggleable(false)
                     ->columns(['default' => 1, 'sm' => 2, 'lg' => 3])
                     ->minItems(1)
-                    ->helperText(fn (Get $get): string => ($tamano = Seccion::find($get('seccion_id'))?->tamano_equipo)
-                        ? "Equipos de {$tamano}. Si hoy falta alguien, el equipo cuenta igual."
-                        : 'Marca a los socios que forman el equipo.')
+                    // Con pesajes, los socios no se tocan: cambiaría quién ganó las mangas anteriores.
+                    ->disabled(fn (?Equipo $record): bool => $record?->tieneCapturas() ?? false)
+                    ->dehydrated(fn (?Equipo $record): bool => ! ($record?->tieneCapturas() ?? false))
+                    ->helperText(fn (Get $get, ?Equipo $record): string => ($record?->tieneCapturas() ?? false)
+                        ? 'Este equipo ya ha pesado alguna manga: sus socios no se cambian. Si cambia la tripulación, crea otro equipo.'
+                        : (($tamano = Seccion::find($get('seccion_id'))?->tamano_equipo)
+                            ? "Equipos de {$tamano}. Si hoy falta alguien, el equipo cuenta igual."
+                            : 'Marca a los socios que forman el equipo.'))
                     // Un socio solo puede estar en un equipo por sección y temporada.
                     ->rules([
                         fn (Get $get, ?Equipo $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record): void {

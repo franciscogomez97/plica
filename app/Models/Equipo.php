@@ -37,6 +37,12 @@ class Equipo extends Model
         return $this->belongsToMany(Socio::class)->withTimestamps()->orderBy('nombre');
     }
 
+    /** ¿Ya ha pesado alguna manga? Entonces sus socios no se tocan: cambiaría quién ganó. */
+    public function tieneCapturas(): bool
+    {
+        return $this->participacions()->whereHas('capturas')->exists();
+    }
+
     /** Cómo se presenta: su nombre o, si no tiene, los nombres de sus socios. */
     public function etiqueta(): string
     {

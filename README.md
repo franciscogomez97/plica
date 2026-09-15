@@ -81,7 +81,13 @@ motor escrito aparte y a lo simple a partir de la frase de reglas. Si discrepan,
 uno de los dos lee mal la regla. Los escenarios se escriben con
 `tests/Support/Escenario` (una línea por socio, una columna por manga; `bolo`,
 `—`, o el detalle de piezas y pieza mayor) y la sección se reconfigura sin
-reconstruir nada, así que una combinación nueva son tres líneas.
+reconstruir nada, así que una combinación nueva son tres líneas. Límite
+honesto: el motor de referencia lo escribió la misma cabeza que el real, así
+que caza regresiones y errores de orden, no una lectura equivocada de la regla.
+La lectura la prueban los datos reales: la general de Bass Extremadura
+calculada por el club (`BassExtremaduraTemporadaTest`) y, **norma: cada club
+nuevo aporta su hoja de la temporada pasada como matriz** antes de fiarse del
+motor con su reglamento.
 
 Cubren: páginas públicas, panel admin completo, clasificación por secciones,
 panel de socio, control de acceso, flujo de invitación completo, el motor
@@ -448,7 +454,13 @@ relativas al día en que se ejecuta.
 - **Aviso de cambio de temporada** (`NuevaTemporadaWidget`): en diciembre, o
   si la temporada activa es de un año ya pasado, el Inicio del admin propone
   «Crear la Temporada N+1» con el nombre ya puesto; desaparece en cuanto
-  existe. Las páginas que calculan rankings memorizan el resultado dentro de
+  existe. **El cambio de año son dos toques**: crear la temporada y repasar
+  los barcos. Socios y secciones son del club y siguen; al crear la temporada
+  (`CreateTemporada`) se copian los equipos de la anterior
+  (`Temporada::copiarEquiposDe`: mismo nombre, mismos socios, sin los de baja,
+  solo en secciones por equipos que aún no tengan equipos ese año) y la
+  notificación dice cuántos y cuántos quedaron incompletos. Probado viajando en
+  el tiempo a diciembre y enero (`CambioDeTemporadaTest`). Las páginas que calculan rankings memorizan el resultado dentro de
   la petición con `once()` para no calcular dos veces lo mismo.
 - **La portada pública resume** cada sección como el panel del socio: podio,
   pieza mayor y «Ver ranking completo y manga a manga»; y la última manga con
@@ -552,7 +564,14 @@ relativas al día en que se ejecuta.
   sección), así que compite con las demás por puntos. En los dos sistemas las
   mangas van por fecha y, a igualdad, se descarta la más antigua, igual en el
   ranking y en el cuadro (antes el ranking usaba el orden de guardado y podía
-  tachar una manga distinta de la del cuadro).
+  tachar una manga distinta de la del cuadro). Sumando lo pescado, **no ir no
+  puede sumar**: el formulario no admite puntos por ausencia positivos (0 o
+  castigo). **Quién pesca no se cambia con historial**: el radio
+  individual/equipos se bloquea si la sección tiene pesajes en la temporada
+  activa (cambiarlo escondería ese historial). **Los socios de un equipo con
+  capturas no se tocan** (cambiarían quién ganó; el nombre sí). Y una
+  participación es de un socio o de un equipo, nunca de ninguno ni de los dos
+  (`Participacion::saving`).
 - **Las reglas se cuentan en una frase** (`Seccion::resumenReglas`): la misma
   frase en el formulario de sección (en vivo, mientras se configura), en el
   listado y bajo cada ranking (admin, socio y página pública). Si el club no

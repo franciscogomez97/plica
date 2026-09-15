@@ -81,6 +81,12 @@ class SeccionForm
                                 Seccion::MODALIDAD_EQUIPOS => 'Embarcación o carpfishing: la plica es del equipo, fijo toda la temporada. Los equipos se forman en «Equipos».',
                             ])
                             ->default(Seccion::MODALIDAD_INDIVIDUAL)
+                            // Con pesajes en la temporada activa no se cambia: escondería ese historial.
+                            ->disabled(fn (?Seccion $record): bool => $record?->tieneHistorialEnTemporadaActiva() ?? false)
+                            ->dehydrated(fn (?Seccion $record): bool => ! ($record?->tieneHistorialEnTemporadaActiva() ?? false))
+                            ->helperText(fn (?Seccion $record): ?string => ($record?->tieneHistorialEnTemporadaActiva() ?? false)
+                                ? 'Esta sección ya tiene pesajes esta temporada: quién pesca no se puede cambiar hasta la temporada que viene.'
+                                : null)
                             ->live()
                             ->required(),
                         TextInput::make('tamano_equipo')
@@ -139,6 +145,9 @@ class SeccionForm
                         // manga a la que no se va. Por puestos: lo que se lleva quien no va.
                         TextInput::make('puntos_no_asistencia')
                             ->label('Puntos por ausencia')
+                            // Sumando lo pescado, no ir nunca suma: 0 o castigo (en negativo).
+                            ->maxValue(fn (Get $get): ?int => $esPuestos($get) ? null : 0)
+                            ->validationMessages(['max' => 'Sumando lo pescado, no ir no puede sumar puntos: 0 o un castigo en negativo.'])
                             ->helperText(fn (Get $get): string => $esPuestos($get)
                                 ? 'Los puntos que se lleva quien no va a una manga (aquí, cuantos más puntos, peor). Con 0, es automático: el último de esa manga más uno; si fueron 29, el ausente se lleva 30. Con un número fijo, faltar cuesta siempre lo mismo: lo habitual es el número de socios más uno, 48 con 47 socios.'
                                 : 'Por cada manga a la que un socio no va. En negativo, resta (castigo). 0 = nada.')

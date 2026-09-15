@@ -260,7 +260,7 @@ class Scoring
             $puntosManga[$mangaId] = static::puntosPorPuesto($clasif, $empate, $bolo, $puntosBolo, $puntosNoAsistencia);
             $ausentes[$mangaId] = static::puntosDeAusente($clasif, $puntosNoAsistencia);
         }
-        $mangaIds = array_keys($puntosManga);
+        $mangaIds = static::mangaIdsPorFecha($participaciones); // por fecha: a igualdad, se descarta la más antigua, igual que en el cuadro
 
         $filas = static::participantesDelRanking($participaciones, $seccion)
             ->map(function (array $par) use ($puntosManga, $ausentes, $mangaIds, $descartes, $descartesAusencias) {

@@ -21,6 +21,13 @@ class Participacion extends Model
     /** Quien pesa en una manga de una sección pasa a ser socio de esa sección (si no lo era); en equipos, todos sus socios. */
     protected static function booted(): void
     {
+        // Una participación es de un socio o de un equipo: nunca de ninguno ni de los dos.
+        static::saving(function (Participacion $participacion): void {
+            if (($participacion->socio_id === null) === ($participacion->equipo_id === null)) {
+                throw new \LogicException('Una participación tiene que ser de un socio o de un equipo (y solo de uno).');
+            }
+        });
+
         static::created(function (Participacion $participacion): void {
             if ($participacion->seccion_id !== null) {
                 foreach ($participacion->participante()->socios as $socio) {
