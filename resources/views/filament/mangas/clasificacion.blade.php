@@ -13,13 +13,15 @@
     @else
         {{-- Compartir: enlace público de la manga (cualquiera con el enlace lo ve). --}}
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:.75rem">
-            @include('partials.compartir', [
-                'titulo' => $manga->nombre.' · '.auth()->user()->club->nombre,
-                'texto' => \App\Services\Compartir::textoManga($manga, $grupos),
-                'url' => $manga->urlPublica(),
-            ])
+            {{-- Un solo botón: en el móvil manda la tarjeta con el texto y el enlace; en escritorio, WhatsApp Web con el texto. --}}
             @foreach ($grupos as $g)
-                @include('partials.compartir-imagen', ['titulo' => $manga->nombre.' · '.$g->nombre.' · '.auth()->user()->club->nombre, 'url' => \App\Services\Podio::urlManga($manga, $g), 'compacto' => true, 'etiqueta' => $grupos->count() > 1 ? 'Imagen '.$g->nombre : 'Imagen', 'pie' => \App\Services\Compartir::textoManga($manga, $grupos)."\n".$manga->urlPublica()])
+                @include('partials.compartir', [
+                    'titulo' => $manga->nombre.($grupos->count() > 1 ? ' · '.$g->nombre : '').' · '.auth()->user()->club->nombre,
+                    'texto' => \App\Services\Compartir::textoManga($manga, $grupos),
+                    'url' => $manga->urlPublica(),
+                    'imagen' => \App\Services\Podio::urlManga($manga, $g),
+                    'etiqueta' => $grupos->count() > 1 ? 'WhatsApp · '.$g->nombre : null,
+                ])
             @endforeach
             <a href="{{ $manga->urlPublica() }}" target="_blank" rel="noopener" style="font-size:.85rem; opacity:.7; text-decoration:underline">Ver la página pública</a>
         </div>

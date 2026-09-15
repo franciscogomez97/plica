@@ -35,12 +35,12 @@ class WhatsAppDirectoTest extends TestCase
         foreach (['/c/cd-pesca-piloto/orilla', '/c/cd-pesca-piloto/manga/'.$manga->id] as $url) {
             $html = $this->get($url)->assertOk()
                 ->assertSee('href="https://wa.me/?text=', escape: false)
-                ->assertSee('Compartir') // en la sección, el botón compacto; en la manga, el largo
-                ->assertSee('podio.jpg?v=', escape: false) // el botón de imagen, aparte
+                ->assertSee('Compartir por WhatsApp')
+                ->assertSee('data-imagen="', escape: false) // el mismo botón lleva la tarjeta del podio
                 ->getContent();
-            // La hoja de compartir del sistema solo la usa el botón de imagen, nunca el de WhatsApp.
-            $this->assertSame(1, substr_count($html, 'navigator.share('), 'una sola llamada a la hoja del sistema: la de la imagen');
-            $this->assertStringNotContainsString('navigator.share', substr($html, 0, strpos($html, 'compartir-imagen') ?: strpos($html, 'podio.jpg')));
+            // Un solo botón: la hoja del sistema solo para adjuntar la foto; sin ella, WhatsApp directo (el href).
+            $this->assertSame(1, substr_count($html, 'navigator.share('), 'una sola llamada a la hoja del sistema');
+            $this->assertSame(0, substr_count($html, 'Compartir imagen'), 'ya no hay botón de imagen aparte');
         }
     }
 
@@ -50,7 +50,7 @@ class WhatsAppDirectoTest extends TestCase
         $html = $this->get('/admin/ranking?seccion=orilla')->assertOk()
             ->assertSee('href="https://wa.me/?text=', escape: false)
             ->getContent();
-        $this->assertSame(1, substr_count($html, 'navigator.share('), 'una sola llamada a la hoja del sistema: la de la imagen');
+        $this->assertSame(1, substr_count($html, 'navigator.share('), 'una sola llamada a la hoja del sistema');
     }
 
     public function test_la_convocatoria_abre_whatsapp_con_el_texto_del_cuadro(): void

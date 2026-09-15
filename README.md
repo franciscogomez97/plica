@@ -516,10 +516,14 @@ relativas al día en que se ejecuta.
   varias secciones) y `/c/{club}/{seccion}/podio.jpg`, siempre con `?v=hash`
   para que WhatsApp no cachee una vieja. Esa imagen es la vista previa
   (Open Graph) de los enlaces de manga y sección: quien pega el enlace en un
-  grupo ve el podio. El botón «Compartir imagen» (`partials/compartir-imagen`,
-  en páginas públicas y paneles) adjunta el JPEG a la hoja de compartir del
-  móvil, la única excepción a «WhatsApp directo», porque un enlace wa.me no
-  puede llevar un fichero; en escritorio descarga. Fondo: una foto de
+  grupo ve el podio. **Un solo botón «Compartir por WhatsApp»**
+  (`partials/compartir`, con `$imagen`): en un móvil que sepa compartir
+  ficheros adjunta la tarjeta con el podio escrito y el enlace como pie, un
+  solo envío; donde no (escritorio, navegadores viejos) abre WhatsApp con el
+  texto y el enlace, como siempre. Es la única excepción a «WhatsApp directo»,
+  porque un enlace wa.me no puede llevar un fichero (desde el 15 de septiembre
+  de 2026 ya no hay botón de imagen aparte: dos botones acababan en el mismo
+  grupo). Fondo: una foto de
   `resources/podio/fondos` elegida por el id (estable por manga); sin fotos,
   degradado oscuro. Requiere GD con FreeType y JPEG.
 - **Secciones por equipos** (septiembre de 2026, en construcción): en

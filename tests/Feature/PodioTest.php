@@ -92,8 +92,9 @@ class PodioTest extends TestCase
             ->assertOk()
             ->assertSee('property="og:image" content="'.$urlPodio.'"', escape: false)
             ->assertSee('summary_large_image')
-            ->assertSee('Compartir imagen')
-            // La imagen viaja con el podio escrito y el enlace como pie: un solo envío por WhatsApp.
+            ->assertSee('Compartir por WhatsApp')
+            // Un solo botón: la tarjeta viaja con el podio escrito y el enlace como pie, un solo envío.
+            ->assertSee('data-imagen="'.e($urlPodio).'"', escape: false)
             ->assertSee('data-pie="', escape: false)
             ->assertSee(e($manga->urlPublica()), escape: false);
 
@@ -102,7 +103,7 @@ class PodioTest extends TestCase
         $this->get('/c/cd-pesca-piloto/orilla')
             ->assertOk()
             ->assertSee('/orilla/podio.jpg?v=', escape: false)
-            ->assertSee('Imagen');
+            ->assertSee('Compartir por WhatsApp');
 
         // Aislamiento: una manga de otro club no se sirve bajo este club.
         $otro = Club::create(['nombre' => 'Otro', 'slug' => 'otro']);

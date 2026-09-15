@@ -40,13 +40,12 @@
         </p>
         @if ($grupos->isNotEmpty())
             <div class="mt-4 flex flex-wrap items-center gap-2">
-                @include('partials.compartir', ['titulo' => $manga->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url])
                 @if ($grupos->count() === 1)
-                    @include('partials.compartir-imagen', ['titulo' => $manga->nombre.' · '.$club->nombre, 'url' => \App\Services\Podio::urlManga($manga, $grupos->first()), 'pie' => $texto."\n".$url])
+                    @include('partials.compartir', ['titulo' => $manga->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url, 'imagen' => \App\Services\Podio::urlManga($manga, $grupos->first())])
                 @else
-                    {{-- Manga de club con varias secciones: una tarjeta por sección. --}}
+                    {{-- Manga de club con varias secciones: un botón por sección, cada uno con su tarjeta. --}}
                     @foreach ($grupos as $g)
-                        @include('partials.compartir-imagen', ['titulo' => $manga->nombre.' · '.$g->nombre.' · '.$club->nombre, 'url' => \App\Services\Podio::urlManga($manga, $g), 'etiqueta' => 'Imagen '.$g->nombre, 'pie' => $texto."\n".$url])
+                        @include('partials.compartir', ['titulo' => $manga->nombre.' · '.$g->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url, 'imagen' => \App\Services\Podio::urlManga($manga, $g), 'etiqueta' => 'WhatsApp · '.$g->nombre])
                     @endforeach
                 @endif
             </div>

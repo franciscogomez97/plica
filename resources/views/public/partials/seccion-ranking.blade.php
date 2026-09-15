@@ -20,8 +20,7 @@
             <h1 class="min-w-0 text-2xl font-extrabold tracking-tight text-slate-900">Ranking {{ $seccion->nombre }}</h1>
             @if ($texto)
                 <div class="flex flex-wrap items-center gap-2">
-                    @include('partials.compartir', ['titulo' => 'Ranking '.$seccion->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url, 'compacto' => true])
-                    @include('partials.compartir-imagen', ['titulo' => 'Ranking '.$seccion->nombre.' · '.$club->nombre, 'url' => \App\Services\Podio::urlRanking($temporada, $seccion, $grupo), 'compacto' => true, 'pie' => $texto."\n".$url])
+                    @include('partials.compartir', ['titulo' => 'Ranking '.$seccion->nombre.' · '.$club->nombre, 'texto' => $texto, 'url' => $url, 'imagen' => \App\Services\Podio::urlRanking($temporada, $seccion, $grupo)])
                     @if ($enPanel)
                         <a href="{{ $url }}" target="_blank" rel="noopener" class="text-sm text-slate-500 underline hover:text-emerald-800">Ver la página pública</a>
                     @endif

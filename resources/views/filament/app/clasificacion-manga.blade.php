@@ -35,8 +35,8 @@
                         'titulo' => $manga->nombre.' · '.$club->nombre,
                         'texto' => \App\Services\Compartir::textoManga($manga, $grupos),
                         'url' => $manga->urlPublica(),
+                        'imagen' => \App\Services\Podio::urlManga($manga, $grupos->first()),
                     ])
-                    @include('partials.compartir-imagen', ['titulo' => $manga->nombre.' · '.$club->nombre, 'url' => \App\Services\Podio::urlManga($manga, $grupos->first()), 'compacto' => true, 'pie' => \App\Services\Compartir::textoManga($manga, $grupos)."\n".$manga->urlPublica()])
                 @endif
             </div>
         </x-filament::section>
