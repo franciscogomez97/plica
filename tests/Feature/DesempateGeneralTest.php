@@ -127,8 +127,8 @@ class DesempateGeneralTest extends TestCase
 
         Livewire::test(EditSeccion::class, ['record' => $this->seccion->getRouteKey()])
             ->assertFormFieldExists('desempate_general')
-            ->assertSee('Si empatan en una manga, ¿quién gana?')
-            ->assertSee('Si empatan en el ranking de la temporada, ¿quién gana?')
+            ->assertSee('Empate en una manga')
+            ->assertSee('Empate en la clasificación general')
             ->fillForm(['desempate_general' => Seccion::DESEMPATE_PESO])
             ->call('save')
             ->assertHasNoFormErrors();
@@ -142,7 +142,7 @@ class DesempateGeneralTest extends TestCase
         Livewire::test(EditSeccion::class, ['record' => $this->seccion->getRouteKey()])
             ->fillForm(['sistema_puntuacion' => Seccion::SISTEMA_ACUMULADO])
             ->assertFormFieldIsHidden('desempate_general')
-            ->assertSee('Si empatan, ¿quién gana?');
+            ->assertSee('Empate');
 
         // Una regla que no encaja con el criterio (más cm en una sección de peso) vuelve a «comparten».
         $this->seccion->refresh(); // el formulario guardó por otra instancia
