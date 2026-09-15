@@ -49,24 +49,6 @@ class ReglasSeccionTest extends TestCase
     }
 
     /** «Número de socios»: solo informativo, se guarda y se ve en el listado; no toca el cálculo. */
-    public function test_el_numero_de_socios_se_guarda_y_se_ve_pero_no_cambia_nada(): void
-    {
-        $admin = User::where('email', 'admin@plica.test')->firstOrFail();
-        $orilla = Seccion::where('nombre', 'Orilla')->firstOrFail();
-        $antes = Scoring::rankingTemporada(Temporada::where('activa', true)->firstOrFail())->firstWhere('nombre', 'Orilla')->filas->pluck('puntos')->all();
-
-        $this->actingAs($admin);
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Livewire::test(EditSeccion::class, ['record' => $orilla->getRouteKey()])
-            ->fillForm(['numero_socios' => 47])
-            ->call('save')
-            ->assertHasNoFormErrors();
-
-        $this->assertSame(47, $orilla->fresh()->numero_socios);
-        $this->get('/admin/seccions')->assertOk()->assertSee('47 socios');
-        $this->assertSame($antes, Scoring::rankingTemporada(Temporada::where('activa', true)->firstOrFail())->firstWhere('nombre', 'Orilla')->filas->pluck('puntos')->all());
-    }
-
     public function test_el_formulario_y_los_rankings_ensenan_las_reglas(): void
     {
         $admin = User::where('email', 'admin@plica.test')->firstOrFail();

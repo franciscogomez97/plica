@@ -21,6 +21,20 @@ use Illuminate\Validation\Rules\Unique;
  */
 class SeccionForm
 {
+    /**
+     * Lo que el formulario muestra como opción, en la base es un número: por
+     * puestos, «el último más uno» se guarda como 0 en puntos_no_asistencia.
+     */
+    public static function normalizar(array $data): array
+    {
+        if (($data['sistema_puntuacion'] ?? null) === Seccion::SISTEMA_PUESTOS && empty($data['ausencia_fija'])) {
+            $data['puntos_no_asistencia'] = 0;
+        }
+        unset($data['ausencia_fija']);
+
+        return $data;
+    }
+
     public static function configure(Schema $schema): Schema
     {
         $esPuestos = fn (Get $get): bool => $get('sistema_puntuacion') === Seccion::SISTEMA_PUESTOS;
@@ -100,14 +114,6 @@ class SeccionForm
                             ->visible(fn (Get $get): bool => $get('modalidad') === Seccion::MODALIDAD_EQUIPOS)
                             ->required(fn (Get $get): bool => $get('modalidad') === Seccion::MODALIDAD_EQUIPOS)
                             ->live(onBlur: true),
-                        // Solo informativo: no entra en ningún cálculo.
-                        TextInput::make('numero_socios')
-                            ->label('Número de socios de la sección')
-                            ->helperText('Solo informativo. No entra en ningún cálculo.')
-                            ->numeric()
-                            ->integer()
-                            ->minValue(0)
-                            ->nullable(),
                     ]),
 
                 Section::make('El ranking de la temporada')
@@ -125,16 +131,41 @@ class SeccionForm
                             ])
                             ->default(Seccion::SISTEMA_ACUMULADO)
                             ->live()
-                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) use ($corregirDesempate): void {
-                                $corregirDesempate($get, $set);
-                                $set('descartes_ausencias', $state === Seccion::SISTEMA_PUESTOS);
+                            // Quien elige «Federación» se lleva el reglamento de la federación: empate de manga por
+                            // promedio, general por gramos (o centímetros), bolo por la media, ausencias descartables.
+                            // Quien vuelve a «suma lo pescado», sus valores de siempre.
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
+                                $criterio = (string) ($get('criterio') ?: Seccion::CRITERIO_PESO);
+                                foreach (Seccion::valoresDelSistema((string) $state, $criterio) as $campo => $valor) {
+                                    $set($campo, $valor);
+                                }
                             })
                             ->required(),
+
+                        // La frase de reglas, en vivo, donde se necesita: junto a las opciones. Se queda pegada
+                        // arriba al hacer scroll, para verla en el móvil mientras se tocan las de abajo.
+                        Placeholder::make('resumen')
+                            ->label('Así puntúa esta sección')
+                            ->extraAttributes(['style' => 'position: sticky; top: 4.5rem; z-index: 5; padding: .6rem .8rem; border-radius: .6rem; background: rgba(5, 150, 105, .08); border: 1px solid rgba(5, 150, 105, .25)'])
+                            ->content(fn (Get $get): string => Seccion::resumenReglasDe(
+                                (string) ($get('criterio') ?: Seccion::CRITERIO_PESO),
+                                $esAcumulado($get) ? (int) ($get('puntos_participacion') ?: 0) : 0,
+                                (int) ($get('descartes') ?: 0),
+                                (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
+                                $get('desempate') ?: null,
+                                $esPuestos($get) && ! $get('ausencia_fija') ? 0 : (int) ($get('puntos_no_asistencia') ?: 0),
+                                (bool) $get('descartes_ausencias'),
+                                (string) ($get('bolo') ?: Seccion::BOLO_MEDIA),
+                                (int) ($get('puntos_bolo') ?: 0),
+                                (string) ($get('desempate_general') ?: Seccion::DESEMPATE_COMPARTIDO),
+                                (string) ($get('modalidad') ?: Seccion::MODALIDAD_INDIVIDUAL),
+                                (int) ($get('tamano_equipo') ?: 2),
+                            )),
 
                         // Suma lo pescado: se puede premiar ir a las mangas.
                         TextInput::make('puntos_participacion')
                             ->label('Puntos por asistencia')
-                            ->helperText('Por cada manga a la que se va, se pesque o no. 0 = no se usan.')
+                            ->helperText('Por cada manga a la que se va, se pesque o no. Si no se usan, déjalo en 0.')
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
@@ -143,18 +174,30 @@ class SeccionForm
 
                         // Puntos por ausencia. Suma lo pescado: lo que suma (o resta, en negativo) cada
                         // manga a la que no se va. Por puestos: lo que se lleva quien no va.
+                        // Por puestos: quien no va se lleva o el último puesto de esa manga más uno, o un número fijo.
+                        // (En la base, 0 = automático; el formulario no habla de ceros.)
+                        Radio::make('ausencia_fija')
+                            ->label('Quien no va a una manga se lleva')
+                            ->boolean('Un número fijo de puntos', 'El último puesto de esa manga más uno')
+                            ->default(0)
+                            ->afterStateHydrated(fn (Set $set, ?Seccion $record) => $set('ausencia_fija', ($record?->puntos_no_asistencia ?? 0) > 0 ? 1 : 0))
+                            ->visible($esPuestos)
+                            ->live()
+                            ->required($esPuestos),
                         TextInput::make('puntos_no_asistencia')
-                            ->label('Puntos por ausencia')
+                            ->label(fn (Get $get): string => $esPuestos($get) ? 'Puntos por no ir' : 'Puntos por ausencia')
                             // Sumando lo pescado, no ir nunca suma: 0 o castigo (en negativo).
                             ->maxValue(fn (Get $get): ?int => $esPuestos($get) ? null : 0)
                             ->validationMessages(['max' => 'Sumando lo pescado, no ir no puede sumar puntos: 0 o un número negativo.'])
                             ->helperText(fn (Get $get): string => $esPuestos($get)
-                                ? 'Puntos que se lleva quien no va a una manga. Con 0, el último puesto de esa manga más uno. Con un número fijo, faltar cuesta siempre lo mismo.'
-                                : 'Por cada manga a la que no se va. En negativo, resta. 0 = no se usan.')
+                                ? 'Los que se lleva quien no va, siempre los mismos. Muchos clubes ponen el número de socios más uno.'
+                                : 'Por cada manga a la que no se va. En negativo, resta. Si no se usan, déjalo en 0.')
                             ->numeric()
                             ->integer()
-                            ->minValue(fn (Get $get): ?int => $esPuestos($get) ? 0 : null)
+                            ->minValue(fn (Get $get): ?int => $esPuestos($get) ? 1 : null)
                             ->default(0)
+                            ->visible(fn (Get $get): bool => ! $esPuestos($get) || (bool) $get('ausencia_fija'))
+                            ->required(fn (Get $get): bool => $esPuestos($get) && (bool) $get('ausencia_fija'))
                             ->live(onBlur: true),
 
                         // Por puestos: el bolo (ir y no pescar). C = los que pescaron, N = los que fueron.
@@ -162,7 +205,7 @@ class SeccionForm
                             ->label('Quien va y no pesca (bolo) se lleva')
                             ->options(Seccion::BOLOS)
                             ->descriptions([
-                                Seccion::BOLO_MEDIA => 'La fórmula de la federación: (pescaron + 1 + fueron) / 2. Pescaron 21 y fueron 29: 25,5 puntos.',
+                                Seccion::BOLO_MEDIA => 'La media de los puestos que quedan, como la federación. Pescaron 21 y fueron 29: 25,5 puntos.',
                                 Seccion::BOLO_PRIMER_LIBRE => 'El puesto siguiente al último que pescó. Pescaron 21: 22 puntos.',
                                 Seccion::BOLO_ULTIMO => 'Tantos puntos como participantes. Fueron 29: 29 puntos.',
                                 Seccion::BOLO_FIJO => 'Un número fijo de puntos, el de la casilla de abajo.',
@@ -185,7 +228,7 @@ class SeccionForm
 
                         TextInput::make('descartes')
                             ->label('Descartes')
-                            ->helperText('Peores mangas de cada socio que no cuentan en la clasificación general. 0 = cuentan todas.')
+                            ->helperText('Peores mangas de cada socio que no cuentan en la clasificación general. Si cuentan todas, déjalo en 0.')
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
@@ -245,27 +288,6 @@ class SeccionForm
                     ])
                     ->collapsible(),
 
-                Section::make('Así puntúa esta sección')
-                    ->description('La misma frase que ven los socios junto al ranking.')
-                    ->schema([
-                        // Las reglas, en una frase, mientras se configuran.
-                        Placeholder::make('resumen')
-                            ->hiddenLabel()
-                            ->content(fn (Get $get): string => Seccion::resumenReglasDe(
-                                (string) ($get('criterio') ?: Seccion::CRITERIO_PESO),
-                                $esAcumulado($get) ? (int) ($get('puntos_participacion') ?: 0) : 0,
-                                (int) ($get('descartes') ?: 0),
-                                (string) ($get('sistema_puntuacion') ?: Seccion::SISTEMA_ACUMULADO),
-                                $get('desempate') ?: null,
-                                (int) ($get('puntos_no_asistencia') ?: 0),
-                                (bool) $get('descartes_ausencias'),
-                                (string) ($get('bolo') ?: Seccion::BOLO_MEDIA),
-                                (int) ($get('puntos_bolo') ?: 0),
-                                (string) ($get('desempate_general') ?: Seccion::DESEMPATE_COMPARTIDO),
-                                (string) ($get('modalidad') ?: Seccion::MODALIDAD_INDIVIDUAL),
-                                (int) ($get('tamano_equipo') ?: 2),
-                            )),
-                    ]),
             ]);
     }
 }

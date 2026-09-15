@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Seccions\Pages;
 
 use App\Filament\Resources\Mangas\MangaResource;
 use App\Filament\Resources\Seccions\SeccionResource;
+use App\Filament\Resources\Seccions\Schemas\SeccionForm;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateSeccion extends CreateRecord
@@ -14,6 +15,7 @@ class CreateSeccion extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $data = SeccionForm::normalizar($data);
         $data['club_id'] = auth()->user()->club_id;
 
         return $data;

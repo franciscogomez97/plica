@@ -67,7 +67,7 @@ class RevisionMotorTest extends TestCase
 
         // Por puestos sí: ahí es el coste de no ir.
         Livewire::test(EditSeccion::class, ['record' => $orilla->getRouteKey()])
-            ->fillForm(['sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puntos_no_asistencia' => 48])
+            ->fillForm(['sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'ausencia_fija' => 1, 'puntos_no_asistencia' => 48])
             ->call('save')
             ->assertHasNoFormErrors();
         $this->assertSame(48, $orilla->fresh()->puntos_no_asistencia);

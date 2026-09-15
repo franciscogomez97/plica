@@ -28,7 +28,6 @@ class SeccionsTable
                     TextColumn::make('reglas')
                         ->state(fn (Seccion $record): string => implode(' · ', array_filter([
                             $record->esPorEquipos() ? "equipos de {$record->tamano_equipo}" : null,
-                            $record->numero_socios !== null ? "{$record->numero_socios} socios" : null,
                             $record->puntos_participacion > 0 ? "{$record->puntos_participacion} pts por asistencia" : null,
                             $record->descartes > 0 ? ($record->descartes === 1 ? '1 descarte' : "{$record->descartes} descartes") : null,
                         ])))

@@ -102,10 +102,10 @@ class Seccion extends Model
 
         return $sistema === self::SISTEMA_PUESTOS
             ? $porAlgo + [
-                self::DESEMPATE_COMPARTIDO => 'Nadie: comparten el mejor puesto (los dos el 18)',
-                self::DESEMPATE_PROMEDIO => 'Nadie: se reparten el promedio de sus puestos (18,5 cada uno)',
+                self::DESEMPATE_COMPARTIDO => 'Comparten el mismo puesto (los dos el 18)',
+                self::DESEMPATE_PROMEDIO => 'Se reparten el promedio (18,5 cada uno), como la federación',
             ]
-            : $porAlgo + [self::DESEMPATE_COMPARTIDO => 'Nadie: comparten el puesto'];
+            : $porAlgo + [self::DESEMPATE_COMPARTIDO => 'Comparten el puesto'];
     }
 
     /**
@@ -122,7 +122,7 @@ class Seccion extends Model
             default => [self::DESEMPATE_PESO => 'Quien más peso haya sacado en el año'],
         };
 
-        return [self::DESEMPATE_COMPARTIDO => 'Nadie: comparten puesto']
+        return [self::DESEMPATE_COMPARTIDO => 'Comparten el puesto']
             + $total
             + [
                 self::DESEMPATE_GENERAL_MEJOR_MANGA => 'Quien tenga la mejor manga (la de menos puntos)',
@@ -130,6 +130,37 @@ class Seccion extends Model
                 self::DESEMPATE_MENOS_PIEZAS => 'Quien menos piezas haya sacado (FEPyC)',
                 self::DESEMPATE_PIEZAS => 'Quien más piezas haya sacado',
             ];
+    }
+
+    /**
+     * Lo que trae cada sistema al elegirlo en el formulario. Quien pulsa
+     * «Federación» se lleva el reglamento de la federación (empate de manga por
+     * promedio, general por gramos o centímetros, bolo por la media, ausencias
+     * descartables), no los valores del otro sistema con los inválidos quitados.
+     *
+     * @return array<string, mixed>
+     */
+    public static function valoresDelSistema(string $sistema, string $criterio): array
+    {
+        if ($sistema === self::SISTEMA_PUESTOS) {
+            return [
+                'desempate' => self::DESEMPATE_PROMEDIO,
+                'desempate_general' => $criterio === self::CRITERIO_MEDIDA ? self::DESEMPATE_GENERAL_MEDIDA : self::DESEMPATE_PESO,
+                'bolo' => self::BOLO_MEDIA,
+                'descartes_ausencias' => true,
+                'ausencia_fija' => 0,
+                'puntos_no_asistencia' => 0,
+                'puntos_participacion' => 0,
+            ];
+        }
+
+        return [
+            'desempate' => static::desempatePorDefecto($criterio),
+            'desempate_general' => self::DESEMPATE_COMPARTIDO,
+            'descartes_ausencias' => false,
+            'ausencia_fija' => 0,
+            'puntos_no_asistencia' => 0,
+        ];
     }
 
     /** Los empates que no se desempatan por nada. */

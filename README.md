@@ -572,6 +572,21 @@ relativas al día en que se ejecuta.
   capturas no se tocan** (cambiarían quién ganó; el nombre sí). Y una
   participación es de un socio o de un equipo, nunca de ninguno ni de los dos
   (`Participacion::saving`).
+- **El formulario de la sección no engaña** (revisión del 15 de septiembre de
+  2026): al elegir un sistema se ponen **los valores de ese sistema**
+  (`Seccion::valoresDelSistema`), no solo se quitan los inválidos: «Federación»
+  trae empate de manga por promedio, general por gramos (centímetros en
+  medida), bolo por la media y ausencias descartables; «suma lo pescado», sus
+  valores de siempre. Por puestos, quien no va se lleva «el último puesto de
+  esa manga más uno» o «un número fijo» (campo virtual `ausencia_fija`; en la
+  base sigue siendo `puntos_no_asistencia` = 0 para el automático,
+  `SeccionForm::normalizar`), sin hablar de ceros. Fuera el «número de socios»
+  del formulario (solo confundía; la columna queda). Los empates se llaman
+  «Comparten el puesto» y «Se reparten el promedio (18,5 cada uno), como la
+  federación»; el bolo se explica con el ejemplo, sin fórmula. La frase «Así
+  puntúa esta sección» va dentro del bloque del ranking, justo bajo el sistema,
+  pegada arriba al hacer scroll para verla en el móvil mientras se tocan las
+  opciones; los socios de la sección van al final.
 - **Las reglas se cuentan en una frase** (`Seccion::resumenReglas`): la misma
   frase en el formulario de sección (en vivo, mientras se configura), en el
   listado y bajo cada ranking (admin, socio y página pública). Si el club no

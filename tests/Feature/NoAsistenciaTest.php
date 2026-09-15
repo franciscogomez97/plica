@@ -126,7 +126,7 @@ class NoAsistenciaTest extends TestCase
 
         // Por puestos: lo que cuesta no ir, nunca negativo.
         Livewire::test(EditSeccion::class, ['record' => $this->orilla->getRouteKey()])
-            ->fillForm(['sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'puntos_no_asistencia' => 25])
+            ->fillForm(['sistema_puntuacion' => Seccion::SISTEMA_PUESTOS, 'ausencia_fija' => 1, 'puntos_no_asistencia' => 25])
             ->call('save')
             ->assertHasNoFormErrors();
         $this->assertSame(25, $this->orilla->fresh()->puntos_no_asistencia);

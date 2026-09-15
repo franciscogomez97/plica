@@ -203,6 +203,7 @@ class PorPuestosTest extends TestCase
             ->fillForm([
                 'sistema_puntuacion' => Seccion::SISTEMA_PUESTOS,
                 'desempate' => Seccion::DESEMPATE_PROMEDIO,
+                'ausencia_fija' => 1,
                 'puntos_no_asistencia' => 48,
             ])
             ->call('save')
