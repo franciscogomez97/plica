@@ -77,10 +77,10 @@
             @if ($grupos->isEmpty())
                 @php $confirmados = $this->getConfirmados(); @endphp
                 <p style="opacity:.7; margin-top:.8rem">
-                    Todavía no hay nadie apuntado. «Marcar asistencia» pasa lista de golpe; aquí se añade uno a uno.
+                    Todavía no hay nadie apuntado. «Pasar lista» apunta a varios de golpe; aquí se añade uno a uno.
                     @if ($confirmados->isNotEmpty())
                         <br><strong>{{ $confirmados->count() === 1 ? '1 socio confirmó que vendría' : $confirmados->count().' socios confirmaron que vendrían' }}:</strong>
-                        {{ $confirmados->implode(', ') }}. En «Marcar asistencia» ya vienen marcados.
+                        {{ $confirmados->implode(', ') }}. En «Pasar lista» ya vienen marcados.
                     @endif
                 </p>
             @endif

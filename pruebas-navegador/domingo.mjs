@@ -29,7 +29,7 @@ console.log('   lleva a:', page.url().replace(BASE, ''));
 await foto('manga');
 
 console.log('3. Pasa lista');
-await toca(page.getByRole('button', { name: 'Marcar asistencia' }), 'Marcar asistencia');
+await toca(page.getByRole('button', { name: /Pasar lista|Marcar asistencia/ }), 'Pasar lista');
 await foto('asistencia-modal');
 const casillas = page.locator('[role="dialog"] input[type="checkbox"]');
 console.log(`   casillas: ${await casillas.count()}, marcadas de antemano: ${await page.locator('[role="dialog"] input[type="checkbox"]:checked').count()}`);

@@ -82,7 +82,10 @@ class DomingoDelPresidenteTest extends TestCase
         Livewire::test(PesajeManga::class, ['record' => $pasada->getRouteKey()])
             ->assertActionHidden('convocar')
             ->assertActionHasColor('asistencia', 'success')
-            ->assertActionHasColor('clasificacion', 'gray');
+            ->assertActionHasColor('clasificacion', 'gray')
+            // La pantalla vacía nombra el botón por el nombre que tiene en ese momento.
+            ->assertSee('«Pasar lista» apunta a varios de golpe')
+            ->assertDontSee('«Marcar asistencia»');
 
         // Con gente pesada: la clasificación en verde, la asistencia vuelve a gris.
         $pasada->sincronizarAsistencia($orilla->socios()->pluck('socios.id')->take(3)->all());
