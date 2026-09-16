@@ -85,7 +85,7 @@ class RevisionRankingsTest extends TestCase
         $this->assertStringContainsString('<th class="desempate" title="Decide los empates de la clasificación general">cm<small>empate</small></th>', $html);
         $this->assertStringContainsString('<td class="desempate">80 cm</td>', $html);
         $this->assertStringNotContainsString('<th class="piezas">Piezas</th>', $html, 'con la columna de empate, la de piezas sobra (no cabía en escritorio)');
-        $this->assertStringContainsString('<span class="v">no fue</span><span class="m">3 pts</span>', $html, 'el ausente dice «no fue» y lo que le cuesta');
+        $this->assertStringContainsString('<span class="v">no asist.</span><span class="m">3 pts</span>', $html, 'el ausente dice «no asist.» y lo que le cuesta');
         $this->assertStringContainsString('<span class="u"> pt</span>', $html, 'el ganador de la manga: 1 pt');
         $this->assertStringNotContainsString('1 pts', $html);
     }
@@ -99,7 +99,7 @@ class RevisionRankingsTest extends TestCase
         $html = $this->get('/c/'.$escenario->club->slug.'/'.$escenario->seccion->slug)->assertOk()->getContent();
 
         $this->assertStringContainsString('<span class="v font-semibold">0<span class="u"> kg</span></span>', $html, 'bolo: 0 kg');
-        $this->assertStringContainsString('<span class="v">no fue</span>', $html, 'ausente: no fue');
+        $this->assertStringContainsString('<span class="v">no asist.</span>', $html, 'ausente: no asist.');
         $this->assertStringNotContainsString('class="desempate"', $html, 'sumando lo pescado no hay columna de empate');
         $this->assertStringContainsString('pc-scroll', $html, 'pista de que el cuadro se desliza en el móvil');
     }
