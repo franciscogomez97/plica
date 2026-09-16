@@ -615,6 +615,16 @@ relativas al día en que se ejecuta.
   panel del socio es la misma página que la web**: el mismo parcial
   `public/partials/seccion-ranking`, con su fila resaltada («· tú», parámetro
   `socioId` en cuadro y lista); el parcial de cuadro del panel desapareció.
+- **El domingo del presidente** (revisión del 16 de septiembre de 2026): al
+  pasar lista solo salen los socios de la sección de la manga, más quien ya
+  esté apuntado o dijo «asistiré»; los demás, tras «Mostrar también a los
+  socios de otras secciones» (`AsistenciaAction::opciones`). Así «Seleccionar
+  todos» no apunta al club entero a una manga de embarcación. La botonera del
+  pesaje decide por él según el momento: antes de la manga, «Convocar por
+  WhatsApp» en verde; pasada la fecha y sin nadie apuntado, convocar desaparece
+  y «Pasar lista» es lo único en verde; con gente pesada, la clasificación. En
+  el texto de WhatsApp de una manga el bolo dice «0 kg», no «—»
+  (`Scoring::valorPrincipalOCero`).
 - **Las reglas se cuentan en una frase** (`Seccion::resumenReglas`): la misma
   frase en el formulario de sección (en vivo, mientras se configura), en el
   listado y bajo cada ranking (admin, socio y página pública). Si el club no

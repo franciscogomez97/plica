@@ -650,6 +650,18 @@ class Scoring
         };
     }
 
+    /** Como valorPrincipal, pero el bolo dice «0 kg» (o «0 cm», «0 piezas») en vez de «—»: para textos. */
+    public static function valorPrincipalOCero(string $criterio, object $fila): string
+    {
+        $valor = static::valorPrincipal($criterio, $fila);
+
+        return $valor === '—' ? '0 '.match ($criterio) {
+            Seccion::CRITERIO_MEDIDA => 'cm',
+            Seccion::CRITERIO_PIEZAS => 'piezas',
+            default => 'kg',
+        } : $valor;
+    }
+
     /** Dato secundario de una fila (complementa al principal), con la pieza mayor si la hay. */
     public static function valorSecundario(string $criterio, object $fila): string
     {

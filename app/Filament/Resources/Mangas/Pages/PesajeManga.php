@@ -251,14 +251,24 @@ class PesajeManga extends Page
 
     protected function getHeaderActions(): array
     {
+        $manga = $this->getRecord();
+        // Lo que toca en cada momento manda: antes de la manga, convocar; pasada la fecha y sin nadie
+        // apuntado, pasar lista es lo único que destaca; con gente pesada, la clasificación.
+        $sinNadie = count($this->filas) === 0;
+        $yaPaso = $manga->fecha->lte(today());
+
         return [
-            ConvocarAction::make(fn (): Manga => $this->getRecord()),
+            ConvocarAction::make(fn (): Manga => $this->getRecord())
+                ->visible(fn (): bool => $this->getRecord()->estado === Manga::ESTADO_PROGRAMADA && ! $this->getRecord()->fecha->lte(today()))
+                ->color(fn (): string => count($this->filas) === 0 ? 'success' : 'gray'),
             AsistenciaAction::make(fn (): Manga => $this->getRecord())
+                ->label(fn (): string => count($this->filas) === 0 ? 'Pasar lista' : 'Marcar asistencia')
+                ->color(fn (): string => count($this->filas) === 0 && $this->getRecord()->fecha->lte(today()) ? 'success' : 'gray')
                 ->after(fn () => $this->cargarFilas()),
             Action::make('clasificacion')
                 ->label('Clasificación')
                 ->icon(Heroicon::OutlinedTrophy)
-                ->color('success')
+                ->color(fn (): string => count($this->filas) > 0 ? 'success' : 'gray')
                 ->url(fn (): string => MangaResource::getUrl('clasificacion', ['record' => $this->getRecord()])),
             Action::make('editar')
                 ->label('Datos de la manga')

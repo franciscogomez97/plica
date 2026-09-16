@@ -45,7 +45,7 @@ class Compartir
             $lineas[] = "{$grupo->nombre}:";
 
             foreach ($grupo->filas->take(3) as $fila) {
-                $lineas[] = "{$fila->puesto}º {$fila->socio->nombre} · ".Scoring::valorPrincipal($grupo->criterio, $fila);
+                $lineas[] = "{$fila->puesto}º {$fila->socio->nombre} · ".Scoring::valorPrincipalOCero($grupo->criterio, $fila);
             }
 
             if ($grupo->filas->count() > 3) {

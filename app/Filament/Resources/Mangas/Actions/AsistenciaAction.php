@@ -7,6 +7,8 @@ use App\Models\Socio;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 
@@ -17,6 +19,37 @@ use Filament\Support\Icons\Heroicon;
  */
 class AsistenciaAction
 {
+    /**
+     * Las casillas del checklist. Por equipos: los equipos de la sección en esta
+     * temporada. Por socios: los de la sección de la manga y, siempre, quien ya
+     * esté apuntado o dijo «asistiré» (sea de donde sea); los demás socios del
+     * club solo si se piden, marcados como «otra sección».
+     *
+     * @return array<int, string> id => etiqueta
+     */
+    public static function opciones(Manga $manga, bool $otrasSecciones): array
+    {
+        if ($manga->porEquipos()) {
+            return $manga->equiposPosibles()->mapWithKeys(fn ($e) => [$e->id => $e->etiqueta()])->all();
+        }
+        $deLaSeccion = $manga->seccion->socios()->pluck('socios.id');
+        $siempre = $manga->participacions()->pluck('socio_id')->filter()
+            ->concat($manga->confirmacions()->pluck('socio_id'));
+        $todos = Socio::query()
+            ->where('club_id', $manga->temporada->club_id)
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+        $otros = $todos->whereNotIn('id', $deLaSeccion);
+        if (! $otrasSecciones) {
+            $otros = $otros->whereIn('id', $siempre);
+        }
+
+        return $todos->whereIn('id', $deLaSeccion)->pluck('nombre', 'id')
+            ->union($otros->mapWithKeys(fn (Socio $s) => [$s->id => "{$s->nombre} (otra sección)"]))
+            ->all();
+    }
+
     /** @param  Closure(): Manga  $manga */
     public static function make(Closure $manga, string $name = 'asistencia'): Action
     {
@@ -35,25 +68,20 @@ class AsistenciaAction
             })
             ->modalSubmitActionLabel('Guardar asistencia')
             ->schema([
+                // Los de otras secciones no salen por defecto: un «Seleccionar todos» con prisa apuntaba
+                // a los 40 del club a una manga de embarcación. Se enseñan a petición.
+                Toggle::make('otras_secciones')
+                    ->label('Mostrar también a los socios de otras secciones')
+                    ->default(false)
+                    ->dehydrated(false)
+                    ->live()
+                    ->visible(fn (): bool => ! $manga()->porEquipos()),
                 CheckboxList::make('socios')
                     ->label(fn (): string => $manga()->porEquipos() ? 'Equipos' : 'Socios')
-                    // Primero los de la sección de la manga; los demás, detrás y marcados como «otra sección».
+                    // Los de la sección de la manga (y quien ya esté apuntado, sea de donde sea); los de
+                    // otras secciones solo con el interruptor, marcados como «otra sección».
                     // Por equipos: los equipos de la sección en esta temporada, y punto.
-                    ->options(function () use ($manga): array {
-                        if ($manga()->porEquipos()) {
-                            return $manga()->equiposPosibles()->mapWithKeys(fn ($e) => [$e->id => $e->etiqueta()])->all();
-                        }
-                        $deLaSeccion = $manga()->seccion->socios()->pluck('socios.id');
-                        $todos = Socio::query()
-                            ->where('club_id', auth()->user()->club_id)
-                            ->where('activo', true)
-                            ->orderBy('nombre')
-                            ->get();
-
-                        return $todos->whereIn('id', $deLaSeccion)->pluck('nombre', 'id')
-                            ->union($todos->whereNotIn('id', $deLaSeccion)->mapWithKeys(fn (Socio $s) => [$s->id => "{$s->nombre} (otra sección)"]))
-                            ->all();
-                    })
+                    ->options(fn (Get $get): array => static::opciones($manga(), (bool) $get('otras_secciones')))
                     // Ya apuntados; y si aún no hay nadie, los que dijeron «asistiré».
                     ->default(function () use ($manga): array {
                         if ($manga()->porEquipos()) {
